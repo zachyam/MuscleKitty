@@ -23,25 +23,26 @@ export default function TabLayout() {
       <Tabs
         id="app-tabs" // Add a stable ID for the tabs
         initialRouteName="index" // Explicitly set the initial route
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          ...styles.tabBar,
-          height: 60 + insets.bottom,
-          paddingBottom: insets.bottom,
-        },
-        tabBarActiveTintColor: 'rgb(40, 40, 37), 0.12)',
-        tabBarInactiveTintColor: 'rgb(148, 148, 131), 0.12)',
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarItemStyle: {
-          flex: 1, // This ensures each tab takes equal space
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        swipeEnabled: false, // Disable swiping between tabs
-        unmountOnBlur: false, // Keep tab screens mounted
-        freezeOnBlur: true // Freeze screens when they lose focus
-      }}>
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            ...styles.tabBar,
+            height: 60 + insets.bottom,
+            paddingBottom: insets.bottom,
+          },
+          tabBarActiveTintColor: 'rgb(40, 40, 37), 0.12)',
+          tabBarInactiveTintColor: 'rgb(148, 148, 131), 0.12)',
+          tabBarLabelStyle: styles.tabBarLabel,
+          tabBarItemStyle: {
+            flex: 1, // This ensures each tab takes equal space
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+          swipeEnabled: false, // Disable swiping between tabs
+          unmountOnBlur: false, // Keep tab screens mounted
+          freezeOnBlur: true, // Freeze screens when they lose focus
+          
+        }}>
       <Tabs.Screen
         name="index"
         options={{

@@ -87,8 +87,8 @@ export default function CreateWorkoutScreen() {
           <ArrowLeft size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create Workout Plan</Text>
-        {/* <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-        </TouchableOpacity> */}
+        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+        </TouchableOpacity>
       </View>
       
       <ScrollView style={styles.content}>

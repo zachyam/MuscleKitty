@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useCallback, useRef, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, ImageBackground } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -81,25 +81,61 @@ export default function WorkoutPlansScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <Header title="Your Workout Plans" />
+    <View style={styles.container}>
+      {/* Hero Background - Takes up entire top half */}
+      <View style={styles.heroContainer}>
+        <ImageBackground
+          source={{ uri: 'https://i.pinimg.com/736x/88/4c/3c/884c3c4285c79df0be1371b5344788da.jpg' }}
+          style={styles.heroImage}
+        >
+          <View style={styles.heroOverlay} />
+          <View style={styles.heroContent}>
+            <Image source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
+            style={styles.kittenImage} />
+          </View>
+        </ImageBackground>
+      </View>
       
-      <View style={styles.content}>
-        {workouts.length === 0 && !loading ? (
-          <View style={styles.emptyContainer}>
-            <Image 
-              source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }}
-              style={styles.catImage}
-            />
-            <Text style={styles.emptyText}>No workout plans yet!</Text>
-            <Text style={styles.emptySubtext}>Create your first workout plan to start tracking your progress</Text>
-            <TouchableOpacity style={styles.createButton} onPress={handleCreateWorkout}>
-              <Plus size={20} color="#fff" />
-              <Text style={styles.createButtonText}>Create Workout Plan</Text>
+      {/* Content Section - Starts with the streak card overlapping the hero */}
+      <SafeAreaView style={styles.safeArea}>        
+        <View style={styles.contentContainer}>
+          {/* Streak Card - Positioned to overlap with the hero image */}
+          <View style={styles.streakCard}>
+            <View style={styles.streakHeader}>
+              <View style={styles.streakInfo}>
+                <Text style={styles.fireEmoji}>🔥</Text>
+                <Text style={styles.streakText}>Workout Streak: 3 days!</Text>
+              </View>
+              <View style={styles.streakCounter}>
+                <Text style={styles.streakCount}>5/15</Text>
+              </View>
+            </View>
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: '33%' }]} />
+              </View>
+            </View>
+          </View>
+          
+          {/* Workout Plans Section */}
+          <View style={styles.workoutPlansHeader}>
+            <Text style={styles.sectionTitle}>Your Workout Plans</Text>
+            <TouchableOpacity style={styles.addButton} onPress={handleCreateWorkout}>
+              <Plus size={18} color="#fff" />
+              <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <>
+          
+          {workouts.length === 0 && !loading ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyEmoji}>🏋️</Text>
+              <Text style={styles.emptyText}>No workout plans yet!</Text>
+              <Text style={styles.emptySubtext}>Tap the + button to create your first workout plan</Text>
+              <TouchableOpacity style={styles.createButton} onPress={handleCreateWorkout}>
+                <Text style={styles.createButtonText}>Create Workout Plan</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
             <FlatList
               data={workouts}
               keyExtractor={(item) => item.id}
@@ -107,58 +143,168 @@ export default function WorkoutPlansScreen() {
                 <WorkoutCard 
                   workout={item} 
                   onPress={() => handleSelectWorkout(item)} 
-                  onEditPress={() => handleEditWorkout(item.id)}
-                  onDeletePress={() => handleDeleteWorkout(item.id)}
                 />
               )}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContent}
             />
-            
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.createButton} onPress={handleCreateWorkout}>
-                <Plus size={20} color="#fff" />
-                <Text style={styles.createButtonText}>Create Workout Plan</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </View>
-      <SafeAreaView style={styles.bottomSafeArea} edges={['bottom']} />
-    </SafeAreaView>
+          )}
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: 'rgba(238, 231, 231, 0.12)',
   },
-  content: {
+  safeArea: {
     flex: 1,
+  },
+  header: {
+    backgroundColor: 'transparent',
+    zIndex: 2,
+  },
+  // Hero styles - Taking up exactly half the screen height
+  heroContainer: {
+    height: '50%',
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 0,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  kittenImage: {
+    width: 150,
+    height: 150,
+    alignSelf: 'center',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(238, 231, 231, 0.34)',
+  },
+  heroContent: {
+    padding: 20,
+    paddingBottom: 60, // Extra padding at bottom for card overlap
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  // Content container - Starts below hero with streak card overlapping
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: '75%', // Positioned to create overlap with hero
+    zIndex: 1,
+  },
+  streakCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
     padding: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  bottomSafeArea: {
-    backgroundColor: Colors.background,
+  streakHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  listContent: {
-    paddingBottom: 80,
+  streakInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fireEmoji: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  streakText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  streakCounter: {
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  streakCount: {
+    color: Colors.primary,
+    fontWeight: 'bold',
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: Colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    flex: 1,
+    borderRadius: 4,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+  },
+  workoutPlansHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginLeft: 4,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    minHeight: 300,
   },
-  catImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    marginBottom: 20,
+  emptyEmoji: {
+    fontSize: 60,
+    marginBottom: 16,
   },
   emptyText: {
+    fontSize: 20,
     fontWeight: 'bold',
-    fontSize: 22,
     color: Colors.text,
     marginBottom: 8,
   },
@@ -168,31 +314,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 16,
-    right: 16,
-    alignItems: 'center',
-  },
   createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
     borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   createButtonText: {
-    fontWeight: '500',
     color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
-    marginLeft: 8,
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  addGoalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  addGoalIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  addGoalIconText: {
+    fontSize: 20,
+    color: Colors.primary,
+    fontWeight: 'bold',
+  },
+  addGoalText: {
+    fontSize: 16,
+    color: Colors.text,
   }
 });

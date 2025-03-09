@@ -160,10 +160,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 24,
+    justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 60,
     marginBottom: 32,
   },
   logo: {
@@ -193,8 +194,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   socialButtons: {
-    marginTop: 48,
-    marginBottom: 36,
+    marginTop: 20,
+    marginBottom: 30,
     gap: 20,
   },
   socialNote: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -44,6 +44,8 @@ const OnboardingScreen = () => {
   const { width } = useWindowDimensions();
   const router = useRouter();
   const { completeOnboarding } = useUser();
+  const fadeTextAnim = useRef(new Animated.Value(1)).current; // Text opacity
+  const scrollViewRef = useRef(null);
 
   
   // Handle login button press
@@ -62,37 +64,69 @@ const OnboardingScreen = () => {
   
   // Handle the next button press during onboarding
   const handleNext = async () => {
-    if (showWelcome) {
-      setShowWelcome(false);
-      return;
-    }
-    
-    if (activeScreen < SCREENS.length - 1) {
-      setActiveScreen(activeScreen + 1);
-    } else {
-      // Last screen, navigate to adopt kitty screen
-      try {
-        // Important: We don't complete onboarding here!
-        // The adopt-kitty screen will handle completing onboarding
-        console.log('Last onboarding screen completed, navigating to adopt-kitty');
-        setTimeout(() => {
-          console.log('Navigating to adopt-kitty');
-          // Use replace to avoid navigation history issues
-          router.replace('/adopt-kitty');
-        }, 200);
-      } catch (error) {
-        console.error('Error navigating to adopt kitty:', error);
-        // As fallback, complete onboarding here and go to tabs
-        await completeOnboarding();
-        router.replace('/(tabs)');
+    // Fade out only the text
+    Animated.timing(fadeTextAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(async () => {
+      if (activeScreen < SCREENS.length - 1) {
+        // Move to next screen with scroll
+        const nextScreen = activeScreen + 1;
+        setActiveScreen(nextScreen);
+        
+        // Scroll to the next screen
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ x: width * nextScreen, animated: true });
+        }
+      } else {
+        // Last screen, navigate to adopt kitty screen
+        try {
+          // Important: We don't complete onboarding here!
+          // The adopt-kitty screen will handle completing onboarding
+          console.log('Last onboarding screen completed, navigating to adopt-kitty');
+          
+          // Start the fade out animation using the existing ref
+          Animated.timing(screenFadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            // Navigate after fade completes
+            console.log('Navigating to adopt-kitty');
+            // Use replace to avoid navigation history issues
+            router.replace('/adopt-kitty');
+          });
+          
+          return; // Don't fade back in if we're navigating away
+        } catch (error) {
+          console.error('Error navigating to adopt kitty:', error);
+          // As fallback, complete onboarding here and go to tabs
+          await completeOnboarding();
+          router.replace('/(tabs)');
+          return; // Don't fade back in if we're navigating away
+        }
       }
-    }
+      
+      // Fade in animation for the text of the next screen
+      Animated.timing(fadeTextAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    });
   };
   
   // Handle back button press during onboarding
   const handleBack = () => {
     if (activeScreen > 0) {
-      setActiveScreen(activeScreen - 1);
+      const prevScreen = activeScreen - 1;
+      setActiveScreen(prevScreen);
+      
+      // Scroll to the previous screen
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ x: width * prevScreen, animated: true });
+      }
     } else {
       // If we're on the first onboarding screen, go back to welcome
       setShowWelcome(true);
@@ -102,114 +136,94 @@ const OnboardingScreen = () => {
   const currentScreen = SCREENS[activeScreen];
   const isLastScreen = activeScreen === SCREENS.length - 1;
 
+  // Add effect to animate fade-in when screen changes
+  useEffect(() => {
+    // Fade in text of new screen
+    Animated.timing(fadeTextAnim, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [activeScreen]);
+
+  // Handle scroll end to update active screen
+  const handleScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffsetX / width);
+    if (newIndex !== activeScreen) {
+      setActiveScreen(newIndex);
+    }
+  };
+
+  const renderScreen = (screen, index) => {
+    return (
+      <View style={[styles.screenContainer, { width }]} key={index}>
+        {/* Mascot circle */}
+        <View style={styles.mascotContainer}>
+          <Image
+            source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }} // Use your app icon
+            style={styles.welcomeMascotImage}
+            resizeMode="contain"
+          />
+        </View>
+
+        {/* Title and subtitle (animated for fade effect) */}
+        <Animated.View style={{ opacity: index === activeScreen ? fadeTextAnim : 0 }}>
+          <Text style={styles.welcomeTitle}>{screen.title}</Text>
+          <Text style={styles.welcomeSubtitle}>{screen.subtitle}</Text>
+        </Animated.View>
+      </View>
+    );
+  };
+
+  // Create a ref for the full-screen fade animation
+  const screenFadeAnim = useRef(new Animated.Value(1)).current;
+
   return (
+    <Animated.View style={{ flex: 1, opacity: screenFadeAnim }}>
     <SafeAreaView style={styles.welcomeContainer}>
-        <View style={styles.welcomeContent}>
-          {/* Mascot circle */}
-          <View style={styles.mascotContainer}>
-            <Image
-              source={require('@/assets/images/icon.png')} // Use your app icon
-              style={styles.welcomeMascotImage}
-              resizeMode="contain"
+      <View style={styles.welcomeContent}>
+        {/* Horizontal scroll view for screens */}
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.scrollView}
+        >
+          {SCREENS.map(renderScreen)}
+        </Animated.ScrollView>
+
+        {/* Pagination indicators */}
+        <View style={styles.paginationContainer}>
+          {SCREENS.map((_, index) => (
+            <View 
+              key={index} 
+              style={[
+                styles.paginationDot, 
+                index === activeScreen && styles.activeDot
+              ]} 
             />
-          </View>
+          ))}
+        </View>
 
-          {showWelcome && (
-            <>
-              <Text style={styles.welcomeTitle}>MuscleKitty</Text>
-            </>
-          )}
-          {/* Title and subtitle */}
-          <Text style={styles.welcomeTitle}>{currentScreen.title}</Text>
-          <Text style={styles.welcomeSubtitle}>{showWelcome? currentScreen.welcomeMessage : currentScreen.subtitle}</Text>  
-
-          {/* Action buttons */}
+        {/* Action button at bottom */}
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.primaryButton} 
+            style={styles.primaryButton}
             onPress={handleNext}
             activeOpacity={0.8}
           >
-            <Text style={styles.primaryButtonText}>{showWelcome ? "Get Started" : "Next"}</Text>
+            <Text style={styles.primaryButtonText}>{ isLastScreen ? "Get Started" : "Next"}</Text>
           </TouchableOpacity>
-
-          {/* Legal text */}
-          {showWelcome && <View style={styles.legalContainer}>
-            <Text style={styles.legalText}>
-              By signing up or logging in, you agree to the{' '}
-            </Text>
-            <View style={styles.legalLinksContainer}>
-              <TouchableOpacity onPress={handleTermsPress}>
-                <Text style={styles.legalLink}>Terms of Service</Text>
-              </TouchableOpacity>
-              <Text style={styles.legalText}> and the </Text>
-              <TouchableOpacity onPress={handlePrivacyPress}>
-                <Text style={styles.legalLink}>Privacy Policy</Text>
-              </TouchableOpacity>
-              <Text style={styles.legalText}>.</Text>
-            </View>
-          </View>
-          }
         </View>
-      </SafeAreaView>
+      </View>
+    </SafeAreaView>
+    </Animated.View>
   )
 }
-
-  // Onboarding screens (your existing implementation)
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       {/* Header with back button */}
-//       {!showWelcome && <View style={styles.header}>
-//         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-//           <Text style={styles.backButtonText}>← Back</Text>
-//         </TouchableOpacity>
-//       </View>
-//       }
-      
-//       {/* Welcome Card */}
-//       <View style={styles.welcomeCard}>
-//         <Text style={styles.welcomeMessage}>{currentScreen.welcomeMessage}</Text>
-//       </View>
-      
-//       {/* Mascot Image */}
-//       <View style={styles.imageContainer}>
-//         <Image 
-//           source={currentScreen.image} 
-//           style={styles.mascotImage}
-//           resizeMode="contain"
-//         />
-//       </View>
-      
-//       {/* Text Section */}
-//       <View style={styles.textSection}>
-//         <Text style={styles.title}>{currentScreen.title}</Text>
-//         <Text style={styles.subtitle}>{currentScreen.subtitle}</Text>
-//       </View>
-      
-//       {/* Bottom Section: Button and Pagination */}
-//       {!showWelcome && <View style={styles.bottomSection}>
-//         <PrimaryButton 
-//           label={isLastScreen ? "Get Started" : "Next"} 
-//           onPress={handleNext}
-//           style={styles.nextButton}
-//         />
-        
-//         {/* Pagination Indicators */}
-//         <View style={styles.paginationContainer}>
-//           {SCREENS.map((_, index) => (
-//             <View 
-//               key={index} 
-//               style={[
-//                 styles.paginationDot, 
-//                 index === activeScreen && styles.activeDot
-//               ]} 
-//             />
-//           ))}
-//         </View>
-//       </View>
-//       }
-//     </SafeAreaView>
-//   );
-// };
 
 const styles = StyleSheet.create({
   // Existing styles
@@ -292,23 +306,6 @@ const styles = StyleSheet.create({
   nextButton: {
     borderRadius: 30,
   },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  paginationDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.lightGray,
-    margin: 5,
-  },
-  activeDot: {
-    backgroundColor: Colors.primary,
-    width: 12,
-    height: 12,
-  },
   
   // New styles for welcome screen
   welcomeContainer: {
@@ -317,24 +314,34 @@ const styles = StyleSheet.create({
   },
   welcomeContent: {
     flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 0,
+    paddingBottom: 20,
+    paddingTop: 20,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  screenContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
-    paddingBottom: 50,
   },
   mascotContainer: {
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: 'rgba(143, 201, 58, 0.2)', // Light primary color
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
     overflow: 'hidden',
   },
   welcomeMascotImage: {
-    width: 130,
-    height: 130,
+    width: 200,
+    height: 250,
     borderRadius: 65,
   },
   welcomeTitle: {
@@ -347,8 +354,13 @@ const styles = StyleSheet.create({
   welcomeSubtitle: {
     fontSize: 16,
     color: Colors.gray,
-    marginBottom: 60,
+    marginBottom: 20,
     textAlign: 'center',
+  },
+  buttonContainer: {
+    width: '100%',
+    paddingHorizontal: 30,
+    marginTop: 10,
   },
   primaryButton: {
     width: '100%',
@@ -356,7 +368,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: 'center',
-    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -376,6 +387,24 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 16,
     fontWeight: '500',
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    marginVertical: 20,
+  },
+  paginationDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.lightGray,
+    margin: 5,
+  },
+  activeDot: {
+    backgroundColor: Colors.primary,
+    width: 12,
+    height: 12,
   },
   legalContainer: {
     position: 'absolute',

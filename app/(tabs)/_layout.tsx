@@ -1,17 +1,28 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Tabs } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import { Dumbbell, History, Trophy, User } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Fade in when the component mounts
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
-    <Tabs
-      id="app-tabs" // Add a stable ID for the tabs
-      initialRouteName="index" // Explicitly set the initial route
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <Tabs
+        id="app-tabs" // Add a stable ID for the tabs
+        initialRouteName="index" // Explicitly set the initial route
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -63,6 +74,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </Animated.View>
   );
 }
 

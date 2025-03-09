@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
-  Platform
+  Platform,
+  Animated,
+  Easing
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -16,7 +18,6 @@ import Colors from '@/constants/Colors';
 import { useUser } from '@/utils/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
-import { Asset } from 'expo-asset';
 
 const { width } = Dimensions.get('window');
 
@@ -74,11 +75,19 @@ export default function AdoptKittyScreen() {
   const flatListRef = useRef<FlatList<KittyProfile>>(null);
   const router = useRouter();
   const { completeOnboarding, isFirstLogin, user, setUser } = useUser();
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Start with opacity 0
   
   // Remove immediate redirect for testing purposes
   useEffect(() => {
     console.log('AdoptKitty screen loaded, isFirstLogin:', isFirstLogin);
     // The navigation guard is now handled in the root layout
+    
+    // Fade in the screen when it loads
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   }, []);
   
   const selectedKitty = KITTY_PROFILES[selectedKittyIndex];
@@ -115,9 +124,16 @@ export default function AdoptKittyScreen() {
       await completeOnboarding(selectedKitty.image);
       console.log('Onboarding completed successfully');
       
-      // Navigate to main app
-      console.log('Navigating to main app');
-      router.replace('/(tabs)');
+      // Fade out before navigation
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        // Navigate to main app after fade out completes
+        console.log('Navigating to main app');
+        router.replace('/(tabs)');
+      });
     } catch (error) {
       console.error('Error adopting kitty:', error);
       // Still navigate even if there's an error
@@ -144,14 +160,15 @@ export default function AdoptKittyScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      
-      {/* Title Card */}
-      <View style={styles.titleCard}>
-        <Text style={styles.titleText}>
-          Adopt your new fitness kitten!
-        </Text>
-      </View>
+    <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        
+        {/* Title Card */}
+        <View style={styles.titleCard}>
+          <Text style={styles.titleText}>
+            Adopt your new fitness kitten!
+          </Text>
+        </View>
       
       {/* Kitty Selection Carousel */}
       <View style={styles.carouselContainer}>
@@ -239,10 +256,11 @@ export default function AdoptKittyScreen() {
       </View>
       
       {/* Adopt Button */}
-      <TouchableOpacity style={styles.adoptButton} onPress={handleAdopt}>
-        <Text style={styles.adoptButtonText}>Adopt</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity style={styles.adoptButton} onPress={handleAdopt}>
+          <Text style={styles.adoptButtonText}>Adopt</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 

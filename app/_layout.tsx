@@ -93,8 +93,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      // Returning users should go to main app
-      if (!inTabsGroup && segments[0] !== 'adopt-kitty') { // Keep adopt-kitty accessible for testing
+      // Returning users should always have access to app routes after onboarding
+      // Only redirect if they're on login/signup/onboarding/adopt-kitty screens
+      const protectedPaths = ['login', 'signup', 'onboarding', 'adopt-kitty'];
+      const currentPath = segments[0];
+      
+      if (currentPath && protectedPaths.includes(currentPath)) {
         console.log('User already onboarded, redirecting to main app');
         router.replace('/(tabs)');
       }

@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: 'Colors.text',
   },
   addButton: {
     flexDirection: 'row',

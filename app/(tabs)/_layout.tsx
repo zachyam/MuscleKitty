@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Dumbbell, History, Trophy, User } from 'lucide-react-native';
+import { Dumbbell, History, HouseIcon, Trophy, User } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 
@@ -42,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: 'Workout Plans',
           tabBarIcon: ({ color, size }) => (
-            <Dumbbell size={size} color={color} />
+            <HouseIcon size={size} color={color} />
           ),
         }}
       />
@@ -80,9 +80,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    backgroundColor: 'rgba(247, 246, 246, 0.16), 0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,

@@ -2,18 +2,23 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User } from '@/types';
 import { getCurrentUser } from './auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './supabase';
 
 // Create context
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
   loading: boolean;
+  isFirstLogin: boolean;
+  completeOnboarding: () => void;
 };
 
 const defaultContext: UserContextType = {
   user: null,
   setUser: () => {},
   loading: true,
+  isFirstLogin: false,
+  completeOnboarding: () => {},
 };
 
 const USER_STORAGE_KEY = 'muscle_kitty_user_data';
@@ -24,6 +29,7 @@ export const UserContext = createContext<UserContextType>(defaultContext);
 export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   // Function to save user to storage
   const saveUserToStorage = async (userData: User | null) => {
@@ -42,6 +48,63 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const handleSetUser = (userData: User | null) => {
     setUser(userData);
     saveUserToStorage(userData);
+    
+    // Check onboarding status when user is set
+    if (userData) {
+      checkOnboardingStatus(userData.id);
+    }
+  };
+  
+  // Check if the user has completed onboarding
+  const checkOnboardingStatus = async (userId: string) => {
+    try {
+      setLoading(true);
+      
+      // Check if completed onboarding status is stored in AsyncStorage
+      const onboardingKey = `onboarding_completed_${userId}`;
+      const storedStatus = await AsyncStorage.getItem(onboardingKey);
+      
+      if (storedStatus === 'true') {
+        // User has completed onboarding
+        setIsFirstLogin(false);
+      } else {
+        // No record of completing onboarding
+        setIsFirstLogin(true);
+      }
+    } catch (error) {
+      console.error('Error in onboarding check:', error);
+      setIsFirstLogin(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Mark onboarding as completed
+  const completeOnboarding = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Store completion status in AsyncStorage
+      const onboardingKey = `onboarding_completed_${user.id}`;
+      await AsyncStorage.setItem(onboardingKey, 'true');
+      
+      // Update local state
+      setIsFirstLogin(false);
+      
+      // Update local user object
+      const updatedUser = { ...user, hasCompletedOnboarding: true };
+      setUser(updatedUser);
+      saveUserToStorage(updatedUser);
+      
+      console.log('Onboarding marked as completed for user:', user.id);
+      
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Load user from storage on mount
@@ -52,13 +115,22 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          
+          // Check onboarding status
+          if (userData.id) {
+            await checkOnboardingStatus(userData.id);
+          }
         } else {
           // If not in storage, try to get from auth state
           const currentUser = await getCurrentUser();
           if (currentUser) {
             setUser(currentUser);
             saveUserToStorage(currentUser);
+            
+            // Check onboarding status
+            await checkOnboardingStatus(currentUser.id);
           }
         }
       } catch (error) {
@@ -72,7 +144,13 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser: handleSetUser, loading }}>
+    <UserContext.Provider value={{ 
+      user, 
+      setUser: handleSetUser, 
+      loading, 
+      isFirstLogin, 
+      completeOnboarding 
+    }}>
       {children}
     </UserContext.Provider>
   );

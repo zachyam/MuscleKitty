@@ -32,7 +32,8 @@ export default function LoginScreen() {
         const authenticated = await isAuthenticated();
         console.log('Login screen: auth result', authenticated);
         if (authenticated) {
-          router.replace('/(tabs)');
+          // AuthProvider in _layout.tsx will handle proper redirection
+          // based on whether this is a first-time login
         }
       } catch (error) {
         console.error('Login screen: auth check error', error);
@@ -56,8 +57,8 @@ export default function LoginScreen() {
         // Save user to context
         setUser(response.user);
         
-        // Navigate to home screen
-        router.navigate('/(tabs)');
+        // Router will handle redirect based on first login status
+        // The AuthProvider in _layout.tsx will decide whether to go to onboarding or tabs
       }
     } catch (error) {
       console.error('Google login error:', error);
@@ -79,8 +80,8 @@ export default function LoginScreen() {
         // Save user to context
         setUser(response.user);
         
-        // Navigate to home screen
-        router.navigate('/(tabs)');
+        // Router will handle redirect based on first login status
+        // The AuthProvider in _layout.tsx will decide whether to go to onboarding or tabs
       }
     } catch (error) {
       console.error('Facebook login error:', error);

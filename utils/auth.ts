@@ -284,12 +284,22 @@ export const getCurrentUser = async (): Promise<User | null> => {
       return null;
     }
     
+    // Get the base user data from auth
     const user: User = {
       id: data.user.id,
       email: data.user.email || '',
       name: data.user.user_metadata?.name,
       avatarUrl: data.user.user_metadata?.avatar_url,
     };
+    
+    // Check for onboarding status in AsyncStorage
+    try {
+      const onboardingKey = `onboarding_completed_${user.id}`;
+      const onboardingCompleted = await AsyncStorage.getItem(onboardingKey);
+      user.hasCompletedOnboarding = onboardingCompleted === 'true';
+    } catch (storageError) {
+      console.error('Error checking onboarding status in storage:', storageError);
+    }
     
     return user;
   } catch (error) {

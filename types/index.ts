@@ -46,3 +46,13 @@ export type AuthResponse = {
   token: string;
   error?: string;
 };
+
+export type KittyProfile = {
+  id: string;
+  breed: string;
+  image: any; // Used for display in the adoption screen
+  imageUri: any; // Used for saving to user profile
+  personality: string;
+  favoriteExercise: string;
+  favoriteFood: string;
+};

@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -10,7 +11,6 @@ import { useState, useEffect, useContext } from 'react';
 import { getWorkoutLogs } from '@/utils/storage';
 import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
-import { UserContext } from '@/utils/UserContext';
 
 export default function ProfileScreen() {
   // Get user data and the setUser function from context
@@ -165,9 +165,7 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
           <Image 
-            source={{ 
-              uri: user?.avatarUrl || 'https://cdn.dribbble.com/userupload/11429065/file/original-80dd25fdb350b63c97780bbfd70034b6.jpg' 
-            }}
+            source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
             style={styles.profileImage}
           />
           <Text style={styles.profileName}>{user?.name || 'Fitness User'}</Text>

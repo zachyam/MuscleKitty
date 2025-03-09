@@ -62,20 +62,28 @@ const OnboardingScreen = () => {
   
   // Handle the next button press during onboarding
   const handleNext = async () => {
-    setShowWelcome(false);
+    if (showWelcome) {
+      setShowWelcome(false);
+      return;
+    }
+    
     if (activeScreen < SCREENS.length - 1) {
       setActiveScreen(activeScreen + 1);
     } else {
-      // Last screen, complete onboarding and navigate to main app
+      // Last screen, navigate to adopt kitty screen
       try {
-        // Add a delay to ensure the animation completes
-        setTimeout(async () => {
-          await completeOnboarding();
-          router.replace('/(tabs)');
+        // Important: We don't complete onboarding here!
+        // The adopt-kitty screen will handle completing onboarding
+        console.log('Last onboarding screen completed, navigating to adopt-kitty');
+        setTimeout(() => {
+          console.log('Navigating to adopt-kitty');
+          // Use replace to avoid navigation history issues
+          router.replace('/adopt-kitty');
         }, 200);
       } catch (error) {
-        console.error('Error completing onboarding:', error);
-        // Still navigate even if there's an error
+        console.error('Error navigating to adopt kitty:', error);
+        // As fallback, complete onboarding here and go to tabs
+        await completeOnboarding();
         router.replace('/(tabs)');
       }
     }
@@ -123,15 +131,6 @@ const OnboardingScreen = () => {
           >
             <Text style={styles.primaryButtonText}>{showWelcome ? "Get Started" : "Next"}</Text>
           </TouchableOpacity>
-
-          {showWelcome && <TouchableOpacity 
-            onPress={handleLogin}
-            style={styles.secondaryButton}
-            activeOpacity={0.6}
-          >
-            <Text style={styles.secondaryButtonText}>I have an account</Text>
-          </TouchableOpacity>
-          }
 
           {/* Legal text */}
           {showWelcome && <View style={styles.legalContainer}>
@@ -355,7 +354,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.primary,
     paddingVertical: 16,
-    borderRadius: 30,
+    borderRadius: 18,
     alignItems: 'center',
     marginBottom: 20,
     shadowColor: '#000',

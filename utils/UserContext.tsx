@@ -1,16 +1,16 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User } from '@/types';
 import { getCurrentUser } from './auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
+import { User, KittyProfile } from '@/types';
 
 // Create context
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
   loading: boolean;
+  completeOnboarding: (avatarUrl: any) => Promise<void>;
   isFirstLogin: boolean;
-  completeOnboarding: () => void;
 };
 
 const defaultContext: UserContextType = {
@@ -18,8 +18,10 @@ const defaultContext: UserContextType = {
   setUser: () => {},
   loading: true,
   isFirstLogin: false,
-  completeOnboarding: () => {},
+  completeOnboarding: async () => {},
 };
+
+const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
 
 const USER_STORAGE_KEY = 'muscle_kitty_user_data';
 
@@ -30,6 +32,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
+  const [selectedKitty, setSelectedKitty] = useState<KittyProfile | null>(null);
 
   // Function to save user to storage
   const saveUserToStorage = async (userData: User | null) => {
@@ -80,7 +83,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
   
   // Mark onboarding as completed
-  const completeOnboarding = async () => {
+  const completeOnboarding = async (avatarUrl: any) => {
     if (!user) return;
     
     try {
@@ -93,12 +96,16 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // Update local state
       setIsFirstLogin(false);
       
-      // Update local user object
-      const updatedUser = { ...user, hasCompletedOnboarding: true };
+      // Update local user object with avatar
+      const updatedUser = { 
+        ...user, 
+        hasCompletedOnboarding: true,
+        avatarUrl 
+      };
       setUser(updatedUser);
       saveUserToStorage(updatedUser);
       
-      console.log('Onboarding marked as completed for user:', user.id);
+      console.log('Onboarding marked as completed for user with avatar:', user.id, avatarUrl);
       
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -147,9 +154,9 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
     <UserContext.Provider value={{ 
       user, 
       setUser: handleSetUser, 
-      loading, 
-      isFirstLogin, 
-      completeOnboarding 
+      loading,
+      completeOnboarding,
+      isFirstLogin
     }}>
       {children}
     </UserContext.Provider>

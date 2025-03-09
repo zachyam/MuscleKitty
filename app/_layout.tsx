@@ -22,25 +22,7 @@ export default function RootLayout() {
     <>
       <UserProvider>
         <AuthProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              gestureEnabled: false, // Disable gesture navigation at stack level
-              animation: 'none'  // Disable animations for cleaner transitions
-            }}
-          >
-            <Stack.Screen 
-              name="(tabs)" 
-              options={{ 
-                headerShown: false,
-                gestureEnabled: false // Explicitly disable gestures for tabs
-              }} 
-            />
-            <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} redirect />
-          </Stack>
+          <Slot />
         </AuthProvider>
       </UserProvider>
       <StatusBar style="auto" />
@@ -85,43 +67,41 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
     
-    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'onboarding';
-    const inLoginGroup = segments[0] === 'login';
+    const inAuthGroup = segments[0] === "(auth)";
+    const inTabsGroup = segments[0] === "(tabs)";
     
-    console.log('Auth navigation check:', {
-      user: !!user,
-      isFirstLogin,
-      currentPath: segments[0]
-    });
-    
-    if (!user) {
-      // If not logged in, redirect to login
-      if (inAuthGroup) {
-        console.log('Not logged in, redirecting to login');
-        router.replace('/login');
+    // Wait for mounting to complete before navigation
+    const navigateAfterMounting = setTimeout(() => {
+      // If not logged in, only allow access to auth group
+      if (!user) {
+        if (!inAuthGroup) {
+          console.log('Not logged in, redirecting to login');
+          router.replace('/login');
+        }
+        return;
       }
-    } else {
-      // If logged in
+      
+      // User is logged in at this point
+      
+      // First-time login users should go through onboarding flow
       if (isFirstLogin) {
-        // First login - redirect to onboarding unless already there
-        if (segments[0] !== 'onboarding') {
+        // Only redirect if not already in the right place
+        if (segments[0] !== 'onboarding' && segments[0] !== 'adopt-kitty') {
           console.log('First login detected, redirecting to onboarding');
           router.replace('/onboarding');
         }
-      } else {
-        // Not first login - redirect to main app unless already there
-        if (!inAuthGroup || segments[0] === 'onboarding') {
-          console.log('User already onboarded, redirecting to main app');
-          router.replace('/(tabs)');
-        }
+        return;
       }
       
-      // Always redirect away from login page if logged in
-      if (inLoginGroup) {
-        router.replace(isFirstLogin ? '/onboarding' : '/(tabs)');
+      // Returning users should go to main app
+      if (!inTabsGroup && segments[0] !== 'adopt-kitty') { // Keep adopt-kitty accessible for testing
+        console.log('User already onboarded, redirecting to main app');
+        router.replace('/(tabs)');
       }
-    }
-  }, [user, loading, isFirstLogin, segments]);
+    }, 100); // Short delay to ensure mounting completes
+    
+    return () => clearTimeout(navigateAfterMounting);
+  }, [user, loading, isFirstLogin, segments, router]);
 
   if (isLoading || loading) {
     return (

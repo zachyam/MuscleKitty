@@ -32,8 +32,11 @@ export default function LoginScreen() {
         const authenticated = await isAuthenticated();
         console.log('Login screen: auth result', authenticated);
         if (authenticated) {
-          // AuthProvider in _layout.tsx will handle proper redirection
-          // based on whether this is a first-time login
+          // The user is already logged in, let the AuthProvider handle the redirect
+          // The complete flow should be:
+          // 1. If first login -> onboarding -> adopt-kitty -> tabs
+          // 2. If not first login -> tabs
+          console.log('User already authenticated, letting AuthProvider handle redirection');
         }
       } catch (error) {
         console.error('Login screen: auth check error', error);

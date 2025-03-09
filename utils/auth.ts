@@ -4,6 +4,43 @@ import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Kitty images mapping for avatar selection
+const KITTY_IMAGES: Record<string, any> = {
+  '1': require('@/assets/images/munchkin.png'),
+  '2': require('@/assets/images/orange-tabby.png'),
+  '3': require('@/assets/images/russian-blue.png'),
+  '4': require('@/assets/images/calico.png'),
+  '5': require('@/assets/images/maine-coon.png'),
+};
+
+const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
+
+// Helper function to override user avatar with stored kitty
+export const overrideUserAvatar = async (user: User): Promise<User> => {
+  try {
+    if (!user || !user.id) return user;
+    
+    // Use a user-specific key to store the kitty ID
+    const userKittyKey = `${SELECTED_KITTY_KEY}_${user.id}`;
+    
+    // Get the selected kitty ID from AsyncStorage
+    const kittyId = await AsyncStorage.getItem(userKittyKey);
+    
+    // If we have a stored kitty ID, use the corresponding image
+    if (kittyId && KITTY_IMAGES[kittyId]) {
+      console.log(`Overriding user ${user.id} avatar with kitty ID:`, kittyId);
+      return {
+        ...user,
+        avatarUrl: KITTY_IMAGES[kittyId]
+      };
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('Error overriding user avatar:', error);
+    return user;
+  }
+};
 
 // Login with OAuth (Google)
 export const loginWithGoogle = async (): Promise<AuthResponse> => {
@@ -86,8 +123,11 @@ export const loginWithGoogle = async (): Promise<AuthResponse> => {
                 avatarUrl: userData.user.user_metadata?.avatar_url,
               };
               
+              // Override with kitty avatar if available
+              const userWithKitty = await overrideUserAvatar(user);
+              
               return {
-                user,
+                user: userWithKitty,
                 token: sessionData.session.access_token,
               };
             }
@@ -178,8 +218,11 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
           avatarUrl: userData.user.user_metadata?.avatar_url,
         };
         
+        // Override with kitty avatar if available
+        const userWithKitty = await overrideUserAvatar(user);
+        
         return {
-          user,
+          user: userWithKitty,
           token: sessionData.session.access_token,
         };
       }
@@ -231,8 +274,11 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
                 avatarUrl: userData.user.user_metadata?.avatar_url,
               };
               
+              // Override with kitty avatar if available
+              const userWithKitty = await overrideUserAvatar(user);
+              
               return {
-                user,
+                user: userWithKitty,
                 token: sessionData.session.access_token,
               };
             }
@@ -264,11 +310,19 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
 // Logout
 export const logout = async (): Promise<void> => {
   try {
+    // Sign out from Supabase
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Logout error:', error.message);
       throw error;
     }
+    
+    // Clear user data from AsyncStorage
+    await AsyncStorage.removeItem('muscle_kitty_user_data');
+    
+    // Don't clear the user-specific kitty selections
+    // This allows each user to keep their kitty choice even after logging out
+    
   } catch (error) {
     console.error('Error logging out:', error);
     throw error;
@@ -292,16 +346,10 @@ export const getCurrentUser = async (): Promise<User | null> => {
       avatarUrl: data.user.user_metadata?.avatar_url,
     };
     
-    // Check for onboarding status in AsyncStorage
-    try {
-      const onboardingKey = `onboarding_completed_${user.id}`;
-      const onboardingCompleted = await AsyncStorage.getItem(onboardingKey);
-      user.hasCompletedOnboarding = onboardingCompleted === 'true';
-    } catch (storageError) {
-      console.error('Error checking onboarding status in storage:', storageError);
-    }
+    // Override with kitty avatar if available
+    const userWithKitty = await overrideUserAvatar(user);
     
-    return user;
+    return userWithKitty;
   } catch (error) {
     console.error('Error getting current user:', error);
     return null;

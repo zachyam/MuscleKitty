@@ -30,9 +30,14 @@ export default function TabLayout() {
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.gray,
+        tabBarActiveTintColor: 'rgb(40, 40, 37), 0.12)',
+        tabBarInactiveTintColor: 'rgb(148, 148, 131), 0.12)',
         tabBarLabelStyle: styles.tabBarLabel,
+        tabBarItemStyle: {
+          flex: 1, // This ensures each tab takes equal space
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
         swipeEnabled: false, // Disable swiping between tabs
         unmountOnBlur: false, // Keep tab screens mounted
         freezeOnBlur: true // Freeze screens when they lose focus
@@ -40,7 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Workout Plans',
+          title: 'Home',
           tabBarIcon: ({ color, size }) => (
             <HouseIcon size={size} color={color} />
           ),
@@ -80,7 +85,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: 'rgba(247, 246, 246, 0.16), 0.12)',
+    backgroundColor: 'rgb(242, 242, 201), 0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,

@@ -158,7 +158,7 @@ export default function WorkoutPlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(238, 231, 231, 0.12)',
+    backgroundColor: 'rgb(244, 244, 220)',
   },
   safeArea: {
     flex: 1,

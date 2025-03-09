@@ -21,6 +21,31 @@ export default function ProfileScreen() {
     total: 0,
   });
   
+  // Refresh avatar when profile screen loads
+  useEffect(() => {
+    const refreshAvatar = async () => {
+      if (user) {
+        try {
+          // Import the overrideUserAvatar function
+          const { overrideUserAvatar } = await import('@/utils/auth');
+          
+          // Override the avatar with the kitty image
+          const updatedUser = await overrideUserAvatar(user);
+          
+          // Only update if the avatar has changed
+          if (updatedUser.avatarUrl !== user.avatarUrl) {
+            console.log('Refreshing user avatar on profile screen');
+            setUser(updatedUser);
+          }
+        } catch (error) {
+          console.error('Error refreshing avatar:', error);
+        }
+      }
+    };
+    
+    refreshAvatar();
+  }, [user?.id]); // Only run when user ID changes
+  
   // Load workout logs
   useEffect(() => {
     const loadWorkoutLogs = async () => {
@@ -140,14 +165,18 @@ export default function ProfileScreen() {
           text: "Logout", 
           style: "destructive",
           onPress: async () => {
-            // Clear user session from Supabase
-            await logout();
-            
-            // Clear user data from context
-            setUser(null);
-            
-            // Navigate to login screen
-            router.navigate('/login');
+            try {
+              // Clear user session from Supabase
+              await logout();
+              
+              // Clear user data from context
+              setUser(null);
+              
+              // Navigate to login screen
+              router.navigate('/login');
+            } catch (error) {
+              console.error('Error during logout:', error);
+            }
           }
         }
       ]

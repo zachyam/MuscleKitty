@@ -4,12 +4,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import { User, KittyProfile } from '@/types';
 
+// Kitty images mapping for avatar selection
+const KITTY_IMAGES: Record<string, any> = {
+  '1': require('@/assets/images/munchkin.png'),
+  '2': require('@/assets/images/orange-tabby.png'),
+  '3': require('@/assets/images/russian-blue.png'),
+  '4': require('@/assets/images/calico.png'),
+  '5': require('@/assets/images/maine-coon.png'),
+};
+
 // Create context
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
   loading: boolean;
-  completeOnboarding: (avatarUrl: any) => Promise<void>;
+  completeOnboarding: (kittyId: string) => Promise<void>;
   isFirstLogin: boolean;
 };
 
@@ -83,7 +92,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
   
   // Mark onboarding as completed
-  const completeOnboarding = async (avatarUrl: any) => {
+  const completeOnboarding = async (kittyId: string) => {
     if (!user) return;
     
     try {
@@ -96,6 +105,9 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // Update local state
       setIsFirstLogin(false);
       
+      // Get the kitty image from the ID
+      const avatarUrl = KITTY_IMAGES[kittyId] || require('@/assets/images/default-avatar.png');
+      
       // Update local user object with avatar
       const updatedUser = { 
         ...user, 
@@ -105,7 +117,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
       setUser(updatedUser);
       saveUserToStorage(updatedUser);
       
-      console.log('Onboarding marked as completed for user with avatar:', user.id, avatarUrl);
+      console.log('Onboarding marked as completed for user with kitty ID:', user.id, kittyId);
       
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -121,8 +133,18 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         // First try to get from AsyncStorage (faster)
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         
+        // Also try to get the selected kitty ID from AsyncStorage
+        const kittyId = await AsyncStorage.getItem(SELECTED_KITTY_KEY);
+        
         if (storedUser) {
           const userData = JSON.parse(storedUser);
+          
+          // If we have a stored kitty ID, use the corresponding image
+          if (kittyId && KITTY_IMAGES[kittyId]) {
+            userData.avatarUrl = KITTY_IMAGES[kittyId];
+            console.log('Using stored kitty image for user avatar, kittyId:', kittyId);
+          }
+          
           setUser(userData);
           
           // Check onboarding status
@@ -133,6 +155,12 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
           // If not in storage, try to get from auth state
           const currentUser = await getCurrentUser();
           if (currentUser) {
+            // If we have a stored kitty ID, use the corresponding image
+            if (kittyId && KITTY_IMAGES[kittyId]) {
+              currentUser.avatarUrl = KITTY_IMAGES[kittyId];
+              console.log('Using stored kitty image for user avatar, kittyId:', kittyId);
+            }
+            
             setUser(currentUser);
             saveUserToStorage(currentUser);
             

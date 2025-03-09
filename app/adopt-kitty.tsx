@@ -115,13 +115,20 @@ export default function AdoptKittyScreen() {
     try {
       console.log('User is adopting kitty:', selectedKitty.breed);
 
-      // Save the selected kitty to storage
-      await AsyncStorage.setItem(SELECTED_KITTY_KEY, JSON.stringify(selectedKitty.image));
-      console.log('Selected kitty saved to storage');
+      // If we have a user ID, save the kitty ID with the user ID
+      if (user?.id) {
+        const userKittyKey = `${SELECTED_KITTY_KEY}_${user.id}`;
+        await AsyncStorage.setItem(userKittyKey, selectedKitty.id);
+        console.log(`Saved kitty ID ${selectedKitty.id} for user ${user.id}`);
+      } else {
+        // Fallback to the generic key if no user ID (shouldn't happen)
+        await AsyncStorage.setItem(SELECTED_KITTY_KEY, selectedKitty.id);
+        console.log('Saved kitty ID to generic key (no user ID):', selectedKitty.id);
+      }
       
-      // Complete onboarding
+      // Complete onboarding with the kitty ID
       console.log('Completing onboarding process...');
-      await completeOnboarding(selectedKitty.image);
+      await completeOnboarding(selectedKitty.id);
       console.log('Onboarding completed successfully');
       
       // Fade out before navigation
@@ -142,14 +149,14 @@ export default function AdoptKittyScreen() {
   };
   
   // Handle scroll events to update selected kitty
-  const handleMomentumScrollEnd = (event) => {
+  const handleMomentumScrollEnd = (event: { nativeEvent: { contentOffset: { x: number } } }) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const newIndex = Math.round(contentOffsetX / width);
     setSelectedKittyIndex(newIndex);
   };
 
   // Render kitty item
-  const renderKittyItem = ({ item, index }) => {
+  const renderKittyItem = ({ item, index }: { item: KittyProfile, index: number }) => {
     return (
       <View style={styles.kittySlide}>
         <View style={styles.kittyImageContainer}>

@@ -102,7 +102,8 @@ const OnboardingScreen = () => {
         } catch (error) {
           console.error('Error navigating to adopt kitty:', error);
           // As fallback, complete onboarding here and go to tabs
-          await completeOnboarding();
+          // Use a default kitty ID since we couldn't navigate to the kitty selection
+          await completeOnboarding('1'); // Default to the first kitty (Munchkin)
           router.replace('/(tabs)');
           return; // Don't fade back in if we're navigating away
         }

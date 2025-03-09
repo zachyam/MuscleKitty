@@ -18,6 +18,7 @@ function WorkoutPlansScreen() {
   const [loading, setLoading] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   const textFadeAnim = useRef(new Animated.Value(1)).current; // For text fade animation
+  const kittySwayAnim = useRef(new Animated.Value(0)).current; // For kitty swaying animation
   const { user } = useContext(UserContext);
 
   // Load workouts when the screen comes into focus or user changes
@@ -26,6 +27,9 @@ function WorkoutPlansScreen() {
       console.log('WorkoutPlansScreen - useFocusEffect triggered');
       loadWorkouts();
       loadWorkoutLogs();
+      
+      // Also restart animation when screen is focused
+      startHorizontalAnimation();
     }, [user?.id]) // Reload when user changes
   );
   
@@ -113,6 +117,35 @@ function WorkoutPlansScreen() {
       clearInterval(textTimer);
     };
   }, []);
+  
+  // Define the animation function outside of useEffect to reuse it
+  const startHorizontalAnimation = () => {
+    // First, reset to center position
+    kittySwayAnim.setValue(0);
+    
+    // Then create a seamless looping animation from center → right → left → center
+    Animated.loop(
+      // Use timing for smooth gradual motion
+      Animated.timing(kittySwayAnim, {
+        toValue: 1,           // Move to right fully
+        duration: 3000,       // Over 3 seconds
+        useNativeDriver: true,
+        easing: Easing.linear // Perfect linear motion for full duration
+      }),
+      // No delay/reset between cycles
+      { iterations: -1 }      // Infinite loop
+    ).start();
+  };
+
+  // Start animation initially and when component mounts
+  useEffect(() => {
+    startHorizontalAnimation();
+    
+    // Clean up the animation when component unmounts
+    return () => {
+      kittySwayAnim.stopAnimation();
+    };
+  }, []);
 
   const handleDeleteWorkout = (workoutId: string) => {
     Alert.alert(
@@ -142,10 +175,21 @@ function WorkoutPlansScreen() {
         >
           <View style={styles.heroOverlay} />
           <View style={styles.heroContent}>
-            <Image 
+            <Animated.Image 
               source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
               style={[
-                styles.kittenImage
+                styles.kittenImage,
+                {
+                  transform: [
+                    {
+                      translateX: kittySwayAnim.interpolate({
+                        inputRange: [0, 0.25, 0.5, 0.75, 1],
+                        outputRange: [0, 8, 0, -8, 0], // Full cycle: center → right → center → left → center
+                        extrapolate: 'clamp'
+                      })
+                    }
+                  ]
+                }
               ]} 
             />
           </View>

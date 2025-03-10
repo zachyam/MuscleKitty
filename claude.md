@@ -1,92 +1,49 @@
-// Conceptual Design for MuscleKitty Onboarding Screen
+// Conceptual Design for MuscleKitty Shop Screen
 
 /*
-This is a design specification for the onboarding screen to match the self-care app reference.
+This is a design specification for the achievements screen.
 This is not actual implementation code but describes the layout and components.
 
 LAYOUT STRUCTURE:
 ===============================
 
 ┌─────────────────────────────┐
-│ ← [Back Button]             │ <- Header with navigation controls
-├─────────────────────────────┤
-│                             │
 │  ┌─────────────────────┐    │
-│  │ Welcome Message     │    │ <- Card with welcome text
-│  │ Let's get started!  │    │
+│  │                     |    │  <- Card with avatar, level and XP
+│  │                     │    │
 │  └─────────────────────┘    │
 │                             │
 │                             │
-│        [Mascot Image]       │ <- Centered mascot image
-│                             │
-│                             │
-│     Meet your fitness       │
-│          bestie!            │ <- Title text
-│                             │
-│  Muscle Kitty will support  │
-│  your fitness goals every   │ <- Subtitle text
-│     step of the way! 🐱     │
-│                             │
-│                             │
-│       [Next Button]         │ <- Primary action button
-│                             │
-│        ● ○ ○ ○              │ <- Pagination indicators
-└─────────────────────────────┘
+│  ________________________   |   
+│ |  Food     |     Toys   |  | <- Shop with food and toys, showing individual items in cards
+│ |_________________________  |                          
+│ |  ___      │    ____    |  |
+│ | |   |     |   |    |   |  │
+│ | |___|     |   |____|   |  │
+│ │                        |  |
+│ |  ___      │    ____    |  |      
+│ | |   |     |   |    |   |  │
+│ | |___|     |   |____|   |  |      
+│ │ _______________________|  |
+│                             |
+|_____________________________|
 
-COLOR SCHEME:
-- Background: Light green (#F5F9EE)
-- Card background: White (#FFFFFF)
-- Primary button: Green (#8FC93A)
-- Text: Dark gray (#333333)
-- Secondary text: Medium gray (#888888)
+
+CONTEXT:
+This is a new Shop tab which allows users to shop for accessories, namely food, or toys, or both, for their kittens.
+Purchase of each item requires paying XP, which are achieved by completing workouts. 
 
 COMPONENT SUGGESTIONS:
-1. Header Bar with:
-   - Back button (left) - Only visible after first screen
+1. A card that shows the kitty avatar, and the level it currently is. The level is determined by the
+number of XP the kitty has gained, which correlates to the consistency and number of workouts the user has done.
+Design this such that there is no limit to the levels, and each level gets exponentially harder to reach.
 
-2. Welcome Card:
-   - Rounded corners (30px radius)
-   - White background
-   - Bold title text
-   - Subtle shadow
+So for instance, getting from level 1 to 2 requires one workout, but getting from level 100 to 101 requires a year of consistent workout (for eg).
 
-3. Mascot Image:
-   - Circular image (200x200px)
-   - Border in primary color
+The level should dynamically change as the user gains more XP in real time.
 
-4. Text Section:
-   - Title: Large, bold text (28px)
-   - Subtitle: Medium text (18px), lighter color
+2. A shop with 2 sections, food and toys. Each section witll have cards, displaying the food picture, its name, and the amount of XP needed to purchase it
+Clicking each card will purchase highlight / select it as it pops up, and a confirmation dialog will pop up to confirm the purchase.
 
-5. Next Button:
-   - Full width button with primary color
-   - Rounded corners (30px radius)
-   - White text
-   - Text changes to "Get Started" on final screen
-
-6. Pagination Indicators:
-   - Small circles for each screen
-   - Active screen highlighted with primary color
-   - Inactive screens in lighter color
-
-ONBOARDING FLOW CONTENT:
-Screen 1:
-- Welcome: "Let's get your fitness journey started!"
-- Title: "Meet your fitness bestie!"
-- Subtitle: "Muscle Kitty will support your fitness goals every step of the way! 🐱"
-
-Screen 2:
-- Welcome: "Build your perfect workout!"
-- Title: "Create Workout Plans"
-- Subtitle: "Design and customize your own workout routines with exercises that fit your goals."
-
-Screen 3:
-- Welcome: "Watch yourself grow stronger!"
-- Title: "Track Your Progress"
-- Subtitle: "Log your workouts, see your improvement over time, and stay motivated!"
-
-Implementation Notes:
-- This flow should be shown AFTER the user is logged in, and ONLY if it's their first time logging in
-- Store completion status in local storage
-- Support back navigation between screens
+If there is sufficient XP, purchase the item, with a confetti, and decrease the current XP by that amount
 */

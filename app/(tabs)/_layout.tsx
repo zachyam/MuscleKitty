@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Dumbbell, History, HouseIcon, Trophy, User } from 'lucide-react-native';
+import { Dumbbell, History, HouseIcon, Trophy, User, ShoppingCart } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 
@@ -67,6 +67,15 @@ export default function TabLayout() {
           title: 'Achievements',
           tabBarIcon: ({ color, size }) => (
             <Trophy size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="shop"
+        options={{
+          title: 'Shop',
+          tabBarIcon: ({ color, size }) => (
+            <ShoppingCart size={size} color={color} />
           ),
         }}
       />

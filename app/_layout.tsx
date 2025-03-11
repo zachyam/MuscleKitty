@@ -22,7 +22,17 @@ export default function RootLayout() {
     <>
       <UserProvider>
         <AuthProvider>
-          <Slot />
+          <Stack 
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: Colors.background },
+              animation: 'fade',
+              animationDuration: 200,
+            }}
+          >
+            <Stack.Screen name="adopt-kitty" options={{ animation: 'fade' }} />
+            <Stack.Screen name="name-kitty" options={{ animation: 'fade' }} />
+          </Stack>
         </AuthProvider>
       </UserProvider>
       <StatusBar style="auto" />

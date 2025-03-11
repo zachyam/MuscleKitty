@@ -69,8 +69,13 @@ export default function NameKittyScreen() {
       }
     };
 
-    // Set initial opacity to 1 (fully visible, no fade-in)
-    fadeAnim.setValue(1);
+    // Start with opacity 0 and fade in
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
 
     getSelectedKitty();
   }, [user?.id]);

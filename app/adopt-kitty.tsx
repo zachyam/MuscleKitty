@@ -138,12 +138,12 @@ export default function AdoptKittyScreen() {
       }).start(() => {
         // Navigate to name kitty page after fade out completes
         console.log('Navigating to name kitty page');
-        router.replace('/name-kitty');
+        router.push('/name-kitty');
       });
     } catch (error) {
       console.error('Error adopting kitty:', error);
       // Still navigate even if there's an error
-      router.replace('/name-kitty');
+      router.push('/name-kitty');
     }
   };
   

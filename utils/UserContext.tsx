@@ -31,6 +31,7 @@ const defaultContext: UserContextType = {
 };
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
+const KITTY_NAME_KEY = 'muscle_kitty_name';
 
 const USER_STORAGE_KEY = 'muscle_kitty_user_data';
 
@@ -108,11 +109,24 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // Get the kitty image from the ID
       const avatarUrl = KITTY_IMAGES[kittyId] || require('@/assets/images/default-avatar.png');
       
-      // Update local user object with avatar
+      // Try to get the kitty name from AsyncStorage
+      let kittyName = '';
+      try {
+        const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
+        const storedKittyName = await AsyncStorage.getItem(userKittyNameKey);
+        if (storedKittyName) {
+          kittyName = storedKittyName;
+        }
+      } catch (error) {
+        console.error('Error getting kitty name:', error);
+      }
+      
+      // Update local user object with avatar and kitty name
       const updatedUser = { 
         ...user, 
         hasCompletedOnboarding: true,
-        avatarUrl 
+        avatarUrl,
+        kittyName: kittyName || user.kittyName || ''
       };
       setUser(updatedUser);
       saveUserToStorage(updatedUser);
@@ -133,7 +147,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         // First try to get from AsyncStorage (faster)
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         
-        // Also try to get the selected kitty ID from AsyncStorage
+        // Also try to get the selected kitty ID and name from AsyncStorage
         const kittyId = await AsyncStorage.getItem(SELECTED_KITTY_KEY);
         
         if (storedUser) {
@@ -143,6 +157,16 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
           if (kittyId && KITTY_IMAGES[kittyId]) {
             userData.avatarUrl = KITTY_IMAGES[kittyId];
             console.log('Using stored kitty image for user avatar, kittyId:', kittyId);
+          }
+          
+          // Load kitty name if we have a user ID
+          if (userData.id) {
+            const userKittyNameKey = `${KITTY_NAME_KEY}_${userData.id}`;
+            const storedKittyName = await AsyncStorage.getItem(userKittyNameKey);
+            if (storedKittyName) {
+              userData.kittyName = storedKittyName;
+              console.log('Loaded kitty name:', storedKittyName);
+            }
           }
           
           setUser(userData);
@@ -159,6 +183,16 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
             if (kittyId && KITTY_IMAGES[kittyId]) {
               currentUser.avatarUrl = KITTY_IMAGES[kittyId];
               console.log('Using stored kitty image for user avatar, kittyId:', kittyId);
+            }
+            
+            // Load kitty name if we have a user ID
+            if (currentUser.id) {
+              const userKittyNameKey = `${KITTY_NAME_KEY}_${currentUser.id}`;
+              const storedKittyName = await AsyncStorage.getItem(userKittyNameKey);
+              if (storedKittyName) {
+                currentUser.kittyName = storedKittyName;
+                console.log('Loaded kitty name:', storedKittyName);
+              }
             }
             
             setUser(currentUser);

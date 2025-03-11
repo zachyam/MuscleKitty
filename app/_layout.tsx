@@ -69,8 +69,18 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const inAuthGroup = segments[0] === "(auth)";
     const inTabsGroup = segments[0] === "(tabs)";
+    const onboardingScreens = ['onboarding', 'adopt-kitty', 'name-kitty'];
+    const protectedPaths = ['login', 'signup', 'onboarding', 'adopt-kitty', 'name-kitty'];
+    const currentPath = segments[0];
     
-    // Wait for mounting to complete before navigation
+    // Handle navigation immediately for first-time users (no delay) to prevent flash
+    if (user && isFirstLogin && !onboardingScreens.includes(currentPath)) {
+      console.log('Immediate redirect: New user needs onboarding');
+      router.replace('/onboarding');
+      return;
+    }
+    
+    // Wait for mounting to complete before other navigation cases
     const navigateAfterMounting = setTimeout(() => {
       // If not logged in, only allow access to auth group
       if (!user) {
@@ -86,7 +96,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       // First-time login users should go through onboarding flow
       if (isFirstLogin) {
         // Only redirect if not already in the right place
-        if (segments[0] !== 'onboarding' && segments[0] !== 'adopt-kitty') {
+        if (!onboardingScreens.includes(currentPath)) {
           console.log('First login detected, redirecting to onboarding');
           router.replace('/onboarding');
         }
@@ -94,15 +104,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Returning users should always have access to app routes after onboarding
-      // Only redirect if they're on login/signup/onboarding/adopt-kitty screens
-      const protectedPaths = ['login', 'signup', 'onboarding', 'adopt-kitty'];
-      const currentPath = segments[0];
-      
+      // Only redirect if they're on login/signup/onboarding screens
       if (currentPath && protectedPaths.includes(currentPath)) {
         console.log('User already onboarded, redirecting to main app');
         router.replace('/(tabs)');
       }
-    }, 100); // Short delay to ensure mounting completes
+    }, 100); // Short delay to ensure mounting completes for normal cases
     
     return () => clearTimeout(navigateAfterMounting);
   }, [user, loading, isFirstLogin, segments, router]);

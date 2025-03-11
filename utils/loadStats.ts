@@ -45,19 +45,20 @@ export const refreshAvatar = async (
 ) => {
   if (user) {
     try {
-      // Import the overrideUserAvatar function
-      const { overrideUserAvatar } = await import('@/utils/auth');
+      // Import the loadUserKittyData function
+      const { loadUserKittyData } = await import('@/utils/auth');
       
-      // Override the avatar with the kitty image
-      const updatedUser = await overrideUserAvatar(user);
+      // Load the kitty data (avatar and name)
+      const updatedUser = await loadUserKittyData(user);
       
-      // Only update if the avatar has changed and setUser is provided
-      if (updatedUser.avatarUrl !== user.avatarUrl && setUser) {
-        console.log('Refreshing user avatar on profile screen');
+      // Only update if the user data has changed and setUser is provided
+      if ((updatedUser.avatarUrl !== user.avatarUrl || 
+           updatedUser.kittyName !== user.kittyName) && setUser) {
+        console.log('Refreshing user avatar and kitty data on profile screen');
         setUser(updatedUser);
       }
     } catch (error) {
-      console.error('Error refreshing avatar:', error);
+      console.error('Error refreshing avatar and kitty data:', error);
     }
   }
 };

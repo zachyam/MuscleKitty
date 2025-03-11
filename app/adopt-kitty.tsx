@@ -126,10 +126,9 @@ export default function AdoptKittyScreen() {
         console.log('Saved kitty ID to generic key (no user ID):', selectedKitty.id);
       }
       
-      // Complete onboarding with the kitty ID
-      console.log('Completing onboarding process...');
-      await completeOnboarding(selectedKitty.id);
-      console.log('Onboarding completed successfully');
+      // Store the selected kitty ID but don't complete onboarding yet
+      // The final step of the onboarding process will be in the name-kitty page
+      console.log('Selected kitty:', selectedKitty.id);
       
       // Fade out before navigation
       Animated.timing(fadeAnim, {
@@ -137,14 +136,14 @@ export default function AdoptKittyScreen() {
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        // Navigate to main app after fade out completes
-        console.log('Navigating to main app');
-        router.replace('/(tabs)');
+        // Navigate to name kitty page after fade out completes
+        console.log('Navigating to name kitty page');
+        router.replace('/name-kitty');
       });
     } catch (error) {
       console.error('Error adopting kitty:', error);
       // Still navigate even if there's an error
-      router.replace('/(tabs)');
+      router.replace('/name-kitty');
     }
   };
   

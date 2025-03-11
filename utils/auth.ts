@@ -14,30 +14,50 @@ const KITTY_IMAGES: Record<string, any> = {
 };
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
+const KITTY_NAME_KEY = 'muscle_kitty_name';
 
-// Helper function to override user avatar with stored kitty
-export const overrideUserAvatar = async (user: User): Promise<User> => {
+// Helper function to load user's kitty data from AsyncStorage
+export const loadUserKittyData = async (user: User): Promise<User> => {
   try {
     if (!user || !user.id) return user;
     
-    // Use a user-specific key to store the kitty ID
+    // Use user-specific keys to store the kitty ID and name
     const userKittyKey = `${SELECTED_KITTY_KEY}_${user.id}`;
+    const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
     
-    // Get the selected kitty ID from AsyncStorage
+    // Get the selected kitty ID and name from AsyncStorage
     const kittyId = await AsyncStorage.getItem(userKittyKey);
+    const kittyName = await AsyncStorage.getItem(userKittyNameKey);
+    
+    let updatedUser = { ...user };
     
     // If we have a stored kitty ID, use the corresponding image
     if (kittyId && KITTY_IMAGES[kittyId]) {
-      console.log(`Overriding user ${user.id} avatar with kitty ID:`, kittyId);
-      return {
-        ...user,
-        avatarUrl: KITTY_IMAGES[kittyId]
-      };
+      console.log(`Loading user ${user.id} avatar with kitty ID:`, kittyId);
+      updatedUser.avatarUrl = KITTY_IMAGES[kittyId];
     }
     
-    return user;
+    // If we have a stored kitty name, add it to the user object
+    if (kittyName) {
+      console.log(`Loading user ${user.id} kitty name:`, kittyName);
+      updatedUser.kittyName = kittyName;
+    } else {
+      // Try to get kitty name from Supabase user metadata as a fallback
+      const { data } = await supabase.auth.getUser();
+      const metadataKittyName = data?.user?.user_metadata?.kittyName;
+      
+      if (metadataKittyName) {
+        console.log('Found kitty name in user metadata:', metadataKittyName);
+        updatedUser.kittyName = metadataKittyName;
+        
+        // Store it in AsyncStorage for future use
+        await AsyncStorage.setItem(userKittyNameKey, metadataKittyName);
+      }
+    }
+    
+    return updatedUser;
   } catch (error) {
-    console.error('Error overriding user avatar:', error);
+    console.error('Error loading user kitty data:', error);
     return user;
   }
 };
@@ -124,7 +144,7 @@ export const loginWithGoogle = async (): Promise<AuthResponse> => {
               };
               
               // Override with kitty avatar if available
-              const userWithKitty = await overrideUserAvatar(user);
+              const userWithKitty = await loadUserKittyData(user);
               
               return {
                 user: userWithKitty,
@@ -218,8 +238,8 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
           avatarUrl: userData.user.user_metadata?.avatar_url,
         };
         
-        // Override with kitty avatar if available
-        const userWithKitty = await overrideUserAvatar(user);
+        // Load kitty data (avatar and name)
+        const userWithKitty = await loadUserKittyData(user);
         
         return {
           user: userWithKitty,
@@ -275,7 +295,7 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
               };
               
               // Override with kitty avatar if available
-              const userWithKitty = await overrideUserAvatar(user);
+              const userWithKitty = await loadUserKittyData(user);
               
               return {
                 user: userWithKitty,
@@ -346,10 +366,10 @@ export const getCurrentUser = async (): Promise<User | null> => {
       avatarUrl: data.user.user_metadata?.avatar_url,
     };
     
-    // Override with kitty avatar if available
-    const userWithKitty = await overrideUserAvatar(user);
+    // Load all kitty data (avatar and name)
+    const userWithKittyData = await loadUserKittyData(user);
     
-    return userWithKitty;
+    return userWithKittyData;
   } catch (error) {
     console.error('Error getting current user:', error);
     return null;

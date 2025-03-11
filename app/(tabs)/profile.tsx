@@ -12,15 +12,45 @@ import { getWorkoutLogs } from '@/utils/storage';
 import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Kitty name storage key - must match the one in name-kitty.tsx
+const KITTY_NAME_KEY = 'muscle_kitty_name';
 
 export default function ProfileScreen() {
   // Get user data and the setUser function from context
   const { user, setUser } = useUser();
+  const [kittyName, setKittyName] = useState<string>('');
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [workoutStats, setWorkoutStats] = useState({
     thisMonth: 0,
     total: 0,
   });
+  
+  // Load kitty name directly from AsyncStorage
+  useEffect(() => {
+    const loadKittyName = async () => {
+      if (user?.id) {
+        try {
+          const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
+          const storedKittyName = await AsyncStorage.getItem(userKittyNameKey);
+          
+          if (storedKittyName) {
+            console.log('Loaded kitty name from storage:', storedKittyName);
+            setKittyName(storedKittyName);
+          } else if (user.kittyName) {
+            // If the kitty name is already in the user object, use that
+            console.log('Using kitty name from user object:', user.kittyName);
+            setKittyName(user.kittyName);
+          }
+        } catch (error) {
+          console.error('Error loading kitty name:', error);
+        }
+      }
+    };
+    
+    loadKittyName();
+  }, [user?.id]);
   
   // Refresh avatar when profile screen loads
   useEffect(() => {
@@ -120,6 +150,9 @@ export default function ProfileScreen() {
             style={styles.profileImage}
           />
           <Text style={styles.profileName}>{user?.name || 'Fitness User'}</Text>
+          {kittyName ? (
+            <Text style={styles.kittyName}>Kitty: {kittyName}</Text>
+          ) : null}
           <Text style={styles.profileBio}>{user?.email || 'On a journey to become stronger!'}</Text>
         </View>
         
@@ -195,6 +228,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.gray,
     textAlign: 'center',
+  },
+  kittyName: {
+    fontSize: 16,
+    color: Colors.primary,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 4,
   },
   statsContainer: {
     flexDirection: 'row',

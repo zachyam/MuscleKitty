@@ -149,11 +149,7 @@ export default function ProfileScreen() {
             source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
             style={styles.profileImage}
           />
-          <Text style={styles.profileName}>{user?.name || 'Fitness User'}</Text>
-          {kittyName ? (
-            <Text style={styles.kittyName}>Kitty: {kittyName}</Text>
-          ) : null}
-          <Text style={styles.profileBio}>{user?.email || 'On a journey to become stronger!'}</Text>
+          <Text style={styles.profileName}>{kittyName || 'Fitness User'}</Text>
         </View>
         
         <View style={styles.statsContainer}>

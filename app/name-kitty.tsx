@@ -157,6 +157,16 @@ export default function NameKittyScreen() {
   //   }
   // };
 
+  const stringHash = (str: string): number => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  }
+
   // Handle name confirmation
   const handleConfirmName = async () => {
     if (!kittyName.trim()) return;
@@ -181,6 +191,12 @@ export default function NameKittyScreen() {
       if (user?.id) {
         const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
         await AsyncStorage.setItem(userKittyNameKey, kittyName.trim());
+
+        const kittyHashKey = `${kittyName}_${user.id}`;
+        const kittyNameHash = stringHash(userKittyNameKey);
+        await AsyncStorage.setItem(kittyHashKey, kittyNameHash.toString());
+        console.log("User Kitty Unique Hash key:", kittyHashKey);
+        console.log("User Kitty Unique Hash:", kittyNameHash.toString());
         
         // Update user metadata in Supabase
         const { error } = await supabase.auth.updateUser({

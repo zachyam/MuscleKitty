@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Settings, Award, Users, Crown, Medal } from 'lucide-react-native';
+import { Settings, Award, Users, Crown, Medal, UserPlus } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '@/utils/UserContext';
-// Define the Friend type
+import { getFriendProfiles, addFriend as addFriendToSupabase, getCurrentUserKittyHash, getFriendProfileByHash, FriendProfile } from '@/utils/friends';
+// Define the Friend type that includes what we get from the server
 interface Friend {
   id: string;
   name: string;
@@ -16,86 +17,139 @@ interface Friend {
   level: number;
   xp: number;
   rank?: number;
+  kittyHash: string;
+  kittyType: string;
 }
 
+// Map kitty type to avatar image
+const KITTY_IMAGES: Record<string, any> = {
+  'Munchkin': require('@/assets/images/munchkin.png'),
+  'Orange Tabby': require('@/assets/images/orange-tabby.png'),
+  'Russian Blue': require('@/assets/images/russian-blue.png'),
+  'Calico': require('@/assets/images/calico.png'),
+  'Maine Coon': require('@/assets/images/maine-coon.png'),
+  'Unknown': 'https://via.placeholder.com/100?text=K'
+};
+
 export default function FriendsScreen() {
-  // Generate a unique ID for the current user
-  const [userId, setUserId] = useState<string>("");
+  const { user } = useUser();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [newFriendId, setNewFriendId] = useState<string>("");
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [userRank, setUserRank] = useState<number>(1);
-  const [userLevel, setUserLevel] = useState<number>(5);
-  const [userXp, setUserXp] = useState<number>(240);
+  const [userLevel, setUserLevel] = useState<number>(1);
+  const [userXp, setUserXp] = useState<number>(0);
   const [uniqueKittyHash, setUniqueKittyHash] = useState<string>("");
-  const { user } = useUser();
-//   const storedKittyName = await AsyncStorage.getItem(userKittyNameKey);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAddingFriend, setIsAddingFriend] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   
+  // Load user data and friends on component mount
   useEffect(() => {
-    const loadUniqueKittyHash = async () => {
-      if (user?.id) {
-        try {
-            const kittyHashKey = `${user.kittyName}_${user.id}`;
-            const uniqueKittyHash = await AsyncStorage.getItem(kittyHashKey);
-            console.log("User Kitty Unique Hash Key:", kittyHashKey);
-            console.log("User Kitty Unique Hash:", uniqueKittyHash);
-            setUniqueKittyHash(uniqueKittyHash || "");
-        } catch (error) {
-          console.error('Error loading workout logs:', error);
+    const loadUserAndFriends = async () => {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      try {
+        // Get current user's kitty hash - first try from AsyncStorage
+        const kittyHashKey = `${user.kittyName}_${user.id}`;
+        let kittyHash = await AsyncStorage.getItem(kittyHashKey);
+        
+        // If not found in AsyncStorage, try to get from Supabase
+        if (!kittyHash) {
+          kittyHash = await getCurrentUserKittyHash(user.id);
         }
+        
+        if (kittyHash) {
+          console.log("User Kitty Hash found:", kittyHash);
+          setUniqueKittyHash(kittyHash);
+        }
+
+        // Set user's level and XP (in a real app, this would come from the backend)
+        setUserLevel(user.level || 1);
+        setUserXp(user.xp || 0);
+
+        // Load friends from Supabase
+        await loadFriends();
+      } catch (error) {
+        console.error('Error loading user and friends:', error);
+        setErrorMessage('Failed to load friends. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
     };
-    
-    loadUniqueKittyHash();
+
+    loadUserAndFriends();
   }, [user?.id]);
 
-  // Generate a random ID on component mount
-  useEffect(() => {
-    // setUserId(`kitty_${Math.random().toString(36).substring(2, 10)}`);
-
-    // Load some sample friends for demonstration with level and XP
-    const sampleFriends: Friend[] = [
-      {
-        id: "kitty_abc123",
-        name: "Whiskers",
-        avatar: "https://via.placeholder.com/100?text=W",
-        level: 8,
-        xp: 420,
-      },
-      {
-        id: "kitty_def456",
-        name: "Mittens",
-        avatar: "https://via.placeholder.com/100?text=M",
-        level: 3,
-        xp: 120,
-      },
-      {
-        id: "kitty_ghi789",
-        name: "Fluffy",
-        avatar: "https://via.placeholder.com/100?text=F",
-        level: 6,
-        xp: 320,
-      },
-      {
-        id: "kitty_jkl012",
-        name: "Snowball",
-        avatar: "https://via.placeholder.com/100?text=S",
-        level: 10,
-        xp: 650,
-      },
-      {
-        id: "kitty_mno345",
-        name: "Shadow",
-        avatar: "https://via.placeholder.com/100?text=S",
-        level: 4,
-        xp: 180,
-      },
-    ];
+  // Load friends from Supabase
+  const loadFriends = async () => {
+    if (!user?.id) return;
     
-    // Sort friends by level in descending order
-    const sortedFriends = sortFriendsAndAssignRanks([...sampleFriends]);
-    setFriends(sortedFriends);
-  }, []);
+    try {
+      // Get friend profiles from Supabase
+      const profiles = await getFriendProfiles(user.id);
+      
+      if (profiles.length === 0) {
+        // No friends yet, return empty list
+        setFriends([]);
+        return;
+      }
+      
+      // Map to our Friend interface
+      const mappedFriends: Friend[] = profiles.map(profile => ({
+        id: profile.id,
+        name: profile.kittyName || "Unknown Kitty",
+        avatar: profile.kittyType ? KITTY_IMAGES[profile.kittyType] : KITTY_IMAGES.Unknown,
+        level: profile.level || 1,
+        xp: profile.xp || 0,
+        kittyHash: profile.kittyHash || "",
+        kittyType: profile.kittyType || "Unknown"
+      }));
+      
+      // Sort and assign ranks
+      const sortedFriends = sortFriendsAndAssignRanks(mappedFriends);
+      setFriends(sortedFriends);
+    } catch (error) {
+      console.error('Error loading friends:', error);
+      setErrorMessage('Failed to load friends. Please try again later.');
+      
+      // If no friends loaded yet, show sample friends for demo purposes
+      if (friends.length === 0) {
+        const sampleFriends: Friend[] = [
+          {
+            id: "sample1",
+            name: "Whiskers",
+            avatar: KITTY_IMAGES['Calico'],
+            level: 8,
+            xp: 420,
+            kittyHash: "sample1",
+            kittyType: "Calico"
+          },
+          {
+            id: "sample2",
+            name: "Mittens",
+            avatar: KITTY_IMAGES['Russian Blue'],
+            level: 3,
+            xp: 120,
+            kittyHash: "sample2",
+            kittyType: "Russian Blue"
+          },
+          {
+            id: "sample3",
+            name: "Fluffy",
+            avatar: KITTY_IMAGES['Maine Coon'],
+            level: 6,
+            xp: 320,
+            kittyHash: "sample3",
+            kittyType: "Maine Coon"
+          }
+        ];
+        const sortedFriends = sortFriendsAndAssignRanks(sampleFriends);
+        setFriends(sortedFriends);
+      }
+    }
+  };
 
   // Sort friends by level and assign ranks
   const sortFriendsAndAssignRanks = (friendsList: Friend[]): Friend[] => {
@@ -113,43 +167,77 @@ export default function FriendsScreen() {
   };
 
   // Function to copy user ID to clipboard
-  const copyIdToClipboard = () => {
-    // Clipboard.setString(userId)
-    Alert.alert("Copied!", "Your unique ID has been copied to clipboard.");
+  const copyIdToClipboard = async () => {
+    try {
+    //   await Clipboard.setStringAsync(uniqueKittyHash);
+      Alert.alert("Copied!", "Your unique kitty ID has been copied to clipboard.");
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      Alert.alert("Error", "Failed to copy to clipboard.");
+    }
   };
 
   // Function to add a new friend
-  const addFriend = () => {
-    if (!newFriendId.trim()) {
+  const handleAddFriend = async () => {
+    if (!newFriendId.trim() || !user?.id) {
       Alert.alert("Error", "Please enter a friend ID");
       return;
     }
 
+    // Check if trying to add self
+    if (newFriendId.trim() === uniqueKittyHash) {
+      Alert.alert("Can't add yourself", "You can't add yourself as a friend!");
+      return;
+    }
+
     // Check if friend already exists
-    if (friends.some((friend) => friend.id === newFriendId)) {
+    if (friends.some((friend) => friend.kittyHash === newFriendId.trim())) {
       Alert.alert("Already friends", "This kitty is already in your friends list!");
       return;
     }
 
-    // In a real app, you would validate the ID and fetch the friend's data
-    // For demo purposes, we'll create a random friend
-    const randomLevel = Math.floor(Math.random() * 10) + 1;
-    const randomXp = randomLevel * 50 + Math.floor(Math.random() * 50);
+    setIsAddingFriend(true);
     
-    const newFriend: Friend = {
-      id: newFriendId,
-      name: `Kitty ${Math.floor(Math.random() * 1000)}`,
-      avatar: `https://via.placeholder.com/100?text=${newFriendId.substring(0, 2)}`,
-      level: randomLevel,
-      xp: randomXp
-    };
+    try {
+      // Look up the friend profile by hash
+      const friendProfile = await getFriendProfileByHash(newFriendId.trim());
+      
+      if (!friendProfile) {
+        Alert.alert("Friend Not Found", "Could not find a kitty with that ID. Please check and try again.");
+        setIsAddingFriend(false);
+        return;
+      }
+      
+      // Add the friend relationship in Supabase
+      const success = await addFriendToSupabase(user.id, newFriendId.trim());
+      
+      if (!success) {
+        throw new Error("Failed to add friend");
+      }
+      
+      // Create a friend object from the profile
+      const newFriend: Friend = {
+        id: friendProfile.id,
+        name: friendProfile.kittyName || "Unknown Kitty",
+        avatar: friendProfile.kittyType ? KITTY_IMAGES[friendProfile.kittyType] : KITTY_IMAGES.Unknown,
+        level: friendProfile.level || 1,
+        xp: friendProfile.xp || 0,
+        kittyHash: friendProfile.kittyHash || "",
+        kittyType: friendProfile.kittyType || "Unknown"
+      };
 
-    // Add new friend and re-sort the list
-    const updatedFriends = sortFriendsAndAssignRanks([...friends, newFriend]);
-    setFriends(updatedFriends);
-    setNewFriendId("");
+      // Add new friend and re-sort the list
+      const updatedFriends = sortFriendsAndAssignRanks([...friends, newFriend]);
+      setFriends(updatedFriends);
+      setNewFriendId("");
 
-    Alert.alert("Friend added!", `${newFriend.name} is now your friend!`);
+      Alert.alert("Friend added!", `${newFriend.name} is now your friend!`);
+    } catch (error) {
+      console.error('Error adding friend:', error);
+      Alert.alert("Error", "Failed to add friend. Please try again later.");
+    } finally {
+      setIsAddingFriend(false);
+    }
   };
 
   // Render medal icon based on rank
@@ -162,58 +250,90 @@ export default function FriendsScreen() {
 
   // Find the user's position in the leaderboard
   useEffect(() => {
-    // In a real app, this would compare the user's level with friends
-    // and determine their position
-    const allParticipants = [...friends, { id: userId, name: "You", avatar: "", level: userLevel, xp: userXp }];
-    const sorted = sortFriendsAndAssignRanks(allParticipants);
-    const userPosition = sorted.findIndex(f => f.id === userId) + 1;
-    setUserRank(userPosition);
-  }, [friends, userLevel, userXp]);
+    // Skip if we don't have user data yet
+    if (!user || !user.kittyName) return;
+    
+    try {
+      // Include the user in the ranking
+      const allParticipants = [
+        ...friends, 
+        { 
+          id: user.id, 
+          name: user.kittyName || "You", 
+          avatar: user.avatarUrl || "", 
+          level: userLevel, 
+          xp: userXp,
+          kittyHash: uniqueKittyHash,
+          kittyType: user.kittyBreed || "Unknown"
+        }
+      ];
+      const sorted = sortFriendsAndAssignRanks(allParticipants);
+      const userPosition = sorted.findIndex(f => f.id === user.id) + 1;
+      setUserRank(userPosition);
+    } catch (error) {
+      console.error('Error calculating user rank:', error);
+    }
+  }, [friends, userLevel, userXp, user, uniqueKittyHash]);
 
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Leaderboard" />
       <View style={styles.content}>
-        {/* User stats card similar to achievements screen */}
-        <View style={styles.statsContainer}>
-          <View style={styles.rankBadge}>
-            <Text style={styles.rankBadgeText}>#{userRank}</Text>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Loading friends...</Text>
           </View>
-          <Image
-            source={{ uri: `https://via.placeholder.com/100?text=You` }}
-            style={styles.catImage}
-          />
-          <View style={styles.statsInfo}>
-            <Text style={styles.statsTitle}>Level {userLevel} Kitty</Text>
-            <Text style={styles.statsSubtitle}>
-              Your Rank: #{userRank} • {userXp} XP Total
-            </Text>
-            <View style={styles.levelProgressContainer}>
-              <View style={styles.levelProgress}>
-                <View 
-                  style={[
-                    styles.levelProgressFill, 
-                    { width: `${(userXp % 100) / 100 * 100}%` }
-                  ]} 
-                />
+        ) : (
+          <>
+            {/* User stats card similar to achievements screen */}
+            <View style={styles.statsContainer}>
+              <View style={styles.rankBadge}>
+                <Text style={styles.rankBadgeText}>#{userRank}</Text>
               </View>
-              <Text style={styles.xpText}>{userXp % 100}/100 XP to Level {userLevel + 1}</Text>
+              <Image
+                source={user?.avatarUrl ? 
+                  (typeof user.avatarUrl === 'string' ? { uri: user.avatarUrl } : user.avatarUrl) :
+                  { uri: `https://via.placeholder.com/100?text=You` }}
+                style={styles.catImage}
+              />
+              <View style={styles.statsInfo}>
+                <Text style={styles.statsTitle}>Level {userLevel} Kitty</Text>
+                <Text style={styles.statsSubtitle}>
+                  Your Rank: #{userRank} • {userXp} XP Total
+                </Text>
+                <View style={styles.levelProgressContainer}>
+                  <View style={styles.levelProgress}>
+                    <View 
+                      style={[
+                        styles.levelProgressFill, 
+                        { width: `${(userXp % 100) / 100 * 100}%` }
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.xpText}>{userXp % 100}/100 XP to Level {userLevel + 1}</Text>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
 
-        <View style={styles.leaderboardHeader}>
-          <View style={styles.leaderboardTitleContainer}>
-            <Users size={20} color={Colors.primary} style={{ marginRight: 8 }} />
-            <Text style={styles.leaderboardTitle}>Friend Leaderboard</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.addFriendButton}
-            onPress={() => setShareModalVisible(true)}
-          >
-            <Text style={styles.addFriendButtonText}>Share ID</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.leaderboardHeader}>
+              <View style={styles.leaderboardTitleContainer}>
+                <Users size={20} color={Colors.primary} style={{ marginRight: 8 }} />
+                <Text style={styles.leaderboardTitle}>Friend Leaderboard</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.addFriendButton}
+                onPress={() => setShareModalVisible(true)}
+              >
+                <Text style={styles.addFriendButtonText}>Share ID</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {errorMessage ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
 
         <ScrollView 
           style={styles.scrollContent}
@@ -231,7 +351,7 @@ export default function FriendsScreen() {
                   <View style={styles.rankContainer}>
                     {renderRankMedal(friend.rank || 999)}
                   </View>
-                  <Image source={{ uri: friend.avatar }} style={styles.avatar} />
+                  <Image source={friend.avatar} style={styles.avatar} />
                   <View style={styles.friendInfo}>
                     <Text style={styles.friendName}>{friend.name}</Text>
                     <Text style={styles.friendLevel}>Level {friend.level} • {friend.xp} XP</Text>
@@ -251,8 +371,16 @@ export default function FriendsScreen() {
                 value={newFriendId}
                 onChangeText={setNewFriendId}
               />
-              <TouchableOpacity style={styles.addButton} onPress={addFriend}>
-                <Text style={styles.addButtonText}>Add</Text>
+              <TouchableOpacity 
+                style={[styles.addButton, isAddingFriend && styles.disabledButton]}
+                onPress={handleAddFriend}
+                disabled={isAddingFriend}
+              >
+                {isAddingFriend ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.addButtonText}>Add</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -287,7 +415,7 @@ export default function FriendsScreen() {
               </Text>
 
               <View style={styles.modalIdContainer}>
-                <Text style={styles.modalId}>{userId}</Text>
+                <Text style={styles.modalId}>{uniqueKittyHash}</Text>
               </View>
 
               <Text style={styles.modalInstructions}>
@@ -306,6 +434,8 @@ export default function FriendsScreen() {
             </View>
           </View>
         </Modal>
+          </>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -675,5 +805,29 @@ const styles = StyleSheet.create({
   modalCloseButtonText: {
     color: Colors.text,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: Colors.gray,
+  },
+  errorContainer: {
+    padding: 16,
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#D32F2F',
+    fontSize: 14,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });

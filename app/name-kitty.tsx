@@ -22,6 +22,7 @@ import Colors from '@/constants/Colors';
 import { useUser } from '@/utils/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
+import { registerKittyProfile } from '@/utils/friends';
 
 // Kitty images mapping for avatar selection
 const KITTY_IMAGES: Record<string, any> = {
@@ -30,6 +31,15 @@ const KITTY_IMAGES: Record<string, any> = {
   '3': require('@/assets/images/russian-blue.png'),
   '4': require('@/assets/images/calico.png'),
   '5': require('@/assets/images/maine-coon.png'),
+};
+
+// Map kitty ID to breed name
+const KITTY_BREEDS: Record<string, string> = {
+  '1': 'Munchkin',
+  '2': 'Orange Tabby',
+  '3': 'Russian Blue',
+  '4': 'Calico',
+  '5': 'Maine Coon',
 };
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
@@ -174,33 +184,38 @@ export default function NameKittyScreen() {
     try {
       setIsSubmitting(true);
       
-      // Check if name is unique
-      // const isUnique = await isKittyNameUnique(kittyName.trim());
-      
-      // if (!isUnique) {
-      //   Alert.alert(
-      //     "Name Already Taken",
-      //     "This kitty name is already taken. Please choose a different name.",
-      //     [{ text: "OK" }]
-      //   );
-      //   setIsSubmitting(false);
-      //   return;
-      // }
-      
       // Store the kitty name
       if (user?.id) {
         const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
         await AsyncStorage.setItem(userKittyNameKey, kittyName.trim());
 
+        // Generate kitty hash - will be used for friend connections
         const kittyHashKey = `${kittyName}_${user.id}`;
         const kittyNameHash = stringHash(userKittyNameKey);
-        await AsyncStorage.setItem(kittyHashKey, kittyNameHash.toString());
+        const kittyHashString = kittyNameHash.toString();
+        await AsyncStorage.setItem(kittyHashKey, kittyHashString);
         console.log("User Kitty Unique Hash key:", kittyHashKey);
-        console.log("User Kitty Unique Hash:", kittyNameHash.toString());
+        console.log("User Kitty Unique Hash:", kittyHashString);
+        
+        // Get the kitty breed name
+        const kittyBreed = KITTY_BREEDS[kittyId] || 'Unknown';
+        
+        // Register kitty profile in Supabase for friend search
+        await registerKittyProfile(
+          user.id,
+          kittyName.trim(),
+          kittyBreed,
+          kittyHashString
+        );
         
         // Update user metadata in Supabase
         const { error } = await supabase.auth.updateUser({
-          data: { kittyName: kittyName.trim() }
+          data: { 
+            kittyName: kittyName.trim(),
+            kittyId: kittyId,
+            kittyBreed: kittyBreed,
+            kittyHash: kittyHashString
+          }
         });
         
         if (error) {

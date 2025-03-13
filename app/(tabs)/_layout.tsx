@@ -62,15 +62,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="achievements"
-        options={{
-          title: 'Achievements',
-          tabBarIcon: ({ color, size }) => (
-            <Trophy size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="friends"
         options={{
           title: 'Friends',

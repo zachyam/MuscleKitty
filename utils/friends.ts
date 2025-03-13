@@ -299,10 +299,10 @@ export const rejectFriendRequest = async (userId: string, requesterUserId: strin
   }
 };
 
-// Remove a friend association
+// Remove a friend association (bi-directional)
 export const removeFriend = async (userId: string, friendKittyHash: string): Promise<boolean> => {
   try {
-    // Delete from one direction
+    // First remove from the user's direction
     const { error: error1 } = await supabase
       .from('friends')
       .delete()
@@ -334,7 +334,10 @@ export const removeFriend = async (userId: string, friendKittyHash: string): Pro
           .eq('user_id', friendProfile.user_id)
           .eq('friend_kitty_hash', userProfile.kitty_hash);
         
-        if (error2) console.error('Error removing reverse friendship:', error2);
+        if (error2) {
+          console.error('Error removing reverse friendship:', error2);
+          // Continue anyway since we've already removed one direction
+        }
       }
     }
     

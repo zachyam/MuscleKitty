@@ -16,6 +16,7 @@ import {
   getPendingFriendRequests,
   acceptFriendRequest,
   rejectFriendRequest,
+  removeFriend as removeFriendFromSupabase,
   FriendProfile,
   FriendshipStatus 
 } from '@/utils/friends';
@@ -357,6 +358,37 @@ export default function FriendsScreen() {
       setIsProcessingRequest(false);
     }
   };
+  
+  // Handle removing a friend
+  const handleRemoveFriend = async (friend: Friend) => {
+    if (!user?.id) return;
+    
+    // We need the kittyHash to remove the friend
+    if (!friend.kittyHash) {
+      console.error('Missing kittyHash for friend');
+      Alert.alert('Error', 'Could not remove this friend. Missing information.');
+      return;
+    }
+    
+    try {
+      const success = await removeFriendFromSupabase(user.id, friend.kittyHash);
+      
+      if (!success) {
+        throw new Error('Failed to remove friend');
+      }
+      
+      // Remove from friends list
+      setFriends(prev => prev.filter(f => f.id !== friend.id));
+      
+      // Re-sort the leaderboard after removing a friend
+      await loadFriends();
+      
+      Alert.alert('Friend Removed', `You are no longer friends with ${friend.name}.`);
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      Alert.alert('Error', 'Failed to remove friend. Please try again.');
+    }
+  };
 
   // Render medal icon based on rank
   const renderRankMedal = (rank: number) => {
@@ -528,6 +560,28 @@ export default function FriendsScreen() {
                     <Text style={styles.friendName}>{friend.name}</Text>
                     <Text style={styles.friendLevel}>Level {friend.level} • {friend.xp} XP</Text>
                   </View>
+                  <TouchableOpacity 
+                    style={styles.removeFriendButton}
+                    onPress={() => {
+                      Alert.alert(
+                        "Remove Friend",
+                        `Are you sure you want to unfriend ${friend.name}? This will remove the friendship for both of you.`,
+                        [
+                          {
+                            text: "Cancel",
+                            style: "cancel"
+                          },
+                          {
+                            text: "Unfriend",
+                            style: "destructive",
+                            onPress: () => handleRemoveFriend(friend)
+                          }
+                        ]
+                      );
+                    }}
+                  >
+                    <X size={16} color="#FF6B6B" />
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
@@ -805,6 +859,15 @@ const styles = StyleSheet.create({
   friendLevel: {
     fontSize: 12,
     color: Colors.gray,
+  },
+  removeFriendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    marginLeft: 8,
   },
   addFriendSection: {
     marginVertical: 16,

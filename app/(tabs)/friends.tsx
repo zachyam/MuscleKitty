@@ -2,13 +2,23 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal, StatusBar, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Settings, Award, Users, Crown, Medal, UserPlus } from 'lucide-react-native';
+import { Settings, Award, Users, Crown, Medal, UserPlus, Bell, Check, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '@/utils/UserContext';
-import { getFriendProfiles, addFriend as addFriendToSupabase, getCurrentUserKittyHash, getFriendProfileByHash, FriendProfile } from '@/utils/friends';
+import { 
+  getFriendProfiles, 
+  addFriend as addFriendToSupabase, 
+  getCurrentUserKittyHash, 
+  getFriendProfileByHash, 
+  getPendingFriendRequests,
+  acceptFriendRequest,
+  rejectFriendRequest,
+  FriendProfile,
+  FriendshipStatus 
+} from '@/utils/friends';
 // Define the Friend type that includes what we get from the server
 interface Friend {
   id: string;
@@ -19,6 +29,8 @@ interface Friend {
   rank?: number;
   kittyHash: string;
   kittyType: string;
+  status?: FriendshipStatus;
+  userId?: string;  // The DB user_id, needed for friend request operations
 }
 
 // Map kitty type to avatar image
@@ -34,6 +46,7 @@ const KITTY_IMAGES: Record<string, any> = {
 export default function FriendsScreen() {
   const { user } = useUser();
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
   const [newFriendId, setNewFriendId] = useState<string>("");
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [userRank, setUserRank] = useState<number>(1);
@@ -42,7 +55,9 @@ export default function FriendsScreen() {
   const [uniqueKittyHash, setUniqueKittyHash] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAddingFriend, setIsAddingFriend] = useState<boolean>(false);
+  const [isProcessingRequest, setIsProcessingRequest] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [hasPendingRequests, setHasPendingRequests] = useState<boolean>(false);
   
   // Load user data and friends on component mount
   useEffect(() => {
@@ -69,8 +84,11 @@ export default function FriendsScreen() {
         setUserLevel(user.level || 1);
         setUserXp(user.xp || 0);
 
-        // Load friends from Supabase
-        await loadFriends();
+        // Load friends and pending requests from Supabase
+        await Promise.all([
+          loadFriends(),
+          loadPendingRequests()
+        ]);
       } catch (error) {
         console.error('Error loading user and friends:', error);
         setErrorMessage('Failed to load friends. Please try again later.');
@@ -81,6 +99,40 @@ export default function FriendsScreen() {
 
     loadUserAndFriends();
   }, [user?.id]);
+  
+  // Load pending friend requests
+  const loadPendingRequests = async () => {
+    if (!user?.id) return;
+    
+    try {
+      // Get pending friend requests
+      const requests = await getPendingFriendRequests(user.id);
+      
+      if (requests.length === 0) {
+        setPendingRequests([]);
+        setHasPendingRequests(false);
+        return;
+      }
+      
+      // Map to our Friend interface
+      const mappedRequests: Friend[] = requests.map(profile => ({
+        id: profile.id,
+        name: profile.kittyName || "Unknown Kitty",
+        avatar: profile.kittyType ? KITTY_IMAGES[profile.kittyType] : KITTY_IMAGES.Unknown,
+        level: profile.level || 1,
+        xp: profile.xp || 0,
+        kittyHash: profile.kittyHash || "",
+        kittyType: profile.kittyType || "Unknown",
+        status: FriendshipStatus.PENDING,
+        userId: profile.userId  // Make sure to include the userId for friend request handling
+      }));
+      
+      setPendingRequests(mappedRequests);
+      setHasPendingRequests(mappedRequests.length > 0);
+    } catch (error) {
+      console.error('Error loading pending requests:', error);
+    }
+  };
 
   // Load friends from Supabase
   const loadFriends = async () => {
@@ -104,7 +156,8 @@ export default function FriendsScreen() {
         level: profile.level || 1,
         xp: profile.xp || 0,
         kittyHash: profile.kittyHash || "",
-        kittyType: profile.kittyType || "Unknown"
+        kittyType: profile.kittyType || "Unknown",
+        userId: profile.userId  // Include userId for API operations
       }));
       
       // Sort and assign ranks
@@ -177,7 +230,7 @@ export default function FriendsScreen() {
     }
   };
 
-  // Function to add a new friend
+  // Function to add a new friend (sends a friend request)
   const handleAddFriend = async () => {
     if (!newFriendId.trim() || !user?.id) {
       Alert.alert("Error", "Please enter a friend ID");
@@ -208,35 +261,100 @@ export default function FriendsScreen() {
         return;
       }
       
-      // Add the friend relationship in Supabase
+      // Add the friend request in Supabase
       const success = await addFriendToSupabase(user.id, newFriendId.trim());
       
       if (!success) {
-        throw new Error("Failed to add friend");
+        throw new Error("Failed to send friend request");
       }
       
-      // Create a friend object from the profile
-      const newFriend: Friend = {
-        id: friendProfile.id,
-        name: friendProfile.kittyName || "Unknown Kitty",
-        avatar: friendProfile.kittyType ? KITTY_IMAGES[friendProfile.kittyType] : KITTY_IMAGES.Unknown,
-        level: friendProfile.level || 1,
-        xp: friendProfile.xp || 0,
-        kittyHash: friendProfile.kittyHash || "",
-        kittyType: friendProfile.kittyType || "Unknown"
-      };
-
-      // Add new friend and re-sort the list
-      const updatedFriends = sortFriendsAndAssignRanks([...friends, newFriend]);
-      setFriends(updatedFriends);
       setNewFriendId("");
-
-      Alert.alert("Friend added!", `${newFriend.name} is now your friend!`);
+      Alert.alert("Request sent!", `Friend request sent to ${friendProfile.kittyName}!`);
     } catch (error) {
       console.error('Error adding friend:', error);
-      Alert.alert("Error", "Failed to add friend. Please try again later.");
+      Alert.alert("Error", "Failed to send friend request. Please try again later.");
     } finally {
       setIsAddingFriend(false);
+    }
+  };
+  
+  // Handle accepting a friend request
+  const handleAcceptRequest = async (friend: Friend) => {
+    if (!user?.id) return;
+    
+    // We need the userId of the requester, not the profile id
+    if (!friend.userId) {
+      console.error('Missing userId in friend request');
+      Alert.alert('Error', 'Could not process this friend request. Missing user information.');
+      return;
+    }
+    
+    setIsProcessingRequest(true);
+    
+    try {
+      const success = await acceptFriendRequest(user.id, friend.userId);
+      
+      if (!success) {
+        throw new Error('Failed to accept friend request');
+      }
+      
+      // Remove from pending requests
+      setPendingRequests(prev => prev.filter(req => req.id !== friend.id));
+      
+      // Add to friends list
+      const newFriend: Friend = {
+        ...friend,
+        status: FriendshipStatus.ACCEPTED
+      };
+      
+      // Add to friends and re-sort
+      const updatedFriends = sortFriendsAndAssignRanks([...friends, newFriend]);
+      setFriends(updatedFriends);
+      
+      // Update pending requests flag
+      setHasPendingRequests(pendingRequests.length > 1);
+      
+      Alert.alert('Success', `You are now friends with ${friend.name}!`);
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      Alert.alert('Error', 'Failed to accept friend request. Please try again.');
+    } finally {
+      setIsProcessingRequest(false);
+    }
+  };
+  
+  // Handle rejecting a friend request
+  const handleRejectRequest = async (friend: Friend) => {
+    if (!user?.id) return;
+    
+    // We need the userId of the requester, not the profile id
+    if (!friend.userId) {
+      console.error('Missing userId in friend request');
+      Alert.alert('Error', 'Could not process this friend request. Missing user information.');
+      return;
+    }
+    
+    setIsProcessingRequest(true);
+    
+    try {
+      const success = await rejectFriendRequest(user.id, friend.userId);
+      
+      if (!success) {
+        throw new Error('Failed to reject friend request');
+      }
+      
+      // Remove from pending requests
+      setPendingRequests(prev => prev.filter(req => req.id !== friend.id));
+      
+      // Update pending requests flag
+      setHasPendingRequests(pendingRequests.length > 1);
+      
+      Alert.alert('Rejected', `Friend request from ${friend.name} has been rejected.`);
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+      Alert.alert('Error', 'Failed to reject friend request. Please try again.');
+    } finally {
+      setIsProcessingRequest(false);
     }
   };
 
@@ -291,6 +409,11 @@ export default function FriendsScreen() {
               <View style={styles.rankBadge}>
                 <Text style={styles.rankBadgeText}>#{userRank}</Text>
               </View>
+              {hasPendingRequests && (
+                <View style={styles.notificationBadge}>
+                  <Bell size={15} color="#FFFFFF" />
+                </View>
+              )}
               <Image
                 source={user?.avatarUrl ? 
                   (typeof user.avatarUrl === 'string' ? { uri: user.avatarUrl } : user.avatarUrl) :
@@ -315,6 +438,55 @@ export default function FriendsScreen() {
                 </View>
               </View>
             </View>
+            
+            {/* Pending Friend Requests Section */}
+            {hasPendingRequests && (
+              <View style={styles.requestsContainer}>
+                <View style={styles.requestsHeader}>
+                  <Bell size={18} color={Colors.primary} style={{ marginRight: 8 }} />
+                  <Text style={styles.requestsTitle}>Friend Requests</Text>
+                  <View style={styles.requestCountBadge}>
+                    <Text style={styles.requestCountText}>{pendingRequests.length}</Text>
+                  </View>
+                </View>
+                
+                {pendingRequests.map((request) => (
+                  <View key={request.id} style={styles.requestCard}>
+                    <Image source={request.avatar} style={styles.requestAvatar} />
+                    <View style={styles.requestInfo}>
+                      <Text style={styles.requestName}>{request.name}</Text>
+                      <Text style={styles.requestLevel}>Level {request.level} • {request.xp} XP</Text>
+                    </View>
+                    
+                    <View style={styles.requestActions}>
+                      <TouchableOpacity 
+                        style={[styles.actionButton, styles.acceptButton]}
+                        onPress={() => handleAcceptRequest(request)}
+                        disabled={isProcessingRequest}
+                      >
+                        {isProcessingRequest ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Check size={16} color="#FFFFFF" />
+                        )}
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        style={[styles.actionButton, styles.rejectButton]}
+                        onPress={() => handleRejectRequest(request)}
+                        disabled={isProcessingRequest}
+                      >
+                        {isProcessingRequest ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <X size={16} color="#FFFFFF" />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
 
             <View style={styles.leaderboardHeader}>
               <View style={styles.leaderboardTitleContainer}>
@@ -472,6 +644,20 @@ const styles = StyleSheet.create({
     top: -5,
     right: -5,
     backgroundColor: Colors.primary,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.card,
+    zIndex: 1,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    backgroundColor: '#FF6B6B',
     width: 30,
     height: 30,
     borderRadius: 15,
@@ -829,5 +1015,92 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  // Friend request styles
+  requestsContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  requestsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  requestsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  requestCountBadge: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  requestCountText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  requestCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  requestAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: Colors.primaryLight,
+  },
+  requestInfo: {
+    flex: 1,
+  },
+  requestName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  requestLevel: {
+    fontSize: 12,
+    color: Colors.gray,
+  },
+  requestActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  acceptButton: {
+    backgroundColor: Colors.primary,
+  },
+  rejectButton: {
+    backgroundColor: '#FF6B6B',
   },
 });

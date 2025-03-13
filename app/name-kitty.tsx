@@ -190,7 +190,7 @@ export default function NameKittyScreen() {
         await AsyncStorage.setItem(userKittyNameKey, kittyName.trim());
 
         // Generate kitty hash - will be used for friend connections
-        const kittyHashKey = `${kittyName}_${user.id}`;
+        const kittyHashKey = `${user.email}_${user.id}`;
         const kittyNameHash = stringHash(userKittyNameKey);
         const kittyHashString = kittyNameHash.toString();
         await AsyncStorage.setItem(kittyHashKey, kittyHashString);

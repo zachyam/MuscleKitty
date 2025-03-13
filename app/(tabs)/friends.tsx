@@ -68,7 +68,7 @@ export default function FriendsScreen() {
       setIsLoading(true);
       try {
         // Get current user's kitty hash - first try from AsyncStorage
-        const kittyHashKey = `${user.kittyName}_${user.id}`;
+        const kittyHashKey = `${user.email}_${user.id}`;
         let kittyHash = await AsyncStorage.getItem(kittyHashKey);
         
         // If not found in AsyncStorage, try to get from Supabase

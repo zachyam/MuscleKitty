@@ -8,7 +8,7 @@ import Colors from '@/constants/Colors';
 import { getWorkoutById, saveWorkoutLog, getLatestWorkoutLog, getExerciseHistory } from '@/utils/storage';
 import { Workout, WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
-import { UserContext } from '@/utils/UserContext';
+import { UserContext, useUser } from '@/utils/UserContext';
 import ExerciseWeightChart from '@/components/ExerciseWeightChart';
 
 export default function StartWorkoutScreen() {
@@ -19,10 +19,11 @@ export default function StartWorkoutScreen() {
   const [exerciseHistory, setExerciseHistory] = useState<{[key: string]: {date: string, maxWeight: number}[]}>({});
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipText, setTooltipText] = useState('');
-  const { user } = useContext(UserContext);
+  const { user, addCoins } = useUser(); // Use the custom hook instead of useContext
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [coinsEarned] = useState(5); // Fixed reward of 5 coins per workout
   const confettiAnimation = useRef<LottieView>(null);
 
   useEffect(() => {
@@ -153,6 +154,14 @@ export default function StartWorkoutScreen() {
     };
     
     await saveWorkoutLog(workoutLog);
+    
+    // Add coins to the user's account
+    try {
+      await addCoins(coinsEarned);
+      console.log(`Added ${coinsEarned} coins for completing workout`);
+    } catch (error) {
+      console.error('Error adding coins:', error);
+    }
     
     // Show confetti celebration
     setShowConfetti(true);
@@ -371,6 +380,13 @@ export default function StartWorkoutScreen() {
           <View style={styles.congratsCard}>
             <Text style={styles.congratsTitle}>Workout Complete! 🎉</Text>
             <Text style={styles.congratsText}>Great job! You've completed your workout.</Text>
+            <View style={styles.coinsEarnedContainer}>
+              <Text style={styles.coinsEarnedPrefix}>+{coinsEarned}</Text>
+              <View style={styles.coinIconWrapper}>
+                <Text style={styles.coinIcon}>🪙</Text>
+              </View>
+              <Text style={styles.coinsEarnedSuffix}>Coins Earned!</Text>
+            </View>
           </View>
         </View>
       </Modal>
@@ -559,6 +575,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     textAlign: 'center',
+    marginBottom: 12,
+  },
+  coinsEarnedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  coinsEarnedPrefix: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginRight: 5,
+  },
+  coinsEarnedSuffix: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginLeft: 5,
+  },
+  coinIconWrapper: {
+    marginRight: 5,
+  },
+  coinIcon: {
+    fontSize: 18,
   },
   previousWorkoutContainer: {
     marginTop: 24,

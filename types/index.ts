@@ -40,6 +40,9 @@ export type User = {
   avatarUrl?: string;
   hasCompletedOnboarding?: boolean;
   kittyName?: string;
+  coins?: number;
+  xp?: number;
+  level?: number;
 };
 
 export type AuthResponse = {

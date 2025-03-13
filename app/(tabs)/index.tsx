@@ -165,6 +165,22 @@ function WorkoutPlansScreen() {
     );
   };
 
+  // Ensure user has default values for coins, xp, and level
+  useEffect(() => {
+    if (user && user.hasCompletedOnboarding) {
+      // To be safe, make sure these properties exist if they're not there
+      if (user.coins === undefined || user.xp === undefined || user.level === undefined) {
+        const { setUser } = useContext(UserContext);
+        setUser({
+          ...user,
+          coins: user.coins ?? 50,
+          xp: user.xp ?? 0,
+          level: user.level ?? 1
+        });
+      }
+    }
+  }, [user]);
+  
   return (
     <View style={styles.container}>
       {/* Hero Background - Takes up entire top half */}
@@ -174,6 +190,15 @@ function WorkoutPlansScreen() {
           style={styles.heroImage}
         >
           <View style={styles.heroOverlay} />
+          
+          {/* Coins display positioned in top left with fun design */}
+          <View style={styles.coinContainer}>
+            <View style={styles.coinIconWrapper}>
+              <Text style={styles.coinIcon}>🌕</Text>
+            </View>
+            <Text style={styles.coinCount}>{user?.coins || 0}</Text>
+          </View>
+          
           <View style={styles.heroContent}>
             <Animated.Image 
               source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
@@ -291,6 +316,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgb(244, 244, 220)',
+  },
+  coinContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    zIndex: 10,
+  },
+  coinIconWrapper: {
+    marginRight: 5,
+  },
+  coinIcon: {
+    fontSize: 18,
+  },
+  coinCount: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   safeArea: {
     flex: 1,

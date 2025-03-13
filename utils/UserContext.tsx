@@ -20,6 +20,8 @@ type UserContextType = {
   loading: boolean;
   completeOnboarding: (kittyId: string) => Promise<void>;
   isFirstLogin: boolean;
+  addCoins: (amount: number) => Promise<void>;
+  addXP: (amount: number) => Promise<void>;
 };
 
 const defaultContext: UserContextType = {
@@ -28,6 +30,8 @@ const defaultContext: UserContextType = {
   loading: true,
   isFirstLogin: false,
   completeOnboarding: async () => {},
+  addCoins: async () => {},
+  addXP: async () => {},
 };
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
@@ -121,17 +125,21 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         console.error('Error getting kitty name:', error);
       }
       
-      // Update local user object with avatar and kitty name
+      // Update local user object with avatar, kitty name, and initial coins/XP
       const updatedUser = { 
         ...user, 
         hasCompletedOnboarding: true,
         avatarUrl,
-        kittyName: kittyName || user.kittyName || ''
+        kittyName: kittyName || user.kittyName || '',
+        coins: user.coins || 50, // Start with 50 coins
+        xp: user.xp || 0,    // Start with 0 XP
+        level: user.level || 1 // Start at level 1
       };
       setUser(updatedUser);
       saveUserToStorage(updatedUser);
       
       console.log('Onboarding marked as completed for user with kitty ID:', user.id, kittyId);
+      console.log('Initial user stats - Coins:', updatedUser.coins, 'XP:', updatedUser.xp, 'Level:', updatedUser.level);
       
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -169,6 +177,13 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
             }
           }
           
+          // Ensure userData has coins, xp, and level properties (for existing users)
+          if (userData.hasCompletedOnboarding) {
+            userData.coins = userData.coins ?? 50; // Default to 50 coins if not present
+            userData.xp = userData.xp ?? 0;       // Default to 0 XP if not present
+            userData.level = userData.level ?? 1;  // Default to level 1 if not present
+          }
+          
           setUser(userData);
           
           // Check onboarding status
@@ -195,6 +210,13 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
               }
             }
             
+            // Ensure currentUser has coins, xp, and level properties (for existing users)
+            if (currentUser.hasCompletedOnboarding) {
+              currentUser.coins = currentUser.coins ?? 50; // Default to 50 coins if not present
+              currentUser.xp = currentUser.xp ?? 0;        // Default to 0 XP if not present
+              currentUser.level = currentUser.level ?? 1;  // Default to level 1 if not present
+            }
+            
             setUser(currentUser);
             saveUserToStorage(currentUser);
             
@@ -212,13 +234,68 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
     loadUser();
   }, []);
 
+  // Function to add coins for the user
+  const addCoins = async (amount: number) => {
+    if (!user) return;
+    
+    try {
+      const currentCoins = user.coins || 0;
+      const updatedUser = {
+        ...user,
+        coins: currentCoins + amount
+      };
+      
+      setUser(updatedUser);
+      await saveUserToStorage(updatedUser);
+      console.log(`Added ${amount} coins. New total: ${updatedUser.coins}`);
+    } catch (error) {
+      console.error('Error adding coins:', error);
+    }
+  };
+  
+  // Function to add XP for the user
+  const addXP = async (amount: number) => {
+    if (!user) return;
+    
+    try {
+      const currentXP = user.xp || 0;
+      const currentLevel = user.level || 1;
+      
+      // Calculate new level based on XP
+      // Uses exponential curve: level = Math.floor(Math.sqrt(xp / 10))
+      const newXP = currentXP + amount;
+      const newLevel = Math.floor(Math.sqrt(newXP / 10));
+      const maxLevel = Math.max(1, newLevel); // Minimum level is 1
+      
+      const updatedUser = {
+        ...user,
+        xp: newXP,
+        level: maxLevel
+      };
+      
+      // Check if user leveled up
+      if (maxLevel > currentLevel) {
+        console.log(`Level up! ${currentLevel} -> ${maxLevel}`);
+        // Could add celebration or notification here
+      }
+      
+      setUser(updatedUser);
+      await saveUserToStorage(updatedUser);
+      console.log(`Added ${amount} XP. New total: ${updatedUser.xp}, Level: ${updatedUser.level}`);
+    } catch (error) {
+      console.error('Error adding XP:', error);
+    }
+  };
+
   return (
     <UserContext.Provider value={{ 
       user, 
       setUser: handleSetUser, 
       loading,
       completeOnboarding,
-      isFirstLogin
+      isFirstLogin,
+      addCoins,
+      addXP
     }}>
       {children}
     </UserContext.Provider>

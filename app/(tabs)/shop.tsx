@@ -24,21 +24,30 @@ type ShopItem = {
   name: string;
   description: string;
   image: any;
-  price: number;
+  price: number; // Price in coins
+  xpReward: number; // XP gained when purchased
   category: 'food' | 'toy';
 };
 
 export default function ShopScreen() {
-  const { user, setUser } = useUser();
+  const { user, setUser, addCoins, addXP } = useUser();
   const [showConfetti, setShowConfetti] = useState(false);
-  const [totalXP, setTotalXP] = useState(120); // This would come from user data in a real app
-  const [kittyLevel, setKittyLevel] = useState(1);
+  const [totalXP, setTotalXP] = useState(user?.xp || 0);
+  const [kittyLevel, setKittyLevel] = useState(user?.level || 1);
   const [levelProgress, setLevelProgress] = useState(0); // 0-100%
   const [nextLevelXP, setNextLevelXP] = useState(0);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'food' | 'toy'>('food');
   
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setTotalXP(user.xp || 0);
+      setKittyLevel(user.level || 1);
+    }
+  }, [user]);
+
   // Function to calculate level based on XP
   // Uses an exponential curve to make higher levels harder to reach
   useEffect(() => {
@@ -52,7 +61,19 @@ export default function ShopScreen() {
       const xpForCurrentLevel = Math.pow(maxLevel, 2) * 10;
       const xpForNextLevel = Math.pow(maxLevel + 1, 2) * 10;
       const xpNeededForNextLevel = xpForNextLevel - xpForCurrentLevel;
-      const currentLevelProgress = (xp - xpForCurrentLevel) / xpNeededForNextLevel * 100;
+      
+      // Calculate current progress toward next level
+      // When XP is 0, progress should be 0%
+      let currentLevelProgress = 0;
+      let currentLevelXP = 0;
+      
+      if (xp >= xpForCurrentLevel) {
+        currentLevelXP = xp - xpForCurrentLevel;
+        currentLevelProgress = (currentLevelXP / xpNeededForNextLevel) * 100;
+      }
+      
+      // Ensure progress is between 0-100%
+      currentLevelProgress = Math.max(0, Math.min(100, currentLevelProgress));
       
       setKittyLevel(maxLevel);
       setLevelProgress(currentLevelProgress);
@@ -71,6 +92,7 @@ export default function ShopScreen() {
       description: 'Nutrient-rich dry food for your kitty',
       image: require('@/assets/images/orange-tabby.png'),
       price: 10,
+      xpReward: 5,
       category: 'food',
     },
     {
@@ -79,6 +101,7 @@ export default function ShopScreen() {
       description: 'Delicious wet food with real meat chunks',
       image: require('@/assets/images/maine-coon.png'),
       price: 15,
+      xpReward: 8,
       category: 'food',
     },
     {
@@ -87,6 +110,7 @@ export default function ShopScreen() {
       description: 'Tasty salmon treats for special occasions',
       image: require('@/assets/images/russian-blue.png'),
       price: 20,
+      xpReward: 12,
       category: 'food',
     },
     {
@@ -95,6 +119,7 @@ export default function ShopScreen() {
       description: 'Premium chicken dinner for your kitty',
       image: require('@/assets/images/calico.png'),
       price: 25,
+      xpReward: 15,
       category: 'food',
     },
     {
@@ -103,6 +128,7 @@ export default function ShopScreen() {
       description: 'Delicious tuna flakes as a special treat',
       image: require('@/assets/images/munchkin.png'),
       price: 18,
+      xpReward: 10,
       category: 'food',
     },
     {
@@ -111,6 +137,7 @@ export default function ShopScreen() {
       description: 'Rich and tasty liver pâté',
       image: require('@/assets/images/orange-tabby.png'),
       price: 22,
+      xpReward: 14,
       category: 'food',
     },
     {
@@ -119,6 +146,7 @@ export default function ShopScreen() {
       description: 'Turkey feast for a special holiday meal',
       image: require('@/assets/images/maine-coon.png'),
       price: 28,
+      xpReward: 18,
       category: 'food',
     },
     {
@@ -127,6 +155,7 @@ export default function ShopScreen() {
       description: 'Chewy beef strips for strong teeth',
       image: require('@/assets/images/russian-blue.png'),
       price: 15,
+      xpReward: 8,
       category: 'food',
     },
     {
@@ -135,6 +164,7 @@ export default function ShopScreen() {
       description: 'Varied fish flavors in one package',
       image: require('@/assets/images/calico.png'),
       price: 30,
+      xpReward: 20,
       category: 'food',
     },
     
@@ -145,6 +175,7 @@ export default function ShopScreen() {
       description: 'Interactive feather wand to trigger hunting instincts',
       image: require('@/assets/images/calico.png'),
       price: 25,
+      xpReward: 15,
       category: 'toy',
     },
     {
@@ -153,6 +184,7 @@ export default function ShopScreen() {
       description: 'Soft plush mouse filled with premium catnip',
       image: require('@/assets/images/munchkin.png'),
       price: 30,
+      xpReward: 20,
       category: 'toy',
     },
     {
@@ -161,6 +193,7 @@ export default function ShopScreen() {
       description: 'LED laser toy for exciting chase games',
       image: require('@/assets/images/orange-tabby.png'),
       price: 40,
+      xpReward: 30,
       category: 'toy',
     },
     {
@@ -169,6 +202,7 @@ export default function ShopScreen() {
       description: 'Colorful ball with internal bell for auditory play',
       image: require('@/assets/images/maine-coon.png'),
       price: 15,
+      xpReward: 10,
       category: 'toy',
     },
     {
@@ -177,6 +211,7 @@ export default function ShopScreen() {
       description: 'Wand with colorful ribbons for playful swatting',
       image: require('@/assets/images/russian-blue.png'),
       price: 20,
+      xpReward: 12,
       category: 'toy',
     },
     {
@@ -185,6 +220,7 @@ export default function ShopScreen() {
       description: 'Treat-dispensing puzzle toy for mental stimulation',
       image: require('@/assets/images/calico.png'),
       price: 35,
+      xpReward: 25,
       category: 'toy',
     },
     {
@@ -193,6 +229,7 @@ export default function ShopScreen() {
       description: 'Expandable tunnel with crinkly material for hiding and ambushing',
       image: require('@/assets/images/munchkin.png'),
       price: 45,
+      xpReward: 35,
       category: 'toy',
     },
     {
@@ -201,6 +238,7 @@ export default function ShopScreen() {
       description: 'Sisal-wrapped post for healthy claw maintenance',
       image: require('@/assets/images/orange-tabby.png'),
       price: 50,
+      xpReward: 40,
       category: 'toy',
     },
     {
@@ -209,6 +247,7 @@ export default function ShopScreen() {
       description: 'Long plush toy perfect for rabbit-kicking and wrestling',
       image: require('@/assets/images/maine-coon.png'),
       price: 28,
+      xpReward: 18,
       category: 'toy',
     },
   ];
@@ -218,9 +257,22 @@ export default function ShopScreen() {
     setIsModalVisible(true);
   };
   
-  const confirmPurchase = () => {
-    if (selectedItem && totalXP >= selectedItem.price) {
-      setTotalXP(prevXP => prevXP - selectedItem.price);
+  const confirmPurchase = async () => {
+    if (!user || !selectedItem) return;
+    
+    const currentCoins = user.coins || 0;
+    
+    if (selectedItem && currentCoins >= selectedItem.price) {
+      // Subtract coins
+      await addCoins(-selectedItem.price);
+      
+      // Add XP
+      await addXP(selectedItem.xpReward);
+      
+      // Update local state
+      setTotalXP(prevXP => prevXP + selectedItem.xpReward);
+      
+      // Show confetti
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 2000);
       
@@ -229,13 +281,13 @@ export default function ShopScreen() {
       setIsModalVisible(false);
       Alert.alert(
         'Purchase Successful!',
-        `You've purchased ${selectedItem.name} for your kitty!`,
+        `You've purchased ${selectedItem.name} for your kitty! +${selectedItem.xpReward} XP gained!`,
       );
     } else {
       setIsModalVisible(false);
       Alert.alert(
-        'Insufficient XP',
-        'You don\'t have enough XP to purchase this item.',
+        'Insufficient Coins',
+        'You don\'t have enough coins to purchase this item.',
       );
     }
   };
@@ -250,7 +302,15 @@ export default function ShopScreen() {
         <Image source={item.image} style={styles.gridItemImage} />
       </View>
       <Text style={styles.gridItemName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-      <Text style={styles.gridItemPrice}>{item.price} XP</Text>
+      <View style={styles.gridItemPriceRow}>
+        <View style={styles.gridItemPriceContainer}>
+          <View style={styles.miniCoinWrapper}>
+            <Text style={styles.miniCoinIcon}>🌕</Text>
+          </View>
+          <Text style={styles.gridItemPrice}>{item.price}</Text>
+        </View>
+        <Text style={styles.gridItemXpReward}>+{item.xpReward} XP</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -282,7 +342,18 @@ export default function ShopScreen() {
           />
           <View style={styles.statsInfo}>
             <Text style={styles.statsTitle}>Level {kittyLevel} Kitty</Text>
-            <Text style={styles.statsSubtitle}>{totalXP} XP Available</Text>
+            <View style={styles.currencyRow}>
+              <View style={styles.currencyItem}>
+                <View style={styles.coinIconWrapper}>
+                  <Text style={styles.miniCoinIcon}>🌕</Text>
+                </View>
+                <Text style={styles.currencyText}>{user?.coins || 0} Coins</Text>
+              </View>
+              <View style={styles.currencyItem}>
+                <Text style={styles.currencyIcon}>⭐</Text>
+                <Text style={styles.currencyText}>{totalXP} XP</Text>
+              </View>
+            </View>
             <View style={styles.levelProgressContainer}>
               <View style={styles.levelProgress}>
                 <View 
@@ -292,7 +363,7 @@ export default function ShopScreen() {
                   ]} 
                 />
               </View>
-              <Text style={styles.xpText}>{Math.round(nextLevelXP * (levelProgress/100))}/{nextLevelXP} XP to Level {kittyLevel + 1}</Text>
+              <Text style={styles.xpText}>{Math.max(0, Math.round(nextLevelXP * (levelProgress/100)))}/{nextLevelXP} XP to Level {kittyLevel + 1}</Text>
             </View>
           </View>
         </View>
@@ -339,7 +410,23 @@ export default function ShopScreen() {
               <>
                 <Image source={selectedItem.image} style={styles.modalImage} />
                 <Text style={styles.modalItemName}>{selectedItem.name}</Text>
-                <Text style={styles.modalItemPrice}>{selectedItem.price} XP</Text>
+                
+                <View style={styles.modalPriceRow}>
+                  <View style={styles.modalPriceItem}>
+                    <Text style={styles.modalPriceLabel}>Cost:</Text>
+                    <View style={styles.modalCoinRow}>
+                      <View style={styles.modalCoinWrapper}>
+                        <Text style={styles.modalCoinIcon}>🌕</Text>
+                      </View>
+                      <Text style={styles.modalItemPrice}>{selectedItem.price} coins</Text>
+                    </View>
+                  </View>
+                  <View style={styles.modalPriceItem}>
+                    <Text style={styles.modalPriceLabel}>Reward:</Text>
+                    <Text style={styles.modalItemXpReward}>+{selectedItem.xpReward} XP</Text>
+                  </View>
+                </View>
+                
                 <Text style={styles.modalDescription}>{selectedItem.description}</Text>
               </>
             )}
@@ -354,10 +441,10 @@ export default function ShopScreen() {
                 style={[
                   styles.modalButton, 
                   styles.confirmButton,
-                  selectedItem && totalXP < selectedItem.price && styles.disabledButton
+                  selectedItem && (user?.coins || 0) < (selectedItem?.price || 0) && styles.disabledButton
                 ]}
                 onPress={confirmPurchase}
-                disabled={selectedItem ? totalXP < selectedItem.price : true}
+                disabled={selectedItem ? (user?.coins || 0) < selectedItem.price : true}
               >
                 <Text style={styles.confirmButtonText}>Confirm</Text>
               </TouchableOpacity>
@@ -383,6 +470,82 @@ const styles = StyleSheet.create({
   },
   bottomSafeArea: {
     backgroundColor: Colors.background,
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  currencyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currencyIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  coinIconWrapper: {
+    marginRight: 4,
+  },
+  coinIcon: {
+    fontSize: 16,
+  },
+  currencyText: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  gridItemPriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  gridItemPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  miniCoinWrapper: {
+    marginRight: 2,
+  },
+  miniCoinIcon: {
+    fontSize: 10,
+  },
+  gridItemXpReward: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#8E44AD', // Purple for XP
+  },
+  modalPriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 10,
+  },
+  modalPriceItem: {
+    alignItems: 'center',
+  },
+  modalPriceLabel: {
+    fontSize: 14,
+    color: Colors.gray,
+    marginBottom: 2,
+  },
+  modalItemXpReward: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8E44AD', // Purple for XP
+  },
+  modalCoinRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  modalCoinWrapper: {
+    marginRight: 4,
+  },
+  modalCoinIcon: {
+    fontSize: 16,
   },
   confettiContainer: {
     ...StyleSheet.absoluteFillObject,

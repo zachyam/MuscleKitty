@@ -3,6 +3,7 @@ import { getCurrentUser } from './auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import { User, KittyProfile } from '@/types';
+import * as KittyStats from './kittyStats';
 
 // Kitty images mapping for avatar selection
 const KITTY_IMAGES: Record<string, any> = {
@@ -261,21 +262,19 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
       const currentXP = user.xp || 0;
       const currentLevel = user.level || 1;
       
-      // Calculate new level based on XP
-      // Uses exponential curve: level = Math.floor(Math.sqrt(xp / 10))
+      // Calculate new XP and level using the kittyStats utility
       const newXP = currentXP + amount;
-      const newLevel = Math.floor(Math.sqrt(newXP / 10));
-      const maxLevel = Math.max(1, newLevel); // Minimum level is 1
+      const newLevel = KittyStats.calculateLevel(newXP);
       
       const updatedUser = {
         ...user,
         xp: newXP,
-        level: maxLevel
+        level: newLevel
       };
       
       // Check if user leveled up
-      if (maxLevel > currentLevel) {
-        console.log(`Level up! ${currentLevel} -> ${maxLevel}`);
+      if (newLevel > currentLevel) {
+        console.log(`Level up! ${currentLevel} -> ${newLevel}`);
         // Could add celebration or notification here
       }
       

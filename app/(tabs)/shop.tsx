@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { useUser } from '@/utils/UserContext';
+import * as KittyStats from '@/utils/kittyStats';
 import LottieView from 'lottie-react-native';
 import { Dimensions } from 'react-native';
 
@@ -48,39 +49,11 @@ export default function ShopScreen() {
     }
   }, [user]);
 
-  // Function to calculate level based on XP
-  // Uses an exponential curve to make higher levels harder to reach
+  // Calculate level, progress, and XP needed for next level using kittyStats utility
   useEffect(() => {
-    const calculateLevel = (xp: number) => {
-      // Base formula: level = Math.floor(Math.sqrt(xp / 10))
-      // This makes each level exponentially harder
-      const newLevel = Math.floor(Math.sqrt(xp / 10));
-      const maxLevel = Math.max(1, newLevel); // Minimum level is 1
-      
-      // Calculate XP needed for next level
-      const xpForCurrentLevel = Math.pow(maxLevel, 2) * 10;
-      const xpForNextLevel = Math.pow(maxLevel + 1, 2) * 10;
-      const xpNeededForNextLevel = xpForNextLevel - xpForCurrentLevel;
-      
-      // Calculate current progress toward next level
-      // When XP is 0, progress should be 0%
-      let currentLevelProgress = 0;
-      let currentLevelXP = 0;
-      
-      if (xp >= xpForCurrentLevel) {
-        currentLevelXP = xp - xpForCurrentLevel;
-        currentLevelProgress = (currentLevelXP / xpNeededForNextLevel) * 100;
-      }
-      
-      // Ensure progress is between 0-100%
-      currentLevelProgress = Math.max(0, Math.min(100, currentLevelProgress));
-      
-      setKittyLevel(maxLevel);
-      setLevelProgress(currentLevelProgress);
-      setNextLevelXP(xpNeededForNextLevel);
-    };
-    
-    calculateLevel(totalXP);
+    setKittyLevel(KittyStats.calculateLevel(totalXP));
+    setLevelProgress(KittyStats.calculateLevelProgress(totalXP));
+    setNextLevelXP(KittyStats.calculateNextLevelXP(totalXP));
   }, [totalXP]);
   
   // Shop items data
@@ -363,7 +336,7 @@ export default function ShopScreen() {
                   ]} 
                 />
               </View>
-              <Text style={styles.xpText}>{Math.max(0, Math.round(nextLevelXP * (levelProgress/100)))}/{nextLevelXP} XP to Level {kittyLevel + 1}</Text>
+              <Text style={styles.xpText}>{KittyStats.calculateCurrentLevelXP(totalXP)}/{KittyStats.calculateNextLevelXP(totalXP)} XP to Level {kittyLevel + 1}</Text>
             </View>
           </View>
         </View>

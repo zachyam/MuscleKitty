@@ -21,6 +21,7 @@ import {
   FriendProfile,
   FriendshipStatus 
 } from '@/utils/friends';
+import * as KittyStats from '@/utils/kittyStats';
 
 // Define the Friend type that includes what we get from the server
 interface Friend {
@@ -84,9 +85,12 @@ export default function FriendsScreen() {
           setUniqueKittyHash(kittyHash);
         }
 
-        // Set user's level and XP (in a real app, this would come from the backend)
-        setUserLevel(user.level || 1);
-        setUserXp(user.xp || 0);
+        // Set user's XP and calculate level
+        const userTotalXP = user.xp || 0;
+        setUserXp(userTotalXP);
+        
+        // Calculate level using our KittyStats utility
+        setUserLevel(KittyStats.calculateLevel(userTotalXP));
 
         // Load friends and pending requests from Supabase
         await Promise.all([
@@ -427,6 +431,15 @@ export default function FriendsScreen() {
     return <Text style={styles.rankText}>#{rank}</Text>;
   };
 
+  // Update the user's level based on XP
+  useEffect(() => {
+    if (user?.xp !== undefined) {
+      // Calculate level using our KittyStats utility
+      setUserLevel(KittyStats.calculateLevel(user.xp));
+      setUserXp(user.xp);
+    }
+  }, [user?.xp]);
+
   // Find the user's position in the leaderboard
   useEffect(() => {
     // Skip if we don't have user data yet
@@ -493,11 +506,11 @@ export default function FriendsScreen() {
                     <View 
                       style={[
                         styles.levelProgressFill, 
-                        { width: `${(userXp % 100) / 100 * 100}%` }
+                        { width: `${KittyStats.calculateLevelProgress(userXp)}%` }
                       ]} 
                     />
                   </View>
-                  <Text style={styles.xpText}>{userXp % 100}/100 XP to Level {userLevel + 1}</Text>
+                  <Text style={styles.xpText}>{KittyStats.calculateCurrentLevelXP(userXp)}/{KittyStats.calculateNextLevelXP(userXp)} XP to Level {userLevel + 1}</Text>
                 </View>
               </View>
             </View>

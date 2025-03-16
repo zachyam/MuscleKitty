@@ -52,6 +52,7 @@ export default function FriendsScreen() {
   const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
   const [newFriendId, setNewFriendId] = useState<string>("");
   const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [addFriendModalVisible, setAddFriendModalVisible] = useState(false);
   const [userRank, setUserRank] = useState<number>(1);
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
@@ -456,7 +457,9 @@ export default function FriendsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Leaderboard" />
-      <View style={styles.content}>
+      <View 
+        style={styles.content}
+      >
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.primary} />
@@ -553,12 +556,22 @@ export default function FriendsScreen() {
                 <Users size={20} color={Colors.primary} style={{ marginRight: 8 }} />
                 <Text style={styles.leaderboardTitle}>Friend Leaderboard</Text>
               </View>
-              <TouchableOpacity 
-                style={styles.addFriendButton}
-                onPress={shareKittyId}
-              >
-                <Text style={styles.addFriendButtonText}>Share ID</Text>
-              </TouchableOpacity>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity 
+                  style={styles.addFriendButton}
+                  onPress={() => setAddFriendModalVisible(true)}
+                >
+                  <UserPlus size={14} color="#FFFFFF" style={{ marginRight: 2 }} />
+                  <Text style={styles.addFriendButtonText}>Add</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.addFriendButton, { marginLeft: 4 }]}
+                  onPress={shareKittyId}
+                >
+                  <Text style={styles.addFriendButtonText}>Share ID</Text>
+                </TouchableOpacity>
+              </View>
             </View>
             
             {errorMessage ? (
@@ -570,6 +583,7 @@ export default function FriendsScreen() {
         <ScrollView 
           style={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {friends.length === 0 ? (
             <View style={styles.emptyFriends}>
@@ -615,29 +629,6 @@ export default function FriendsScreen() {
             </View>
           )}
 
-          <View style={styles.addFriendSection}>
-            <Text style={styles.sectionTitle}>Add a Friend</Text>
-            <View style={styles.addFriendInputContainer}>
-              <TextInput
-                style={styles.addFriendInput}
-                placeholder="Enter friend's kitty ID"
-                placeholderTextColor={Colors.gray}
-                value={newFriendId}
-                onChangeText={setNewFriendId}
-              />
-              <TouchableOpacity 
-                style={[styles.addButton, isAddingFriend && styles.disabledButton]}
-                onPress={handleAddFriend}
-                disabled={isAddingFriend}
-              >
-                {isAddingFriend ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.addButtonText}>Add</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
 
           <View style={styles.idContainer}>
             <View>
@@ -687,6 +678,65 @@ export default function FriendsScreen() {
 
                 <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShareModalVisible(false)}>
                   <Text style={styles.modalCloseButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        
+        {/* Add Friend Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={addFriendModalVisible}
+          onRequestClose={() => setAddFriendModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add a Friend</Text>
+              <Text style={styles.modalSubtitle}>
+                Enter your friend's Kitty ID below:
+              </Text>
+
+              <View style={styles.addFriendModalInputContainer}>
+                <TextInput
+                  style={styles.addFriendModalInput}
+                  placeholder="Enter Kitty ID"
+                  placeholderTextColor={Colors.gray}
+                  value={newFriendId}
+                  onChangeText={setNewFriendId}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={true}
+                />
+              </View>
+
+              <View style={[styles.modalButtons, { marginTop: 0 }]}>
+                <TouchableOpacity 
+                  style={[styles.modalActionButton, isAddingFriend && styles.disabledButton]}
+                  onPress={() => {
+                    handleAddFriend();
+                    if (!isAddingFriend) {
+                      setAddFriendModalVisible(false);
+                    }
+                  }}
+                  disabled={isAddingFriend}
+                >
+                  {isAddingFriend ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={[styles.modalCopyButtonText, { fontSize: 13 }]}>Send Request</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.modalCloseButton, { padding: 10 }]}
+                  onPress={() => {
+                    setAddFriendModalVisible(false);
+                    setNewFriendId("");
+                  }}
+                >
+                  <Text style={styles.modalCloseButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -811,9 +861,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    maxWidth: '50%',
+  },
   leaderboardTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
   },
   leaderboardTitle: {
     fontSize: 18,
@@ -823,13 +882,17 @@ const styles = StyleSheet.create({
   addFriendButton: {
     backgroundColor: Colors.primary,
     borderRadius: 15,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   addFriendButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: 11,
   },
   scrollContent: {
     flex: 1,
@@ -931,11 +994,11 @@ const styles = StyleSheet.create({
   addFriendInput: {
     flex: 1,
     backgroundColor: Colors.background,
+    padding: 10,
+    color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 10,
-    padding: 10,
-    color: Colors.text,
   },
   addButton: {
     backgroundColor: Colors.primary,
@@ -1009,16 +1072,18 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     padding: 16,
+    paddingTop: '50%', // Position modal higher on the screen
   },
   modalContent: {
     backgroundColor: Colors.card,
     borderRadius: 20,
-    padding: 24,
+    padding: 20,
     width: '100%',
     maxWidth: 400,
+    maxHeight: '70%', // Make height smaller
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -1026,15 +1091,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.gray,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   modalIdContainer: {
     backgroundColor: Colors.background,
@@ -1098,6 +1163,30 @@ const styles = StyleSheet.create({
   modalCloseButtonText: {
     color: Colors.text,
     fontWeight: '600',
+  },
+  addFriendModalInputContainer: {
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  addFriendModalInput: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 15,
+    color: Colors.text,
+    padding: 6,
+    height: 36,
+  },
+  modalActionButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    padding: 10,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 6,
+    marginBottom: 0,
   },
   loadingContainer: {
     flex: 1,

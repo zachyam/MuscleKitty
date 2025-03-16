@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Settings, Award, Calendar, Dumbbell, LogOut } from 'lucide-react-native';
+import { Settings, Award, Calendar, Dumbbell, LogOut, Edit, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { logout } from '@/utils/auth';
@@ -13,6 +13,7 @@ import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '@/utils/supabase';
 
 // Kitty name storage key - must match the one in name-kitty.tsx
 const KITTY_NAME_KEY = 'muscle_kitty_name';
@@ -22,6 +23,10 @@ export default function ProfileScreen() {
   const { user, setUser } = useUser();
   const [kittyName, setKittyName] = useState<string>('');
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [newKittyName, setNewKittyName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [workoutStats, setWorkoutStats] = useState({
     thisMonth: 0,
     total: 0,
@@ -135,13 +140,154 @@ export default function ProfileScreen() {
     );
   };
 
+  // String hash function (copied from name-kitty.tsx for consistency)
+  const stringHash = (str: string): number => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  };
+
+  // Handle save of new kitty name
+  const handleSaveKittyName = async () => {
+    if (!newKittyName.trim() || !user?.id) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Store the new kitty name in AsyncStorage
+      const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
+      await AsyncStorage.setItem(userKittyNameKey, newKittyName.trim());
+      // Update Supabase user metadata
+      const { error: userUpdateError } = await supabase.auth.updateUser({
+        data: { 
+          kittyName: newKittyName.trim(),
+        }
+      });
+      
+      if (userUpdateError) {
+        console.error('Error updating user metadata:', userUpdateError);
+      }
+      
+      // Get the kitty breed (type) from the current user data
+      const kittyBreed = user.kittyType || user.kittyBreed || 'Unknown';
+      
+      // Update kitty profile in Supabase for friend search
+      const { updateKittyName } = await import('@/utils/friends');
+      await updateKittyName(
+        user.id,
+        newKittyName.trim()
+      );
+      
+      // Update local state
+      setKittyName(newKittyName.trim());
+      
+      // Close modal and reset
+      setShowNameModal(false);
+      setNewKittyName('');
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error('Error saving new kitty name:', error);
+      Alert.alert(
+        "Error",
+        "There was a problem updating your kitty's name. Please try again.",
+        [{ text: "OK" }]
+      );
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Header 
         title="Profile"
         rightIcon={<Settings size={24} color={Colors.text} />}
-        onRightPress={() => {}}
+        onRightPress={() => setShowMenu(!showMenu)}
       />
+      
+      {/* Settings Menu */}
+      {showMenu && (
+        <View style={styles.menuContainer}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => {
+              setShowMenu(false);
+              setShowNameModal(true);
+              setNewKittyName(kittyName);
+            }}
+          >
+            <Edit size={18} color={Colors.text} style={styles.menuIcon} />
+            <Text style={styles.menuText}>Change Kitty Name</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => {
+              setShowMenu(false);
+              handleLogout();
+            }}
+          >
+            <LogOut size={18} color={Colors.error} style={styles.menuIcon} />
+            <Text style={[styles.menuText, {color: Colors.error}]}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      {/* Change Kitty Name Modal */}
+      <Modal
+        visible={showNameModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowNameModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Change Kitty Name</Text>
+              <TouchableOpacity onPress={() => setShowNameModal(false)}>
+                <X size={20} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+            
+            <TextInput
+              style={styles.nameInput}
+              placeholder="Enter new name"
+              placeholderTextColor="#999"
+              value={newKittyName}
+              onChangeText={setNewKittyName}
+              maxLength={20}
+              autoFocus
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setShowNameModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[
+                  styles.saveButton,
+                  (!newKittyName.trim() || isSubmitting) && styles.disabledButton
+                ]}
+                onPress={handleSaveKittyName}
+                disabled={!newKittyName.trim() || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
@@ -171,14 +317,7 @@ export default function ProfileScreen() {
           </View>
         </View>
         
-        <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          activeOpacity={0.7}
-        >
-          <LogOut size={18} color={Colors.error} style={styles.logoutIcon} />
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        {/* Removed logout button that was here previously as it's now in the dropdown menu */}
       </ScrollView>
       <SafeAreaView style={styles.bottomSafeArea} edges={['bottom']} />
     </SafeAreaView>
@@ -200,6 +339,108 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     marginBottom: 24,
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 55, // Adjust based on your header height
+    right: 16,
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 8,
+    width: 200,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 6,
+  },
+  menuIcon: {
+    marginRight: 10,
+  },
+  menuText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  nameInput: {
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    color: Colors.text,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cancelButton: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    flex: 1,
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  saveButton: {
+    backgroundColor: Colors.primary,
+    padding: 12,
+    borderRadius: 8,
+    flex: 1,
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   profileImage: {
     width: 100,

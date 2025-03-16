@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal, StatusBar, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal, StatusBar, Platform, ActivityIndicator, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Settings, Award, Users, Crown, Medal, UserPlus, Bell, Check, X } from 'lucide-react-native';
@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import { useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '@/utils/UserContext';
+import * as Clipboard from 'expo-clipboard';
 import { 
   getFriendProfiles, 
   addFriend as addFriendToSupabase, 
@@ -20,6 +21,7 @@ import {
   FriendProfile,
   FriendshipStatus 
 } from '@/utils/friends';
+
 // Define the Friend type that includes what we get from the server
 interface Friend {
   id: string;
@@ -223,11 +225,37 @@ export default function FriendsScreen() {
   // Function to copy user ID to clipboard
   const copyIdToClipboard = async () => {
     try {
-    //   await Clipboard.setStringAsync(uniqueKittyHash);
+      await Clipboard.setString(uniqueKittyHash);
       Alert.alert("Copied!", "Your unique kitty ID has been copied to clipboard.");
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       Alert.alert("Error", "Failed to copy to clipboard.");
+    }
+  };
+  
+  // Function to share user ID via system share dialog
+  const shareKittyId = async () => {
+    try {
+      const result = await Share.share({
+        message: `Add me as a friend in MuscleKitty! My Kitty ID is: ${uniqueKittyHash}`,
+        title: 'Share My MuscleKitty ID'
+      });
+      
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+          console.log(`Shared via ${result.activityType}`);
+        } else {
+          // shared
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+        console.log('Share was dismissed');
+      }
+    } catch (error) {
+      console.error('Error sharing ID:', error);
+      Alert.alert("Error", "Failed to share your ID. Please try copying it instead.");
     }
   };
 
@@ -527,7 +555,7 @@ export default function FriendsScreen() {
               </View>
               <TouchableOpacity 
                 style={styles.addFriendButton}
-                onPress={() => setShareModalVisible(true)}
+                onPress={shareKittyId}
               >
                 <Text style={styles.addFriendButtonText}>Share ID</Text>
               </TouchableOpacity>
@@ -651,6 +679,10 @@ export default function FriendsScreen() {
               <View style={styles.modalButtons}>
                 <TouchableOpacity style={styles.modalCopyButton} onPress={copyIdToClipboard}>
                   <Text style={styles.modalCopyButtonText}>Copy to Clipboard</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.modalShareButton} onPress={shareKittyId}>
+                  <Text style={styles.modalCopyButtonText}>Share</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShareModalVisible(false)}>
@@ -1028,6 +1060,7 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
   },
   modalCopyButton: {
     backgroundColor: Colors.primary,
@@ -1036,6 +1069,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     marginRight: 8,
+    marginBottom: 8,
+  },
+  modalShareButton: {
+    backgroundColor: '#4285F4', // Google blue color
+    borderRadius: 12,
+    padding: 12,
+    flex: 1,
+    alignItems: 'center',
+    marginLeft: 4,
+    marginRight: 4,
+    marginBottom: 8,
   },
   modalCopyButtonText: {
     color: 'white',

@@ -88,6 +88,30 @@ export const registerKittyProfile = async (
   }
 };
 
+// Update only the kitty name in the profile
+export const updateKittyName = async (
+  userId: string,
+  kittyName: string
+): Promise<boolean> => {
+  try {
+    // Update existing profile name only
+    const { error } = await supabase
+      .from('kitty_profiles')
+      .update({
+        kitty_name: kittyName,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating kitty name:', error);
+    return false;
+  }
+};
+
 // Update a kitty's level and XP
 export const updateKittyStats = async (userId: string, level: number, xp: number): Promise<boolean> => {
   try {

@@ -383,7 +383,7 @@ export default function StartWorkoutScreen() {
             <View style={styles.coinsEarnedContainer}>
               <Text style={styles.coinsEarnedPrefix}>+{coinsEarned}</Text>
               <View style={styles.coinIconWrapper}>
-                <Text style={styles.coinIcon}>🪙</Text>
+                <Text style={styles.coinIcon}>🌕</Text>
               </View>
               <Text style={styles.coinsEarnedSuffix}>Coins Earned!</Text>
             </View>

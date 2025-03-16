@@ -186,7 +186,8 @@ function WorkoutPlansScreen() {
       {/* Hero Background - Takes up entire top half */}
       <View style={styles.heroContainer}>
         <ImageBackground
-          source={{ uri: 'https://i.pinimg.com/736x/88/4c/3c/884c3c4285c79df0be1371b5344788da.jpg' }}
+          // source={{ uri: 'https://i.pinimg.com/736x/88/4c/3c/884c3c4285c79df0be1371b5344788da.jpg' }}
+          source={require('@/assets/images/gym_background.jpg')}
           style={styles.heroImage}
         >
           <View style={styles.heroOverlay} />

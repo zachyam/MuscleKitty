@@ -58,6 +58,9 @@ export default function FriendsScreen() {
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
   const [uniqueKittyHash, setUniqueKittyHash] = useState<string>("");
+  const [levelProgress, setLevelProgress] = useState(0); // 0-100%
+  const [kittyLevel, setKittyLevel] = useState(user?.level || 1);
+  const [nextLevelXP, setNextLevelXP] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAddingFriend, setIsAddingFriend] = useState<boolean>(false);
   const [isProcessingRequest, setIsProcessingRequest] = useState<boolean>(false);
@@ -85,12 +88,9 @@ export default function FriendsScreen() {
           setUniqueKittyHash(kittyHash);
         }
 
-        // Set user's XP and calculate level
-        const userTotalXP = user.xp || 0;
-        setUserXp(userTotalXP);
-        
-        // Calculate level using our KittyStats utility
-        setUserLevel(KittyStats.calculateLevel(userTotalXP));
+        setUserLevel(KittyStats.calculateLevel(user?.level ?? 1, user?.xp ?? 0));
+        setLevelProgress(KittyStats.calculateLevelProgress(user?.level ?? 1, user?.xp ?? 0));
+        setNextLevelXP(KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0));
 
         // Load friends and pending requests from Supabase
         await Promise.all([
@@ -106,7 +106,7 @@ export default function FriendsScreen() {
     };
 
     loadUserAndFriends();
-  }, [user?.id]);
+  }, [user?.id, user?.xp, user?.coins]);
   
   // Load pending friend requests
   const loadPendingRequests = async () => {
@@ -431,14 +431,6 @@ export default function FriendsScreen() {
     return <Text style={styles.rankText}>#{rank}</Text>;
   };
 
-  // Update the user's level based on XP
-  useEffect(() => {
-    if (user?.xp !== undefined) {
-      // Calculate level using our KittyStats utility
-      setUserLevel(KittyStats.calculateLevel(user.xp));
-      setUserXp(user.xp);
-    }
-  }, [user?.xp]);
 
   // Find the user's position in the leaderboard
   useEffect(() => {
@@ -498,20 +490,29 @@ export default function FriendsScreen() {
               />
               <View style={styles.statsInfo}>
                 <Text style={styles.statsTitle}>Level {userLevel} Kitty</Text>
-                <Text style={styles.statsSubtitle}>
-                  Your Rank: #{userRank} • {userXp} XP Total
-                </Text>
+                <View style={styles.currencyRow}>
+                  <View style={styles.currencyItem}>
+                    <View style={styles.coinIconWrapper}>
+                      <Text style={styles.currencyIcon}>⭐</Text>
+                    </View>
+                    <Text style={styles.currencyText}>{user?.xp ?? 0} XP</Text>
+                    </View>
+                  {/* <View style={styles.currencyItem}>
+                    <Text style={styles.currencyIcon}>⭐</Text>
+                    <Text style={styles.currencyText}>{totalXP} XP</Text>
+                  </View> */}
+                </View>
                 <View style={styles.levelProgressContainer}>
                   <View style={styles.levelProgress}>
                     <View 
                       style={[
                         styles.levelProgressFill, 
-                        { width: `${KittyStats.calculateLevelProgress(userXp)}%` }
+                        { width: `${levelProgress}%` }
                       ]} 
                     />
                   </View>
-                  <Text style={styles.xpText}>{KittyStats.calculateCurrentLevelXP(userXp)}/{KittyStats.calculateNextLevelXP(userXp)} XP to Level {userLevel + 1}</Text>
-                </View>
+                  <Text style={styles.xpText}>{user?.xp ?? 0}/{KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0)} XP to Level {kittyLevel + 1}</Text>
+                  </View>
               </View>
             </View>
             
@@ -862,6 +863,30 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1.5,
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  currencyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currencyIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  coinIconWrapper: {
+    marginRight: 4,
+  },
+  coinIcon: {
+    fontSize: 16,
+  },
+  currencyText: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
   },
   xpText: {
     fontSize: 12,

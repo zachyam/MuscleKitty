@@ -57,6 +57,10 @@ export default function LoginScreen() {
         // Handle error (could show a toast here)
         console.error(response.error);
       } else {
+        // For returning users, ensure we're getting the most up-to-date data from Supabase
+        // This is handled in loadUserKittyData() which is called inside loginWithGoogle()
+        console.log('Login successful, user data loaded with latest from Supabase');
+        
         // Save user to context
         setUser(response.user);
         
@@ -80,6 +84,10 @@ export default function LoginScreen() {
         // Handle error (could show a toast here)
         console.error(response.error);
       } else {
+        // For returning users, ensure we're getting the most up-to-date data from Supabase
+        // This is handled in loadUserKittyData() which is called inside loginWithFacebook()
+        console.log('Login successful, user data loaded with latest from Supabase');
+        
         // Save user to context
         setUser(response.user);
         

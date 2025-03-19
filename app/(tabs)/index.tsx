@@ -13,13 +13,14 @@ import { UserContext } from '@/utils/UserContext';
 import { calculateStreak, calculateKittyHealth, KittyHealth } from '@/utils/loadStats';
 
 function WorkoutPlansScreen() {
+  const { user } = useContext(UserContext);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [totalCoins, setTotalCoins] = useState(user?.coins || 0);
   const textFadeAnim = useRef(new Animated.Value(1)).current; // For text fade animation
   const kittySwayAnim = useRef(new Animated.Value(0)).current; // For kitty swaying animation
-  const { user } = useContext(UserContext);
 
   // Load workouts when the screen comes into focus or user changes
   useFocusEffect(
@@ -28,9 +29,15 @@ function WorkoutPlansScreen() {
       loadWorkouts();
       loadWorkoutLogs();
       
+      // Update coins when screen comes into focus
+      if (user) {
+        console.log("user triggered in workout plans screen", user);
+        setTotalCoins(user.coins || 0);
+      }
+      
       // Also restart animation when screen is focused
       startHorizontalAnimation();
-    }, [user?.id]) // Reload when user changes
+    }, [user?.id, user?.coins]) // Reload when user changes or coins update
   );
   
 
@@ -197,12 +204,13 @@ function WorkoutPlansScreen() {
             <View style={styles.coinIconWrapper}>
               <Text style={styles.coinIcon}>🌕</Text>
             </View>
-            <Text style={styles.coinCount}>{user?.coins || 0}</Text>
+            <Text style={styles.coinCount}>{totalCoins}</Text>
           </View>
           
           <View style={styles.heroContent}>
             <Animated.Image 
-              source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
+              // source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
+              source={require('@/assets/animations/kitty_blink.gif')}
               style={[
                 styles.kittenImage,
                 {
@@ -210,7 +218,7 @@ function WorkoutPlansScreen() {
                     {
                       translateX: kittySwayAnim.interpolate({
                         inputRange: [0, 0.25, 0.5, 0.75, 1],
-                        outputRange: [0, 8, 0, -8, 0], // Full cycle: center → right → center → left → center
+                        outputRange: [0, 5, 0, -5, 0], // Full cycle: center → right → center → left → center
                         extrapolate: 'clamp'
                       })
                     }
@@ -364,8 +372,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   kittenImage: {
-    width: 150,
-    height: 150,
+    width: 250,
+    height: 250,
     alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

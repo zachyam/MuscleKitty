@@ -49,6 +49,7 @@ export const registerKittyProfile = async (
     // Default values for a new kitty
     const level = 1;
     const xp = 0;
+    const coins = 0;
     
     if (existingProfile) {
       // Update existing profile
@@ -74,6 +75,7 @@ export const registerKittyProfile = async (
           kitty_hash: kittyHash,
           level,
           xp,
+          coins,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });

@@ -7,7 +7,7 @@ import {
   Image, 
   TouchableOpacity, 
   Modal, 
-  Alert 
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Removed TabView imports since we're using a custom tab implementation
@@ -31,9 +31,10 @@ type ShopItem = {
 };
 
 export default function ShopScreen() {
-  const { user, setUser, addCoins, addXP } = useUser();
+  const { user, setUser, addCoins, addXP, updateUserAttributes } = useUser();
   const [showConfetti, setShowConfetti] = useState(false);
   const [totalXP, setTotalXP] = useState(user?.xp || 0);
+  const [totalCoins, setTotalCoins] = useState(user?.coins || 0);
   const [kittyLevel, setKittyLevel] = useState(user?.level || 1);
   const [levelProgress, setLevelProgress] = useState(0); // 0-100%
   const [nextLevelXP, setNextLevelXP] = useState(0);
@@ -42,18 +43,24 @@ export default function ShopScreen() {
   const [activeTab, setActiveTab] = useState<'food' | 'toy'>('food');
   
   // Update local state when user data changes
-  useEffect(() => {
-    if (user) {
-      setTotalXP(user.xp || 0);
-      setKittyLevel(user.level || 1);
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log('User data updated:', { 
+  //       xp: user.xp, 
+  //       coins: user.coins, 
+  //       level: user.level 
+  //     });
+  //     setTotalXP(user.xp || 0);
+  //     setTotalCoins(user.coins || 0);
+  //     setKittyLevel(user.level || 1);
+  //   }
+  // }, [user?.xp, user?.coins, user?.level]);
 
   // Calculate level, progress, and XP needed for next level using kittyStats utility
   useEffect(() => {
-    setKittyLevel(KittyStats.calculateLevel(totalXP));
-    setLevelProgress(KittyStats.calculateLevelProgress(totalXP));
-    setNextLevelXP(KittyStats.calculateNextLevelXP(totalXP));
+    setKittyLevel(KittyStats.calculateLevel(user?.level ?? 1, user?.xp ?? 0));
+    setLevelProgress(KittyStats.calculateLevelProgress(user?.level ?? 1, user?.xp ?? 0));
+    setNextLevelXP(KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0));
   }, [totalXP]);
   
   // Shop items data
@@ -233,17 +240,16 @@ export default function ShopScreen() {
   const confirmPurchase = async () => {
     if (!user || !selectedItem) return;
     
-    const currentCoins = user.coins || 0;
-    
-    if (selectedItem && currentCoins >= selectedItem.price) {
-      // Subtract coins
-      await addCoins(-selectedItem.price);
-      
-      // Add XP
-      await addXP(selectedItem.xpReward);
+    if (selectedItem && totalCoins >= selectedItem.price) {
+      await updateUserAttributes({
+        coins: (user?.coins ?? 0) - selectedItem.price,
+        xp: KittyStats.calculateCurrentLevelXP(user?.level ?? 1, (user?.xp ?? 0) + selectedItem.xpReward),
+        level: KittyStats.calculateLevel(user?.level ?? 1, (user?.xp ?? 0) + selectedItem.xpReward)
+      });
       
       // Update local state
       setTotalXP(prevXP => prevXP + selectedItem.xpReward);
+      setTotalCoins(prevCoins => prevCoins - selectedItem.price);
       
       // Show confetti
       setShowConfetti(true);
@@ -290,8 +296,6 @@ export default function ShopScreen() {
   // Removed renderTabContent - now directly using the FlatList in the main render
   
 
-
-
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Shop" />
@@ -320,12 +324,12 @@ export default function ShopScreen() {
                 <View style={styles.coinIconWrapper}>
                   <Text style={styles.miniCoinIcon}>🌕</Text>
                 </View>
-                <Text style={styles.currencyText}>{user?.coins || 0} Coins</Text>
+                <Text style={styles.currencyText}>{totalCoins} Coins</Text>
               </View>
-              <View style={styles.currencyItem}>
+              {/* <View style={styles.currencyItem}>
                 <Text style={styles.currencyIcon}>⭐</Text>
                 <Text style={styles.currencyText}>{totalXP} XP</Text>
-              </View>
+              </View> */}
             </View>
             <View style={styles.levelProgressContainer}>
               <View style={styles.levelProgress}>
@@ -336,7 +340,7 @@ export default function ShopScreen() {
                   ]} 
                 />
               </View>
-              <Text style={styles.xpText}>{KittyStats.calculateCurrentLevelXP(totalXP)}/{KittyStats.calculateNextLevelXP(totalXP)} XP to Level {kittyLevel + 1}</Text>
+              <Text style={styles.xpText}>{user?.xp ?? 0}/{KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0)} XP to Level {kittyLevel + 1}</Text>
             </View>
           </View>
         </View>
@@ -414,10 +418,10 @@ export default function ShopScreen() {
                 style={[
                   styles.modalButton, 
                   styles.confirmButton,
-                  selectedItem && (user?.coins || 0) < (selectedItem?.price || 0) && styles.disabledButton
+                  selectedItem && totalCoins < (selectedItem?.price || 0) && styles.disabledButton
                 ]}
                 onPress={confirmPurchase}
-                disabled={selectedItem ? (user?.coins || 0) < selectedItem.price : true}
+                disabled={selectedItem ? totalCoins < selectedItem.price : true}
               >
                 <Text style={styles.confirmButtonText}>Confirm</Text>
               </TouchableOpacity>

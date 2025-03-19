@@ -10,57 +10,37 @@
  * Uses an exponential curve: level = Math.floor(Math.sqrt(xp / 10))
  * This makes higher levels progressively harder to reach
  */
-export const calculateLevel = (xp: number): number => {
-  const level = Math.floor(Math.sqrt(xp / 10));
-  return Math.max(1, level); // Minimum level is 1
+export const calculateLevel = (currentLevel: number, xp: number): number => {
+  const nextLevelXP = calculateNextLevelXP(currentLevel, xp);
+  if (xp >= nextLevelXP) {
+    return currentLevel + 1;
+  }
+  return currentLevel;
 };
 
 /**
  * Calculate the XP needed to reach the next level from current level
  */
-export const calculateNextLevelXP = (xp: number): number => {
-  const currentLevel = calculateLevel(xp);
-  const xpForNextLevel = Math.pow(currentLevel + 1, 2) * 10;
-  const xpForPreviousLevel = currentLevel > 1 ? Math.pow(currentLevel - 1, 2) * 10 : 0;
-  const totalXpNeeded = xpForNextLevel - xpForPreviousLevel;
-  return totalXpNeeded;
+export const calculateNextLevelXP = (currentLevel: number, xp: number): number => {
+  return Math.pow(currentLevel + 1, 2) * 10;
 };
 
 /**
  * Calculate how much XP the user has accumulated in the current level
  */
-export const calculateCurrentLevelXP = (xp: number): number => {
-  const currentLevel = calculateLevel(xp);
-  
-  // Get XP thresholds for current and previous levels
-  const xpForCurrentLevel = Math.pow(currentLevel, 2) * 10;
-  const xpForPreviousLevel = currentLevel > 1 ? Math.pow(currentLevel - 1, 2) * 10 : 0;
-  
-  // Calculate how much XP the user has gained in the current level
-  return Math.max(0, xp - xpForPreviousLevel);
+export const calculateCurrentLevelXP = (currentLevel: number, xp: number): number => {
+  const nextLevelXP = calculateNextLevelXP(currentLevel, xp);
+  if (xp >= nextLevelXP) {
+    return xp - nextLevelXP;
+  }
+  return xp;
 };
 
 /**
  * Calculate the progress percentage (0-100) towards the next level
  */
-export const calculateLevelProgress = (xp: number): number => {
-  const currentLevel = calculateLevel(xp);
-  
-  // Get XP thresholds for current and next levels
-  const xpForCurrentLevel = Math.pow(currentLevel, 2) * 10;
-  const xpForNextLevel = Math.pow(currentLevel + 1, 2) * 10;
-  const xpForPreviousLevel = currentLevel > 1 ? Math.pow(currentLevel - 1, 2) * 10 : 0;
-  
-  // Total XP needed to progress from previous level to next level
-  const totalXpForNextLevel = xpForNextLevel - xpForPreviousLevel;
-  
-  // How much XP the user has gained since previous level
-  const currentLevelProgress = xp - xpForPreviousLevel;
-  
-  // Calculate progress percentage
-  const progress = (currentLevelProgress / totalXpForNextLevel) * 100;
-  
-  return Math.max(0, Math.min(100, progress));
+export const calculateLevelProgress = (currentLevel: number, xp: number): number => {
+  return calculateCurrentLevelXP(currentLevel, xp) / calculateNextLevelXP(currentLevel, xp) * 100
 };
 
 /**

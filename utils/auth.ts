@@ -15,8 +15,9 @@ const KITTY_IMAGES: Record<string, any> = {
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
 const KITTY_NAME_KEY = 'muscle_kitty_name';
+const USER_STORAGE_KEY = 'muscle_kitty_user_data';
 
-// Helper function to load user's kitty data from AsyncStorage
+// Helper function to load user's complete profile including kitty data from Supabase
 export const loadUserKittyData = async (user: User): Promise<User> => {
   try {
     if (!user || !user.id) return user;
@@ -25,11 +26,49 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
     const userKittyKey = `${SELECTED_KITTY_KEY}_${user.id}`;
     const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
     
+    let updatedUser = { ...user };
+    
+    // FIRST: Try to fetch the latest data from Supabase for users who completed onboarding
+    try {
+      console.log('Fetching user profile from Supabase for user:', user.id);
+      const { data: profileData, error } = await supabase
+        .from('kitty_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profileData && !error) {
+        console.log('Found user profile in Supabase:', profileData);
+        
+        // Update user with the latest database values
+        updatedUser = {
+          ...updatedUser,
+          coins: profileData.coins ?? updatedUser.coins ?? 0,
+          xp: profileData.xp ?? updatedUser.xp ?? 0,
+          level: profileData.level ?? updatedUser.level ?? 1,
+          kittyName: profileData.kittyName ?? profileData.kitty_name,
+          hasCompletedOnboarding: true,
+        };
+        
+        // If we have kitty data in Supabase, update AsyncStorage as well
+        if (profileData.kittyName || profileData.kitty_name) {
+          const kittyName = profileData.kittyName || profileData.kitty_name;
+          await AsyncStorage.setItem(userKittyNameKey, kittyName);
+        }
+        
+        console.log('Updated user with Supabase data:', updatedUser);
+      } else if (error && error.code !== 'PGRST116') {
+        // Only log real errors, not "no rows returned" errors
+        console.error('Error fetching profile from Supabase:', error);
+      }
+    } catch (dbError) {
+      console.error('Exception fetching profile from database:', dbError);
+    }
+    
+    // SECOND: Fall back to local storage or supplement with local data
     // Get the selected kitty ID and name from AsyncStorage
     const kittyId = await AsyncStorage.getItem(userKittyKey);
-    const kittyName = await AsyncStorage.getItem(userKittyNameKey);
-    
-    let updatedUser = { ...user };
+    const kittyName = !updatedUser.kittyName ? await AsyncStorage.getItem(userKittyNameKey) : null;
     
     // If we have a stored kitty ID, use the corresponding image
     if (kittyId && KITTY_IMAGES[kittyId]) {
@@ -37,11 +76,11 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
       updatedUser.avatarUrl = KITTY_IMAGES[kittyId];
     }
     
-    // If we have a stored kitty name, add it to the user object
-    if (kittyName) {
-      console.log(`Loading user ${user.id} kitty name:`, kittyName);
+    // If we have a stored kitty name and didn't get one from Supabase, add it to the user object
+    if (kittyName && !updatedUser.kittyName) {
+      console.log(`Loading user ${user.id} kitty name from AsyncStorage:`, kittyName);
       updatedUser.kittyName = kittyName;
-    } else {
+    } else if (!updatedUser.kittyName) {
       // Try to get kitty name from Supabase user metadata as a fallback
       const { data } = await supabase.auth.getUser();
       const metadataKittyName = data?.user?.user_metadata?.kittyName;
@@ -54,6 +93,9 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
         await AsyncStorage.setItem(userKittyNameKey, metadataKittyName);
       }
     }
+    
+    // Save the most up-to-date user data to AsyncStorage
+    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
     
     return updatedUser;
   } catch (error) {

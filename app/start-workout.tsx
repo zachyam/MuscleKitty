@@ -23,7 +23,7 @@ export default function StartWorkoutScreen() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [coinsEarned] = useState(5); // Fixed reward of 5 coins per workout
+  const [coinsEarned] = useState(100); // Fixed reward of 5 coins per workout
   const confettiAnimation = useRef<LottieView>(null);
 
   useEffect(() => {

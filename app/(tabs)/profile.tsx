@@ -140,17 +140,6 @@ export default function ProfileScreen() {
     );
   };
 
-  // String hash function (copied from name-kitty.tsx for consistency)
-  const stringHash = (str: string): number => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-  };
-
   // Handle save of new kitty name
   const handleSaveKittyName = async () => {
     if (!newKittyName.trim() || !user?.id) return;
@@ -172,8 +161,6 @@ export default function ProfileScreen() {
         console.error('Error updating user metadata:', userUpdateError);
       }
       
-      // Get the kitty breed (type) from the current user data
-      const kittyBreed = user.kittyType || user.kittyBreed || 'Unknown';
       
       // Update kitty profile in Supabase for friend search
       const { updateKittyName } = await import('@/utils/friends');
@@ -296,6 +283,7 @@ export default function ProfileScreen() {
             style={styles.profileImage}
           />
           <Text style={styles.profileName}>{kittyName || 'Fitness User'}</Text>
+          <Text style={styles.profileBio}>{user?.fullName || 'Fitness User'}</Text>
         </View>
         
         <View style={styles.statsContainer}>

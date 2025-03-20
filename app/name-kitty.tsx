@@ -167,14 +167,23 @@ export default function NameKittyScreen() {
   //   }
   // };
 
-  const stringHash = (str: string): number => {
+  const stringHash = (str: string): string => {
+    // Use the original hash algorithm as the base
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
       hash |= 0; // Convert to 32bit integer
     }
-    return hash;
+    
+    // Make sure it's positive by using Math.abs
+    const positiveHash = Math.abs(hash);
+    
+    // Convert to base 36 (numbers and letters) to include characters
+    const alphanumericHash = positiveHash.toString(36);
+    
+    // Add a kitty prefix to the hash
+    return 'kitty_' + alphanumericHash;
   }
 
   // Handle name confirmation
@@ -203,6 +212,7 @@ export default function NameKittyScreen() {
         // Register kitty profile in Supabase for friend search
         await registerKittyProfile(
           user.id,
+          user.fullName || "Unknown Kitty",
           kittyName.trim(),
           kittyBreed,
           kittyHashString
@@ -212,6 +222,7 @@ export default function NameKittyScreen() {
         const { error } = await supabase.auth.updateUser({
           data: { 
             kittyName: kittyName.trim(),
+            fullName: user.fullName || "Unknown Kitty",
             kittyId: kittyId,
             kittyBreed: kittyBreed,
             kittyHash: kittyHashString

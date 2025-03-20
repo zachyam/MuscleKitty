@@ -179,7 +179,7 @@ export const loginWithGoogle = async (): Promise<AuthResponse> => {
               const user: User = {
                 id: userData.user.id,
                 email: userData.user.email || '',
-                name: userData.user.user_metadata?.full_name || 
+                fullName: userData.user.user_metadata?.full_name || 
                       userData.user.user_metadata?.name || 
                       userData.user.email?.split('@')[0] || '',
                 avatarUrl: userData.user.user_metadata?.avatar_url,
@@ -274,7 +274,7 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
         const user: User = {
           id: userData.user.id,
           email: userData.user.email || '',
-          name: userData.user.user_metadata?.full_name || 
+          fullName: userData.user.user_metadata?.full_name || 
                 userData.user.user_metadata?.name || 
                 userData.user.email?.split('@')[0] || '',
           avatarUrl: userData.user.user_metadata?.avatar_url,

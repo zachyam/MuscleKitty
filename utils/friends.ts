@@ -17,6 +17,7 @@ export interface FriendProfile {
   kitty_type: string;  // Database uses snake_case
   level: number;
   xp: number;
+  full_name: string;
   created_at: string;  // Database uses snake_case
   updated_at: string;  // Database uses snake_case
   friendship_status?: FriendshipStatus; // Friendship status
@@ -24,6 +25,7 @@ export interface FriendProfile {
   // These are for our app's usage (camelCase)
   kittyHash?: string;
   userId?: string;
+  fullName: string;
   kittyName?: string;
   kittyType?: string;
   createdAt?: string;
@@ -34,6 +36,7 @@ export interface FriendProfile {
 // Register a kitty profile in Supabase so friends can find it
 export const registerKittyProfile = async (
   userId: string,
+  fullName: string,
   kittyName: string,
   kittyType: string,
   kittyHash: string
@@ -57,6 +60,7 @@ export const registerKittyProfile = async (
         .from('kitty_profiles')
         .update({
           kitty_name: kittyName,
+          full_name: fullName,
           kitty_type: kittyType,
           kitty_hash: kittyHash,
           updated_at: new Date().toISOString()
@@ -71,6 +75,7 @@ export const registerKittyProfile = async (
         .insert({
           user_id: userId,
           kitty_name: kittyName,
+          full_name: fullName,
           kitty_type: kittyType,
           kitty_hash: kittyHash,
           level,
@@ -408,6 +413,7 @@ export const getFriendProfiles = async (userId: string): Promise<FriendProfile[]
         profile.kittyHash = profile.kitty_hash;
         profile.userId = profile.user_id;
         profile.kittyName = profile.kitty_name;
+        profile.name = profile.name;
         profile.kittyType = profile.kitty_type;
         profile.createdAt = profile.created_at;
         profile.updatedAt = profile.updated_at;
@@ -470,6 +476,7 @@ export const getPendingFriendRequests = async (userId: string): Promise<FriendPr
         profile.kittyHash = profile.kitty_hash;
         profile.userId = profile.user_id;
         profile.kittyName = profile.kitty_name;
+        profile.fullName = profile.full_name;
         profile.kittyType = profile.kitty_type;
         profile.createdAt = profile.created_at;
         profile.updatedAt = profile.updated_at;

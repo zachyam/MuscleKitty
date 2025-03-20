@@ -36,10 +36,11 @@ export type WorkoutLog = {
 export type User = {
   id: string;
   email: string;
-  name?: string;
+  fullName?: string;
   avatarUrl?: string;
   hasCompletedOnboarding?: boolean;
   kittyName?: string;
+  kittyType?: string;
   coins?: number;
   xp?: number;
   level?: number;

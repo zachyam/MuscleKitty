@@ -65,6 +65,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
     level?: number;
     kittyName?: string;
     kittyBreed?: string;
+    fullName?: string;
     [key: string]: any;
   }) => {
     if (!user) return null;
@@ -218,7 +219,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         kittyName: kittyName || user.kittyName || '',
         coins: user.coins || 50, // Start with 50 coins
         xp: user.xp || 0,    // Start with 0 XP
-        level: user.level || 1 // Start at level 1
+        level: user.level || 1, // Start at level 1
+        fullName: user.fullName || '',
       };
       setUser(updatedUser);
       saveUserToStorage(updatedUser);
@@ -267,6 +269,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
             userData.coins = userData.coins ?? 50; // Default to 50 coins if not present
             userData.xp = userData.xp ?? 0;       // Default to 0 XP if not present
             userData.level = userData.level ?? 1;  // Default to level 1 if not present
+            userData.fullName = userData.fullName || '';
           }
           
           setUser(userData);
@@ -327,6 +330,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
               currentUser.coins = currentUser.coins ?? 50; // Default to 50 coins if not present
               currentUser.xp = currentUser.xp ?? 0;        // Default to 0 XP if not present
               currentUser.level = currentUser.level ?? 1;  // Default to level 1 if not present
+              currentUser.fullName = currentUser.fullName || '';
             }
             
             setUser(currentUser);

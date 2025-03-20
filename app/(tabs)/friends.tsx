@@ -26,7 +26,8 @@ import * as KittyStats from '@/utils/kittyStats';
 // Define the Friend type that includes what we get from the server
 interface Friend {
   id: string;
-  name: string;
+  fullName: string;
+  kittyName: string;
   avatar: string;
   level: number;
   xp: number;
@@ -107,7 +108,7 @@ export default function FriendsScreen() {
 
     loadUserAndFriends();
   }, [user?.id, user?.xp, user?.coins]);
-  
+
   // Load pending friend requests
   const loadPendingRequests = async () => {
     if (!user?.id) return;
@@ -125,7 +126,8 @@ export default function FriendsScreen() {
       // Map to our Friend interface
       const mappedRequests: Friend[] = requests.map(profile => ({
         id: profile.id,
-        name: profile.kittyName || "Unknown Kitty",
+        fullName: profile.fullName || "Unknown Kitty",
+        kittyName: profile.kittyName || "Unknown Kitty",
         avatar: profile.kittyType ? KITTY_IMAGES[profile.kittyType] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
         xp: profile.xp || 0,
@@ -159,7 +161,8 @@ export default function FriendsScreen() {
       // Map to our Friend interface
       const mappedFriends: Friend[] = profiles.map(profile => ({
         id: profile.id,
-        name: profile.kittyName || "Unknown Kitty",
+        kittyName: profile.kittyName || "Unknown Kitty",
+        fullName: profile.fullName || "Unknown Kitty",
         avatar: profile.kittyType ? KITTY_IMAGES[profile.kittyType] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
         xp: profile.xp || 0,
@@ -167,48 +170,28 @@ export default function FriendsScreen() {
         kittyType: profile.kittyType || "Unknown",
         userId: profile.userId  // Include userId for API operations
       }));
+
+      // Include the user in the ranking
+      const mappedFriendsAndMe: Friend[] = [...mappedFriends, {
+        id: user.id,
+        kittyName: user.kittyName || "Kitty Name",
+        fullName: user.fullName || "You",
+        avatar: user.avatarUrl || "",
+        level: user.level || 1,
+        xp: user.xp || 0,
+        kittyHash: uniqueKittyHash,
+        kittyType: user.kittyType || "Unknown"
+      }];
       
       // Sort and assign ranks
-      const sortedFriends = sortFriendsAndAssignRanks(mappedFriends);
+      const sortedFriendsAndMe = sortFriendsAndAssignRanks(mappedFriendsAndMe);
+      // Remove the user from the list to display the leaderboard
+      const sortedFriends = sortedFriendsAndMe.filter(friend => friend.id !== user.id);
+      console.log("Sorted Friends:", sortedFriends);
       setFriends(sortedFriends);
     } catch (error) {
       console.error('Error loading friends:', error);
       setErrorMessage('Failed to load friends. Please try again later.');
-      
-      // If no friends loaded yet, show sample friends for demo purposes
-      if (friends.length === 0) {
-        const sampleFriends: Friend[] = [
-          {
-            id: "sample1",
-            name: "Whiskers",
-            avatar: KITTY_IMAGES['Calico'],
-            level: 8,
-            xp: 420,
-            kittyHash: "sample1",
-            kittyType: "Calico"
-          },
-          {
-            id: "sample2",
-            name: "Mittens",
-            avatar: KITTY_IMAGES['Russian Blue'],
-            level: 3,
-            xp: 120,
-            kittyHash: "sample2",
-            kittyType: "Russian Blue"
-          },
-          {
-            id: "sample3",
-            name: "Fluffy",
-            avatar: KITTY_IMAGES['Maine Coon'],
-            level: 6,
-            xp: 320,
-            kittyHash: "sample3",
-            kittyType: "Maine Coon"
-          }
-        ];
-        const sortedFriends = sortFriendsAndAssignRanks(sampleFriends);
-        setFriends(sortedFriends);
-      }
     }
   };
 
@@ -348,7 +331,7 @@ export default function FriendsScreen() {
       // Update pending requests flag
       setHasPendingRequests(pendingRequests.length > 1);
       
-      Alert.alert('Success', `You are now friends with ${friend.name}!`);
+      Alert.alert('Success', `You are now friends with ${friend.kittyName}!`);
     } catch (error) {
       console.error('Error accepting friend request:', error);
       Alert.alert('Error', 'Failed to accept friend request. Please try again.');
@@ -383,7 +366,7 @@ export default function FriendsScreen() {
       // Update pending requests flag
       setHasPendingRequests(pendingRequests.length > 1);
       
-      Alert.alert('Rejected', `Friend request from ${friend.name} has been rejected.`);
+      Alert.alert('Rejected', `Friend request from ${friend.kittyName} has been rejected.`);
     } catch (error) {
       console.error('Error rejecting friend request:', error);
       Alert.alert('Error', 'Failed to reject friend request. Please try again.');
@@ -416,7 +399,7 @@ export default function FriendsScreen() {
       // Re-sort the leaderboard after removing a friend
       await loadFriends();
       
-      Alert.alert('Friend Removed', `You are no longer friends with ${friend.name}.`);
+      Alert.alert('Friend Removed', `You are no longer friends with ${friend.kittyName}.`);
     } catch (error) {
       console.error('Error removing friend:', error);
       Alert.alert('Error', 'Failed to remove friend. Please try again.');
@@ -426,8 +409,8 @@ export default function FriendsScreen() {
   // Render medal icon based on rank
   const renderRankMedal = (rank: number) => {
     if (rank === 1) return <Crown size={20} color="#FFD700" style={styles.medalIcon} />;
-    if (rank === 2) return <Medal size={20} color="#C0C0C0" style={styles.medalIcon} />;
-    if (rank === 3) return <Medal size={20} color="#CD7F32" style={styles.medalIcon} />;
+    if (rank === 2) return <Text style={styles.medalIcon}>🥈</Text>
+    if (rank === 3) return <Text style={styles.medalIcon}>🥉</Text>
     return <Text style={styles.rankText}>#{rank}</Text>;
   };
 
@@ -443,12 +426,13 @@ export default function FriendsScreen() {
         ...friends, 
         { 
           id: user.id, 
-          name: user.kittyName || "You", 
+          kittyName: user.kittyName || "Kitty Name",
+          fullName: user.fullName || "You", 
           avatar: user.avatarUrl || "", 
-          level: userLevel, 
-          xp: userXp,
+          level: user.level || 1, 
+          xp: user.xp || 0,
           kittyHash: uniqueKittyHash,
-          kittyType: user.kittyBreed || "Unknown"
+          kittyType: user.kittyType || "Unknown"
         }
       ];
       const sorted = sortFriendsAndAssignRanks(allParticipants);
@@ -531,7 +515,8 @@ export default function FriendsScreen() {
                   <View key={request.id} style={styles.requestCard}>
                     <Image source={request.avatar} style={styles.requestAvatar} />
                     <View style={styles.requestInfo}>
-                      <Text style={styles.requestName}>{request.name}</Text>
+                      <Text style={styles.requestName}>{request.kittyName}</Text>
+                      <Text style={styles.profileBio}>{request.fullName}</Text>
                       <Text style={styles.requestLevel}>Level {request.level} • {request.xp} XP</Text>
                     </View>
                     
@@ -613,7 +598,8 @@ export default function FriendsScreen() {
                   </View>
                   <Image source={friend.avatar} style={styles.avatar} />
                   <View style={styles.friendInfo}>
-                    <Text style={styles.friendName}>{friend.name}</Text>
+                    <Text style={styles.friendName}>{friend.kittyName}</Text>
+                    <Text style={styles.friendName}>{friend.fullName}</Text>
                     <Text style={styles.friendLevel}>Level {friend.level} • {friend.xp} XP</Text>
                   </View>
                   <TouchableOpacity 
@@ -621,7 +607,7 @@ export default function FriendsScreen() {
                     onPress={() => {
                       Alert.alert(
                         "Remove Friend",
-                        `Are you sure you want to unfriend ${friend.name}? This will remove the friendship for both of you.`,
+                        `Are you sure you want to unfriend ${friend.kittyName}? This will remove the friendship for both of you.`,
                         [
                           {
                             text: "Cancel",
@@ -937,6 +923,11 @@ const styles = StyleSheet.create({
   },
   friendsList: {
     marginBottom: 16,
+  },
+  profileBio: {
+    fontSize: 12,
+    color: Colors.gray,
+    textAlign: 'left',
   },
   friendCard: {
     flexDirection: 'row',

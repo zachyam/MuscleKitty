@@ -19,20 +19,20 @@ import { useUser } from '@/utils/UserContext';
 const SCREENS = [
   {
     welcomeMessage: "Let's get your fitness journey started!",
-    title: "Meet your fitness bestie!",
-    subtitle: "Muscle Kitty will support your fitness goals every step of the way! 🐱",
+    title: "Adopt a kitty and train with it",
+    subtitle: "Stay consistent, level up, and keep your kitty strong",
     image: require('@/assets/images/icon.png'), // Replace with actual mascot image
   },
   {
-    welcomeMessage: "Build your perfect workout!",
-    title: "Create Workout Plans",
-    subtitle: "Design and customize your own workout routines with exercises that fit your goals.",
+    welcomeMessage: "Build your customized workout plans!",
+    title: "Customize Your Training",
+    subtitle: "Design your own workout routines, log them effortlessly, and track your progress.",
     image: require('@/assets/images/icon.png'), // Replace with actual image
   },
   {
-    welcomeMessage: "Watch yourself grow stronger!",
-    title: "Track Your Progress",
-    subtitle: "Log your workouts, see your improvement over time, and stay motivated!",
+    welcomeMessage: "Challenge your friends!",
+    title: "Compete & Level Up",
+    subtitle: "Add friends, compete against them, and see who trains the most consistently!",
     image: require('@/assets/images/icon.png'), // Replace with actual image
   }
 ];

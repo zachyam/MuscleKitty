@@ -413,6 +413,7 @@ export const getFriendProfiles = async (userId: string): Promise<FriendProfile[]
         profile.kittyHash = profile.kitty_hash;
         profile.userId = profile.user_id;
         profile.kittyName = profile.kitty_name;
+        profile.fullName = profile.full_name;
         profile.name = profile.name;
         profile.kittyType = profile.kitty_type;
         profile.createdAt = profile.created_at;

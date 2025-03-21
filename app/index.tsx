@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { Redirect } from 'expo-router';
 import { isAuthenticated } from '@/utils/auth';
-import { View, ActivityIndicator } from 'react-native';
-import Colors from '@/constants/Colors';
+import SplashScreen, { StaticSplashScreen } from '@/components/SplashScreen';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function Index() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isLoggedIn, setIsLoggedIn] = React.useState<boolean | null>(null);
-
+  const { showSplash } = useLocalSearchParams<{ showSplash?: string }>();
+  
   useEffect(() => {
     // Check if the user is authenticated
     const checkAuth = async () => {
@@ -26,20 +26,14 @@ export default function Index() {
 
     checkAuth();
   }, []);
-
-  // Show loading indicator while checking authentication
+  
+  // Show static splash while loading, then navigate when done
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
+    return <StaticSplashScreen />;
   }
-
-  // Redirect based on authentication status
+  
+  // After loading completes, use SplashScreen to navigate to the appropriate route
   if (isLoggedIn) {
-    return <Redirect href="/(tabs)" />;
-  } else {
-    return <Redirect href="/login" />;
+    return <SplashScreen navigateTo={'/(tabs)'} />;
   }
 }

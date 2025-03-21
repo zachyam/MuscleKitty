@@ -13,6 +13,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import SocialButton from '@/components/SocialButton';
+import SplashScreen, { StaticSplashScreen } from '@/components/SplashScreen';
 import Colors from '@/constants/Colors';
 import { loginWithGoogle, loginWithFacebook, isAuthenticated } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
@@ -20,6 +21,8 @@ import { useUser } from '@/utils/UserContext';
 export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
   
   // Get user context
   const { setUser } = useUser();
@@ -29,9 +32,11 @@ export default function LoginScreen() {
     const checkAuth = async () => {
       try {
         console.log('Login screen: checking authentication');
-        const authenticated = await isAuthenticated();
-        console.log('Login screen: auth result', authenticated);
-        if (authenticated) {
+        const authResult = await isAuthenticated();
+        console.log('Login screen: auth result', authResult);
+        setAuthenticated(authResult);
+        
+        if (authResult) {
           // The user is already logged in, let the AuthProvider handle the redirect
           // The complete flow should be:
           // 1. If first login -> onboarding -> adopt-kitty -> tabs
@@ -40,6 +45,11 @@ export default function LoginScreen() {
         }
       } catch (error) {
         console.error('Login screen: auth check error', error);
+      } finally {
+        // Show splash screen for at least 1 second
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1500);
       }
     };
     
@@ -51,11 +61,15 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     
     try {
+      // Immediately show a loading screen
+      
       const response = await loginWithGoogle();
       
       if (response.error) {
         // Handle error (could show a toast here)
         console.error(response.error);
+        // Go back to login screen on error
+        router.replace('/login');
       } else {
         // For returning users, ensure we're getting the most up-to-date data from Supabase
         // This is handled in loadUserKittyData() which is called inside loginWithGoogle()
@@ -69,6 +83,8 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.error('Google login error:', error);
+      // Go back to login screen on error
+      router.replace('/login');
     } finally {
       setGoogleLoading(false);
     }
@@ -78,11 +94,16 @@ export default function LoginScreen() {
     setFacebookLoading(true);
     
     try {
+      // Immediately show a loading screen
+      router.replace('/');
+      
       const response = await loginWithFacebook();
       
       if (response.error) {
         // Handle error (could show a toast here)
         console.error(response.error);
+        // Go back to login screen on error
+        router.replace('/login');
       } else {
         // For returning users, ensure we're getting the most up-to-date data from Supabase
         // This is handled in loadUserKittyData() which is called inside loginWithFacebook()
@@ -96,11 +117,19 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.error('Facebook login error:', error);
+      // Go back to login screen on error
+      router.replace('/login');
     } finally {
       setFacebookLoading(false);
     }
   };
   
+  // Use the static version of splash screen while checking auth
+  // This avoids duplicating UI code and makes future splash screen changes easier
+  if (isLoading) {
+    return <StaticSplashScreen />;
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />

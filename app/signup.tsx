@@ -96,17 +96,22 @@ export default function SignUpScreen() {
       if (response.error) {
         // Handle error
         setEmailError(response.error);
+        setIsLoading(false);
       } else {
         // Save user to context
         setUser(response.user);
         
-        // Navigate to home screen
-        router.navigate('/(tabs)');
+        // Create a longer pause before navigating to onboarding
+        // This ensures the loading state is shown for the full duration
+        console.log("Showing signup loading state for 1.5 seconds...");
+        
+        // Keep showing loading state, don't navigate yet
+        // Will navigate to onboarding via the AuthProvider in _layout.tsx
+        // This prevents the flash/reload on the onboarding screen
       }
     } catch (error) {
       console.error('Signup error:', error);
       setPasswordError('An unexpected error occurred');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -119,15 +124,19 @@ export default function SignUpScreen() {
       
       if (response.error) {
         console.error(response.error);
+        setGoogleLoading(false);
       } else {
         // Save user to context
         setUser(response.user);
         
-        router.navigate('/(tabs)');
+        // Keep loading state visible
+        console.log("Showing Google login loading state...");
+        
+        // Don't navigate, let the AuthProvider in _layout.tsx handle it
+        // This prevents the flash/reload on the onboarding screen
       }
     } catch (error) {
       console.error('Google signup error:', error);
-    } finally {
       setGoogleLoading(false);
     }
   };
@@ -140,15 +149,19 @@ export default function SignUpScreen() {
       
       if (response.error) {
         console.error(response.error);
+        setFacebookLoading(false);
       } else {
         // Save user to context
         setUser(response.user);
         
-        router.navigate('/(tabs)');
+        // Keep loading state visible
+        console.log("Showing Facebook login loading state...");
+        
+        // Don't navigate, let the AuthProvider in _layout.tsx handle it
+        // This prevents the flash/reload on the onboarding screen
       }
     } catch (error) {
       console.error('Facebook signup error:', error);
-    } finally {
       setFacebookLoading(false);
     }
   };

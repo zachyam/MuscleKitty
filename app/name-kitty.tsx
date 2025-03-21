@@ -239,11 +239,12 @@ export default function NameKittyScreen() {
       await completeOnboarding(kittyId);
       console.log('Onboarding completed successfully with kitty:', kittyId, 'and name:', kittyName);
       
-      // Use setTimeout to ensure navigation happens after layout is fully mounted
+      // Create a separate component for the transition
+      // Keep the "Confirming..." spinner visible for a while to simulate a splash screen
       setTimeout(() => {
-        // Navigate to main app with slide animation
+        // Direct to tabs, avoiding the index splash screen which might cause looping
         router.replace('/(tabs)');
-      }, 50);
+      }, 1500);
     } catch (error) {
       console.error('Error saving kitty name:', error);
       Alert.alert(

@@ -123,14 +123,14 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              // Show splash screen during logout process
+              router.replace('/login');
+              
               // Clear user session from Supabase
               await logout();
               
               // Clear user data from context
               setUser(null);
-              
-              // Navigate to login screen
-              router.navigate('/login');
             } catch (error) {
               console.error('Error during logout:', error);
             }

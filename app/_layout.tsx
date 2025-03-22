@@ -79,51 +79,41 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Handle login->onboarding transition with proper splash
     // Use a longer timeout for the first-time login case to ensure a smooth transition
-    if (user && isFirstLogin && !onboardingScreens.includes(currentPath)) {
+    if (user && isFirstLogin) {
       console.log('First-time user detected, showing splash screen transition to onboarding');
       
-      // Give time for a splash-like effect before navigating to onboarding
-      // This delay ensures a smooth loading experience between login/signup and onboarding
-      setTimeout(() => {
-        console.log('Transitioning to onboarding after delay');
-        router.replace('/onboarding');
-      }, 1500);
-      
+      // Stop here for any screen if user is in first-login state
+      // This prevents flashing of tabs content for new users
+      if (!onboardingScreens.includes(currentPath)) {
+        console.log('First-time user on non-onboarding screen, redirecting immediately');
+        setTimeout(() => {
+          // First navigate to splash screen for a smooth transition
+          router.replace('/onboarding');
+        }, 1500);
+      }
       return;
     }
     
-    // Wait for mounting to complete before other navigation cases
-    const navigateAfterMounting = setTimeout(() => {
-      // If not logged in, only allow access to auth screens
-      if (!user) {
-        if (!authScreens.includes(currentPath) && currentPath !== 'login') {
-          console.log('Not logged in, redirecting to login');
-          router.replace('/login');
-        }
-        return;
+    // If not logged in, only allow access to auth screens
+    if (!user) {
+      if (!authScreens.includes(currentPath) && currentPath !== 'login') {
+        console.log('Not logged in, redirecting to login');
+        router.replace('/login');
       }
-      
-      // User is logged in at this point
-      
-      // First-time login users should go through onboarding flow
-      if (isFirstLogin) {
-        // Only redirect if not already in the right place
-        if (!onboardingScreens.includes(currentPath)) {
-          console.log('First login detected, redirecting to onboarding');
-          router.replace('/onboarding');
-        }
-        return;
-      }
-      
-      // Returning users should always have access to app routes after onboarding
-      // Only redirect if they're on login/signup/onboarding screens
-      if (currentPath && protectedPaths.includes(currentPath)) {
-        console.log('User already onboarded, redirecting to main app');
-        router.replace('/(tabs)');
-      }
-    }, 200); // Short delay to ensure mounting completes for normal cases
+      return;
+    }
     
-    return () => clearTimeout(navigateAfterMounting);
+    // User is logged in at this point and has completed onboarding
+    
+    // Returning users should always have access to app routes after onboarding
+    // Only redirect if they're on login/signup/onboarding screens
+    if (currentPath && protectedPaths.includes(currentPath)) {
+      console.log('User already onboarded, redirecting to main app');
+      setTimeout(() => {
+        // First navigate to splash screen for a smooth transition
+        router.replace('/(tabs)');
+      }, 1500);
+    }
   }, [user, loading, isFirstLogin, segments, router]);
 
   if (isLoading || loading) {
@@ -131,12 +121,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     let navigateTo = '/login';
     
     if (user) {
+      // Force onboarding for first-time users to prevent any flash of tabs content
       navigateTo = isFirstLogin ? '/onboarding' : '/(tabs)';
     }
     
-    // During initial layout loading, just show the splash screen appearance
-    // without auto-navigation, as that will be handled by the effect above
-    return <SplashScreen navigateTo={navigateTo} />;
+    // During initial layout loading, show static splash screen without auto-navigation
+    // Auto-navigation is handled by the useEffect above once loading is complete
+    return <SplashScreen autoNavigate={false} navigateTo={navigateTo} />;
   }
 
   return <>{children}</>;

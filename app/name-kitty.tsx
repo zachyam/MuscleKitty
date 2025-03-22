@@ -242,8 +242,8 @@ export default function NameKittyScreen() {
       // Create a separate component for the transition
       // Keep the "Confirming..." spinner visible for a while to simulate a splash screen
       setTimeout(() => {
-        // Direct to tabs, avoiding the index splash screen which might cause looping
-        router.replace('/(tabs)');
+        // First navigate to splash screen for a smooth transition
+        router.replace('/');
       }, 1500);
     } catch (error) {
       console.error('Error saving kitty name:', error);

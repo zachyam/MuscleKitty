@@ -124,7 +124,10 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               // Show splash screen during logout process
-              router.replace('/login');
+              setTimeout(() => {
+                // First navigate to splash screen for a smooth transition
+                router.replace('/login');
+              }, 1500);
               
               // Clear user session from Supabase
               await logout();

@@ -46,7 +46,7 @@ export default function LoginScreen() {
       } catch (error) {
         console.error('Login screen: auth check error', error);
       } finally {
-        // Show splash screen for at least 1 second
+        // Show splash screen for at least 2.5 seconds
         setTimeout(() => {
           setIsLoading(false);
         }, 1500);
@@ -62,6 +62,7 @@ export default function LoginScreen() {
     
     try {
       // Immediately show a loading screen
+      // router.replace('/');
       
       const response = await loginWithGoogle();
       

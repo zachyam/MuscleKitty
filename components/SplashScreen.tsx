@@ -25,8 +25,8 @@ const SplashScreen = ({ navigateTo, autoNavigate = true }: SplashScreenProps) =>
   useEffect(() => {
     if (!autoNavigate) return;
     
-    // Ensure splash screen shows for full 1.5 seconds
-    console.log(`SplashScreen: Will navigate to ${navigateTo} after 1500ms`);
+    // Ensure splash screen shows for full 2.5 seconds
+    console.log(`SplashScreen: Will navigate to ${navigateTo} after 2500ms`);
     
     const timer = setTimeout(() => {
       console.log(`SplashScreen: Navigating to ${navigateTo} now`);
@@ -37,7 +37,7 @@ const SplashScreen = ({ navigateTo, autoNavigate = true }: SplashScreenProps) =>
         // For relative paths
         router.replace(navigateTo);
       }
-    }, 1000);
+    }, 1500);
 
     return () => {
       console.log('SplashScreen: cleanup');

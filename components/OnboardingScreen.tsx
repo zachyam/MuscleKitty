@@ -18,19 +18,16 @@ import { useUser } from '@/utils/UserContext';
 // Define the content for each screen
 const SCREENS = [
   {
-    welcomeMessage: "Let's get your fitness journey started!",
-    title: "Adopt a kitty and train with it",
-    subtitle: "Stay consistent, level up, and keep your kitty strong",
-    image: require('@/assets/images/icon.png'), // Replace with actual mascot image
-  },
-  {
-    welcomeMessage: "Build your customized workout plans!",
     title: "Customize Your Training",
     subtitle: "Design your own workout routines, log them effortlessly, and track your progress.",
     image: require('@/assets/images/icon.png'), // Replace with actual image
   },
   {
-    welcomeMessage: "Challenge your friends!",
+    title: "Adopt a kitty and train with it",
+    subtitle: "Stay consistent, level up, and keep your kitty strong",
+    image: require('@/assets/images/icon.png'), // Replace with actual mascot image
+  },
+  {
     title: "Compete & Level Up",
     subtitle: "Add friends, compete against them, and see who trains the most consistently!",
     image: require('@/assets/images/icon.png'), // Replace with actual image

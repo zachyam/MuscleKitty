@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+ import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -27,15 +27,15 @@ const KITTY_PROFILES = [
     id: '1',
     breed: 'Munchkin',
     image: require('@/assets/images/munchkin.png'), // Used for display in this screen
-    personality: 'Energetic, Motivated, Fun 💪',
+    personality: 'Playful, Outgoing, Sociable 🤠',
     favoriteExercise: 'Push-ups 🏋️',
-    favoriteFood: 'Protein Shakes 🥤',
+    favoriteFood: 'Tuna 🍣',
   },
   {
     id: '2',
     breed: 'Orange Tabby',
     image: require('@/assets/images/orange-tabby.png'),
-    personality: 'Focused, Determined, Calm 🧘',
+    personality: 'Friendly, Affectionate, Intelligent 🧘',
     favoriteExercise: 'Yoga 🧘‍♀️',
     favoriteFood: 'Salmon 🐟',
   },
@@ -43,25 +43,25 @@ const KITTY_PROFILES = [
     id: '3',
     breed: 'Russian Blue',
     image: require('@/assets/images/russian-blue.png'),
-    personality: 'Strong, Confident, Brave 🦁',
-    favoriteExercise: 'Weight Lifting 🏋️‍♂️',
+    personality: 'Sweet, Loyal, Sensitive 🦁',
+    favoriteExercise: 'Squats 🏋️‍♂️',
     favoriteFood: 'Chicken 🍗',
   },
   {
     id: '4',
     breed: 'Calico',
     image: require('@/assets/images/calico.png'),
-    personality: 'Strong, Confident, Brave 🦁',
-    favoriteExercise: 'Weight Lifting 🏋️‍♂️',
-    favoriteFood: 'Chicken 🍗',
+    personality: 'Thoughtful, Curious, Playful 🤓',
+    favoriteExercise: 'Running 🏃‍♀️',
+    favoriteFood: 'Beef 🌮',
   },
   {
     id: '5',
     breed: 'Maine Coon',
     image: require('@/assets/images/maine-coon.png'),
-    personality: 'Strong, Confident, Brave 🦁',
-    favoriteExercise: 'Weight Lifting 🏋️‍♂️',
-    favoriteFood: 'Chicken 🍗',
+    personality: 'Smart, Active, Quirky 🦁',
+    favoriteExercise: 'Bicep Curls 💪♂️',
+    favoriteFood: 'Duck 🦆',
   },
 ];
 

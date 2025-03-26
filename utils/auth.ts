@@ -109,7 +109,7 @@ export const loginWithSocialMedia = async (socialMediaProvider: String): Promise
   try {
     // Clear any existing session first to prevent issues
     await supabase.auth.signOut();
-    console.log('Starting {} login process...', socialMedia);
+    console.log('Starting {} login process...', socialMediaProvider);
     
     // Get the URL from Supabase for OAuth
     const { data, error } = await supabase.auth.signInWithOAuth({

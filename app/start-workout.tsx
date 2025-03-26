@@ -23,8 +23,8 @@ export default function StartWorkoutScreen() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [coinsEarned] = useState(100); // Fixed reward of 5 coins per workout
   const confettiAnimation = useRef<LottieView>(null);
+  const [coinsEarned, setCoinsEarned] = useState(5);
 
   useEffect(() => {
     if (id) {
@@ -134,9 +134,13 @@ export default function StartWorkoutScreen() {
   const getCoinsPerWorkout = () => {
     if (user && user.level) {
       const userLevel = user?.level;
-      const coinsToAdd =  ((userLevel + 1) ** 2 * 20) / (3 + 0.8 * userLevel);
-      console.log("coinsToAdd is {}", coinsToAdd);
+      const coinsToAdd =  Math.floor(((userLevel + 1) ** 2 * 20) / (3 + 0.8 * userLevel) / 5) * 5;
+      setCoinsEarned(coinsToAdd)
+      console.log("coinsToAdd is: ", coinsToAdd);
+      return coinsToAdd;
     }
+    console.log("Unable to calculate coinsToAdd. Returning default of 5");
+    setCoinsEarned(5)
     return 5;
   }
   const handleFinishWorkout = async () => {
@@ -166,7 +170,6 @@ export default function StartWorkoutScreen() {
     // Add coins to the user's account
     try {
       await addCoins(getCoinsPerWorkout());
-      console.log(`Added ${coinsEarned} coins for completing workout`);
     } catch (error) {
       console.error('Error adding coins:', error);
     }
@@ -180,7 +183,7 @@ export default function StartWorkoutScreen() {
     // Navigate to Index tab after a delay to show the completed workout
     setTimeout(() => {
       setShowConfetti(false);
-      router.replace('/(tabs)/index');
+      router.replace('/(tabs)/');
     }, 3000);
   };
 

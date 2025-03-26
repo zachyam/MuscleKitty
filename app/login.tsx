@@ -13,9 +13,9 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import SocialButton from '@/components/SocialButton';
-import SplashScreen, { StaticSplashScreen } from '@/components/SplashScreen';
+import { StaticSplashScreen } from '@/components/SplashScreen';
 import Colors from '@/constants/Colors';
-import { loginWithGoogle, loginWithFacebook, isAuthenticated } from '@/utils/auth';
+import { isAuthenticated, loginWithSocialMedia } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
 
 export default function LoginScreen() {
@@ -61,10 +61,8 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     
     try {
-      // Immediately show a loading screen
-      // router.replace('/');
       
-      const response = await loginWithGoogle();
+      const response = await loginWithSocialMedia('google');
       
       if (response.error) {
         // Handle error (could show a toast here)
@@ -98,7 +96,7 @@ export default function LoginScreen() {
       // Immediately show a loading screen
       router.replace('/');
       
-      const response = await loginWithFacebook();
+      const response = await loginWithSocialMedia('facebook');
       
       if (response.error) {
         // Handle error (could show a toast here)

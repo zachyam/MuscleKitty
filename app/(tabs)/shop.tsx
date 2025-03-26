@@ -70,7 +70,7 @@ export default function ShopScreen() {
       id: 'f1',
       name: 'Premium Kibble',
       description: 'Nutrient-rich dry food for your kitty',
-      image: require('@/assets/images/orange-tabby.png'),
+      image: require('@/assets/images/food/dry-kibble.jpg'),
       price: 10,
       xpReward: 10,
       category: 'food',
@@ -79,7 +79,7 @@ export default function ShopScreen() {
       id: 'f2',
       name: 'Gourmet Wet Food',
       description: 'Delicious wet food with real meat chunks',
-      image: require('@/assets/images/maine-coon.png'),
+      image: require('@/assets/images/food/wet-food.jpg'),
       price: 25,
       xpReward: 30,
       category: 'food',
@@ -88,7 +88,7 @@ export default function ShopScreen() {
       id: 'f3',
       name: 'Salmon Treats',
       description: 'Tasty salmon treats for special occasions',
-      image: require('@/assets/images/russian-blue.png'),
+      image: require('@/assets/images/food/salmon-treats.jpg'),
       price: 50,
       xpReward: 65,
       category: 'food',
@@ -348,7 +348,7 @@ export default function ShopScreen() {
         <View style={styles.tabContainer}>
           <View style={styles.customTabBar}>
             <TouchableOpacity 
-              style={[styles.tabButton, activeTab === 'food' && styles.activeTabButton]} 
+              style={[styles.tabButton, activeTab === 'food' && styles.activeTabButton]}
               onPress={() => setActiveTab('food')}
             >
               <Text style={[styles.tabButtonText, activeTab === 'food' && styles.activeTabText]}>Food</Text>

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Dumbbell, History, HouseIcon, Trophy, User, ShoppingCart, PersonStanding } from 'lucide-react-native';
+import { Dumbbell, HouseIcon, Trophy, User, ShoppingCart, PersonStanding } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 
@@ -49,15 +49,6 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
             <HouseIcon size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color, size }) => (
-            <History size={size} color={color} />
           ),
         }}
       />

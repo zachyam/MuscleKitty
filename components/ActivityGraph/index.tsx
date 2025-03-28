@@ -104,8 +104,8 @@ const ActivityGraph: React.FC<Props> = ({
 
   const getActivityColor = (level: ActivityLevel) => {
     switch (level) {
-      case 0: return '#ebedf0'; // Empty day - GitHub light gray
-      case 1: return '#39d353'; // Active day - GitHub green
+      case 0: return Colors.background; // Empty day - GitHub light gray
+      case 1: return Colors.primary; // Active day - GitHub green
     }
   };
   
@@ -221,23 +221,6 @@ const ActivityGraph: React.FC<Props> = ({
             <Text style={styles.tooltipText}>{tooltipText}</Text>
           </View>
         )}
-        
-        <View style={styles.legendContainer}>
-          <Text style={styles.legendText}>No workouts</Text>
-          <View 
-            style={[
-              styles.legendSquare, 
-              { backgroundColor: getActivityColor(0) }
-            ]} 
-          />
-          <View 
-            style={[
-              styles.legendSquare, 
-              { backgroundColor: getActivityColor(1), marginLeft: 8 }
-            ]} 
-          />
-          <Text style={styles.legendText}>Workout completed</Text>
-        </View>
       </View>
     </View>
   );

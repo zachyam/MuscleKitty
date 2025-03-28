@@ -342,12 +342,8 @@ function WorkoutPlansScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.workoutPanelButtonText}>
-              {showWorkoutPlans ? "Hide Workout Plans" : "View Workout Plans"}
+              { "View Workout Plans"}
             </Text>
-            {showWorkoutPlans 
-              ? <ChevronDown size={20} color={Colors.primary} /> 
-              : <ArrowUp size={20} color={Colors.primary} />
-            }
           </TouchableOpacity>
           
           {/* Workout Plans Panel (slides up when shown) */}
@@ -365,7 +361,6 @@ function WorkoutPlansScreen() {
                   },
                 ],
                 opacity: workoutPanelAnim,
-                pointerEvents: showWorkoutPlans ? 'auto' : 'none',
               }
             ]}
           >

@@ -624,8 +624,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(143, 201, 58, 0.3)',
+    borderWidth: 2,
+    borderColor: Colors.border
   },
   streakHeader: {
     flexDirection: 'row',
@@ -684,11 +684,11 @@ const styles = StyleSheet.create({
   },
   healthStatsContainer: {
     marginBottom: 12,
-    backgroundColor: 'rgba(143, 201, 58, 0.1)',
+    backgroundColor: '#f8f5e6',
     borderRadius: 12,
     padding: 10,
     borderWidth: 1,
-    borderColor: 'rgba(143, 201, 58, 0.2)',
+    borderColor: 'rgba(200, 200, 200, 0.3)',
   },
   progressContainer: {
     height: 12,
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
   workoutPanelButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.primary,
+    color: Colors.text,
     marginRight: 8,
   },
   // Workout Panel Container - positioned just above nav bar and covering 80% of screen

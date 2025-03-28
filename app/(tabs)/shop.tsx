@@ -552,10 +552,7 @@ const styles = StyleSheet.create({
   catImage: {
     width: 80,
     height: 80,
-    borderRadius: 40,
     marginRight: 16,
-    borderWidth: 3,
-    borderColor: Colors.primary,
   },
   statsInfo: {
     flex: 1,

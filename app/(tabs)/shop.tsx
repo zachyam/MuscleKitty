@@ -17,6 +17,7 @@ import { useUser } from '@/utils/UserContext';
 import * as KittyStats from '@/utils/kittyStats';
 import LottieView from 'lottie-react-native';
 import { Dimensions } from 'react-native';
+import CoinIcon from '@/components/CoinIcon';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -284,7 +285,7 @@ export default function ShopScreen() {
       <View style={styles.gridItemPriceRow}>
         <View style={styles.gridItemPriceContainer}>
           <View style={styles.miniCoinWrapper}>
-            <Text style={styles.miniCoinIcon}>🌕</Text>
+            <CoinIcon width={12} height={12}/>
           </View>
           <Text style={styles.gridItemPrice}>{item.price}</Text>
         </View>
@@ -322,7 +323,7 @@ export default function ShopScreen() {
             <View style={styles.currencyRow}>
               <View style={styles.currencyItem}>
                 <View style={styles.coinIconWrapper}>
-                  <Text style={styles.miniCoinIcon}>🌕</Text>
+                  <CoinIcon width={25} height={25}/>
                 </View>
                 <Text style={styles.currencyText}>{totalCoins} Coins</Text>
               </View>
@@ -393,7 +394,7 @@ export default function ShopScreen() {
                     <Text style={styles.modalPriceLabel}>Cost:</Text>
                     <View style={styles.modalCoinRow}>
                       <View style={styles.modalCoinWrapper}>
-                        <Text style={styles.modalCoinIcon}>🌕</Text>
+                        <CoinIcon width={20} height={20}/>
                       </View>
                       <Text style={styles.modalItemPrice}>{selectedItem.price} coins</Text>
                     </View>

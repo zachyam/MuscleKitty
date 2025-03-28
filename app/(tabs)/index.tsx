@@ -13,6 +13,7 @@ import WorkoutLogCard from '@/components/WorkoutLogCard';
 import { UserContext } from '@/utils/UserContext';
 import { calculateStreak, calculateKittyHealth, KittyHealth } from '@/utils/loadStats';
 import { Dimensions } from 'react-native';
+import CoinIcon from '@/components/CoinIcon'
 
 function WorkoutPlansScreen() {
   const { user } = useContext(UserContext);
@@ -254,9 +255,9 @@ function WorkoutPlansScreen() {
           
           {/* Coins display positioned in top left with fun design */}
           <View style={styles.coinContainer}>
-            <View style={styles.coinIconWrapper}>
-              <Text style={styles.coinIcon}>🌕</Text>
-            </View>
+          <View style={styles.coinIconWrapper}>
+            <CoinIcon />
+          </View>
             <Text style={styles.coinCount}>{totalCoins}</Text>
           </View>
           

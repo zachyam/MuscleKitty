@@ -194,7 +194,7 @@ function WorkoutPlansScreen() {
       <View style={styles.heroContainer}>
         <ImageBackground
           // source={{ uri: 'https://i.pinimg.com/736x/88/4c/3c/884c3c4285c79df0be1371b5344788da.jpg' }}
-          source={require('@/assets/images/gym_background.jpg')}
+          source={require('@/assets/images/gym-night.png')}
           style={styles.heroImage}
         >
           <View style={styles.heroOverlay} />
@@ -325,6 +325,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgb(244, 244, 220)',
+    paddingTop: 0,     // ✅
+    marginTop: 0,      // ✅
   },
   coinContainer: {
     position: 'absolute',
@@ -358,18 +360,21 @@ const styles = StyleSheet.create({
   },
   // Hero styles - Taking up exactly half the screen height
   heroContainer: {
-    height: '50%',
-    width: '100%',
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
+    height: '45%',
+    width: '100%',
     zIndex: 0,
+    paddingTop: 0,        // Ensure this isn't adding extra space
+    marginTop: 0,         // Likewise
   },
   heroImage: {
     width: '100%',
     height: '100%',
     justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   kittenImage: {
     width: 250,
@@ -383,11 +388,11 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(238, 231, 231, 0.34)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   heroContent: {
     padding: 20,
-    paddingBottom: 60, // Extra padding at bottom for card overlap
+    paddingBottom: 25, // Extra padding at bottom for card overlap
   },
   heroTitle: {
     fontSize: 26,
@@ -403,7 +408,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: '75%', // Positioned to create overlap with hero
+    paddingTop: '70%', // 👈 Bump this to match or slightly exceed heroContainer height
     zIndex: 1,
   },
   streakCard: {

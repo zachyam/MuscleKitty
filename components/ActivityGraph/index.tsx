@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Modal } from 'react-native';
 import Colors from '@/constants/Colors';
 import { WorkoutLog } from '@/types';
 

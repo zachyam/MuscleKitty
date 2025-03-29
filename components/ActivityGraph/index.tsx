@@ -105,7 +105,7 @@ const ActivityGraph: React.FC<Props> = ({
   const getActivityColor = (level: ActivityLevel) => {
     switch (level) {
       case 0: return Colors.background; // Empty day - GitHub light gray
-      case 1: return Colors.primary; // Active day - GitHub green
+      case 1: return '#A3D977'; // Active day - GitHub green
     }
   };
   
@@ -263,10 +263,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   daySquare: {
-    borderRadius: 2,
+    borderRadius: 5,
     margin: 1,
     borderWidth: 0.5,
-    borderColor: 'rgba(27, 31, 35, 0.06)',
+    borderColor: 'rgba(36, 40, 40, 0.67)',
   },
   legendContainer: {
     flexDirection: 'row',

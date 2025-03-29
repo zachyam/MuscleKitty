@@ -25,6 +25,7 @@ function WorkoutPlansScreen() {
   const [showWorkoutPlans, setShowWorkoutPlans] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<string | null>(null);
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutLog[]>([]);
+  const [isDayTime, setIsDayTime] = useState(true);
   const textFadeAnim = useRef(new Animated.Value(1)).current; // For text fade animation
   const kittySwayAnim = useRef(new Animated.Value(0)).current; // For kitty swaying animation
   const workoutPanelAnim = useRef(new Animated.Value(0)).current; // For workout panel slide-up animation
@@ -36,6 +37,7 @@ function WorkoutPlansScreen() {
       console.log('WorkoutPlansScreen - useFocusEffect triggered');
       loadWorkouts();
       loadWorkoutLogs();
+      getCurrentTime();
       
       // Update coins when screen comes into focus
       if (user) {
@@ -47,6 +49,19 @@ function WorkoutPlansScreen() {
       startHorizontalAnimation();
     }, [user?.id, user?.coins]) // Reload when user changes or coins update
   );
+
+  const getCurrentTime = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    if (hours >= 7 && hours < 19) {
+      console.log("It is day time");
+      setIsDayTime(true);
+    } else {
+      console.log("It is night time");
+      setIsDayTime(false);
+    }
+    return;
+  }
   
 
   const loadWorkouts = async () => {
@@ -243,12 +258,12 @@ function WorkoutPlansScreen() {
   }, [user]);
   
   return (
-    <View style={styles.container}>
+    <View style={isDayTime ? styles.containerDayTime : styles.containerNightTime}>
       {/* Hero Background - Takes up entire top half */}
       <View style={styles.heroContainer}>
         <ImageBackground
           // source={{ uri: 'https://i.pinimg.com/736x/88/4c/3c/884c3c4285c79df0be1371b5344788da.jpg' }}
-          source={require('@/assets/images/gym-night.png')}
+          source={isDayTime ? require('@/assets/images/gym.png') : require('@/assets/images/gym-night.png')}
           style={styles.heroImage}
         >
           <View style={styles.heroOverlay} />
@@ -520,11 +535,15 @@ function WorkoutPlansScreen() {
 export default WorkoutPlansScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  containerNightTime: {
     flex: 1,
-    backgroundColor: 'rgb(244, 244, 220)',
-    paddingTop: 0,
+    backgroundColor: 'rgb(188, 133, 102)',
     marginTop: 0,
+  },
+  containerDayTime: {
+    flex: 1,
+    marginTop: 0,
+    backgroundColor: 'rgb(223, 171, 142)'
   },
   coinContainer: {
     position: 'absolute',
@@ -575,18 +594,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   kittenImage: {
-    width: 250,
-    height: 250,
+    width: 200,
+    height: 200,
+    marginTop: 10,
     alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    // backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   heroContent: {
     padding: 20,
@@ -611,16 +631,18 @@ const styles = StyleSheet.create({
   },
   streakCard: {
     backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
+    borderRadius: 24,
+    padding: 18,
+    marginHorizontal: 5,
+    marginTop: 0,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 8,
-    borderWidth: 2,
-    borderColor: Colors.border
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    borderColor: Colors.border,
+    borderWidth: 1,
   },
   streakHeader: {
     flexDirection: 'row',
@@ -686,12 +708,17 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(200, 200, 200, 0.3)',
   },
   progressContainer: {
-    height: 12,
-    backgroundColor: 'rgba(200, 200, 200, 0.3)',
-    borderRadius: 6,
+    // height: 12,
+    // backgroundColor: 'rgba(200, 200, 200, 0.3)',
+    // borderRadius: 6,
+    // overflow: 'hidden',
+    // borderWidth: 1,
+    // borderColor: 'rgba(200, 200, 200, 0.5)',
+    backgroundColor: '#F7F7F7',
+    borderRadius: 20,
+    height: 14,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(200, 200, 200, 0.5)',
+    marginTop: 12,
   },
   progressBar: {
     flex: 1,
@@ -699,8 +726,8 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 6,
+    backgroundColor: '#B9E56A', // mellow green
+    borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
@@ -1076,5 +1103,6 @@ const styles = StyleSheet.create({
   addGoalText: {
     fontSize: 16,
     color: Colors.text,
+    fontWeight: '600',
   }
 });

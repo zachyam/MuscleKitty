@@ -87,11 +87,17 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: Colors.background,
+    paddingTop: 10,
+    paddingBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    elevation: 8,
     shadowColor: '#000',
+    shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowRadius: 6,
   },
   tabBarLabel: {
     fontSize: 12,

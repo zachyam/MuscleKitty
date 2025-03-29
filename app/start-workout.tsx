@@ -10,6 +10,7 @@ import { Workout, WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
 import { UserContext, useUser } from '@/utils/UserContext';
 import ExerciseWeightChart from '@/components/ExerciseWeightChart';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 export default function StartWorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -176,15 +177,15 @@ export default function StartWorkoutScreen() {
     
     // Show confetti celebration
     setShowConfetti(true);
-    if (confettiAnimation.current) {
-      confettiAnimation.current.play();
-    }
+    // if (confettiAnimation.current) {
+    //   confettiAnimation.current.play();
+    // }
     
     // Navigate to Index tab after a delay to show the completed workout
     setTimeout(() => {
-      setShowConfetti(false);
+      //setShowConfetti(false);
       router.replace('/(tabs)/');
-    }, 3000);
+    }, 2000);
   };
 
   if (loading || !workout) {
@@ -375,32 +376,16 @@ export default function StartWorkoutScreen() {
       </View>
 
       {/* Confetti Celebration Modal */}
-      <Modal
-        visible={showConfetti}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.confettiContainer}>
-          <LottieView
-            ref={confettiAnimation}
-            source={require('../assets/animations/confetti.json')}
-            style={styles.confettiAnimation}
-            autoPlay
-            loop={false}
-          />
-          <View style={styles.congratsCard}>
-            <Text style={styles.congratsTitle}>Workout Complete! 🎉</Text>
-            <Text style={styles.congratsText}>Great job! You've completed your workout.</Text>
-            <View style={styles.coinsEarnedContainer}>
-              <Text style={styles.coinsEarnedPrefix}>+{coinsEarned}</Text>
-              <View style={styles.coinIconWrapper}>
-                <Text style={styles.coinIcon}>🌕</Text>
-              </View>
-              <Text style={styles.coinsEarnedSuffix}>Coins Earned!</Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {showConfetti && (
+        <ConfettiCannon
+        count={100}
+        origin={{ x: Dimensions.get('window').width / 2, y: 0 }}
+        fadeOut
+        explosionSpeed={300}
+        fallSpeed={2000}
+        onAnimationEnd={() => setShowConfetti(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

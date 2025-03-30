@@ -67,7 +67,7 @@ export default function StartWorkoutScreen() {
         const historyData: {[key: string]: {date: string, maxWeight: number}[]} = {};
         for (const exercise of foundWorkout.exercises) {
           const history = await getExerciseHistory(workoutId, exercise.id, user.id);
-          historyData[exercise.id] = history;
+          historyData[exercise.id] = history; // keep only the last 10
         }
         setExerciseHistory(historyData);
       }
@@ -317,7 +317,7 @@ export default function StartWorkoutScreen() {
             <View style={styles.chartContainer}>
               <ExerciseWeightChart
                 historyData={exerciseHistory[currentExercise.id]}
-                width={Dimensions.get('window').width - 70}
+                width={350}
                 height={250}
                 onPointPress={(date, weight) => {
                   // Pre-format tooltip text immediately
@@ -390,10 +390,11 @@ export default function StartWorkoutScreen() {
   );
 }
 
+// ✨ Pastel Ghibli-Inspired Style Enhancements
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFF8EC', // warm cream
   },
   loadingContainer: {
     flex: 1,
@@ -402,36 +403,36 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: Colors.gray,
+    color: '#A18A74',
   },
   progressBar: {
-    height: 4,
-    backgroundColor: Colors.border,
+    height: 10,
     width: '100%',
+    // backgroundColor: '#FDE8D7',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
+    backgroundColor: '#A3C9A8',
+    borderBottomEndRadius: 10,
+    borderTopEndRadius: 10,
   },
   exerciseHeader: {
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   exerciseCount: {
     fontWeight: '500',
     fontSize: 14,
-    color: Colors.gray,
+    color: '#A18A74',
     marginBottom: 4,
   },
   exerciseName: {
     fontWeight: 'bold',
-    fontSize: 20,
-    color: Colors.text,
+    fontSize: 22,
+    color: '#6B4C3B',
   },
   exerciseSets: {
     fontSize: 14,
-    color: Colors.gray,
+    color: '#A18A74',
     marginTop: 4,
   },
   content: {
@@ -439,10 +440,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   setsContainer: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
+    backgroundColor: '#FFF3DA',
+    borderRadius: 20,
     padding: 16,
     marginBottom: 16,
+    shadowColor: '#D7C0AE',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   setsHeader: {
     flexDirection: 'row',
@@ -450,9 +456,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   setsHeaderText: {
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 14,
-    color: Colors.gray,
+    color: '#B3907A',
     flex: 1,
     textAlign: 'left',
   },
@@ -465,10 +471,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#A3C9A8',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
+    shadowColor: '#8FBF9F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
   setNumber: {
     fontWeight: 'bold',
@@ -480,13 +491,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   input: {
-    backgroundColor: Colors.background,
-    borderRadius: 8,
+    backgroundColor: '#FFFDF9',
+    borderRadius: 20,
     padding: 10,
     fontWeight: '500',
     fontSize: 16,
-    color: Colors.text,
+    color: '#6B4C3B',
     textAlign: 'center',
+    shadowColor: '#E4DCCF',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   removeButton: {
     width: 40,
@@ -500,121 +516,65 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 8,
-    marginTop: 8,
+    borderColor: '#A3C9A8',
+    borderRadius: 24,
+    marginTop: 12,
+    backgroundColor: '#F1FAF0',
   },
   addSetText: {
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 14,
-    color: Colors.primary,
+    color: '#618264',
     marginLeft: 8,
   },
   footer: {
     flexDirection: 'row',
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    backgroundColor: '#FFF8EC',
   },
   navButton: {
     flex: 1,
-    backgroundColor: Colors.card,
+    backgroundColor: '#FFF8EC', // warm cream
     borderRadius: 30,
     padding: 14,
     alignItems: 'center',
     marginHorizontal: 8,
+    shadowColor: '#F7D9D9',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   navButtonText: {
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 16,
-    color: Colors.text,
+    color: '#6B4C3B',
   },
   disabledButton: {
     opacity: 0.5,
   },
   finishButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#A3C9A8',
   },
   finishButtonText: {
     color: '#fff',
   },
-  confettiContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-  },
-  confettiAnimation: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  congratsCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    width: '80%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  congratsTitle: {
-    fontWeight: 'bold',
-    fontSize: 24,
-    color: Colors.primary,
-    marginBottom: 12,
-  },
-  congratsText: {
-    fontSize: 16,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  coinsEarnedContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  coinsEarnedPrefix: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginRight: 5,
-  },
-  coinsEarnedSuffix: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginLeft: 5,
-  },
-  coinIconWrapper: {
-    marginRight: 5,
-  },
-  coinIcon: {
-    fontSize: 18,
-  },
   previousWorkoutContainer: {
     marginTop: 24,
     padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    opacity: 0.8,
+    backgroundColor: '#FDE8D7',
+    borderRadius: 16,
+    borderColor: '#E5CBAF',
   },
   previousWorkoutTitle: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: Colors.gray,
+    color: '#B3907A',
     marginBottom: 4,
   },
   previousWorkoutDate: {
     fontSize: 14,
-    color: Colors.gray,
+    color: '#B3907A',
     marginBottom: 12,
   },
   previousSetRow: {
@@ -622,15 +582,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#E5CBAF',
   },
   previousSetText: {
     fontSize: 14,
-    color: Colors.gray,
+    color: '#8A7156',
   },
   chartContainer: {
-    position: 'relative',
     marginTop: 16,
+    // backgroundColor: '#E7F6EC',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#B7D4C1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   tooltip: {
     position: 'absolute',
@@ -652,127 +619,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     textAlign: 'center',
-  },
-  progressGraphContainer: {
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  progressGraphTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  progressGraph: {
-    height: 180,
-    marginTop: 8,
-  },
-  graphBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: '100%',
-    paddingVertical: 10,
-  },
-  barContainer: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    flex: 1,
-  },
-  bar: {
-    width: 18,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  barValue: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginBottom: 4,
-  },
-  barLabel: {
-    fontSize: 10,
-    color: Colors.gray,
-    marginTop: 6,
-    textAlign: 'center',
-    width: 28,
-  },
-  lineGraphContainer: {
-    height: 150,
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  yAxisLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: '100%',
-  },
-  axisLabel: {
-    fontSize: 12,
-    color: Colors.gray,
-  },
-  graphContent: {
-    flexDirection: 'row',
-    height: '100%',
-  },
-  lineGraph: {
-    flex: 1,
-    position: 'relative',
-  },
-  gridLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-  lineSegment: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: Colors.primary,
-  },
-  dataPoint: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
-    borderWidth: 2,
-    borderColor: Colors.card,
-  },
-  pointLabel: {
-    position: 'absolute',
-    top: -20,
-    left: -4,
-    fontSize: 12,
-    color: Colors.text,
-  },
-  xAxisLabels: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  dateLabel: {
-    fontSize: 10,
-    color: Colors.gray,
   },
 });

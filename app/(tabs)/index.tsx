@@ -266,7 +266,7 @@ function WorkoutPlansScreen() {
           source={isDayTime ? require('@/assets/images/gym.png') : require('@/assets/images/gym-night.png')}
           style={styles.heroImage}
         >
-          <View style={styles.heroOverlay} />
+          {/* <View style={styles.heroOverlay} /> */}
           
           {/* Coins display positioned in top left with fun design */}
           <View style={styles.coinContainer}>
@@ -570,6 +570,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    marginTop: '30%'
   },
   header: {
     backgroundColor: 'transparent',
@@ -590,27 +591,30 @@ const styles = StyleSheet.create({
   heroImage: {
     width: '100%',
     height: '100%',
-    justifyContent: 'flex-end',
+    position: 'relative',
     alignItems: 'center',
   },
   kittenImage: {
-    width: 200,
-    height: 200,
-    marginTop: 10,
-    alignSelf: 'center',
+    width: 250,
+    height: 250,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    // backgroundColor: 'rgba(255, 255, 255, 0.18)',
-  },
+  // heroOverlay: {
+  //   ...StyleSheet.absoluteFillObject,
+  //   // backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  // },
   heroContent: {
-    padding: 20,
-    paddingBottom: 25, // Extra padding at bottom for card overlap
+    position: 'absolute',
+    bottom: -100, // move this lower until it's where you want
+    alignSelf: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    zIndex: 2,
   },
   heroTitle: {
     fontSize: 26,

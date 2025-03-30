@@ -27,7 +27,7 @@ export default function TabLayout() {
           headerShown: false,
           tabBarStyle: {
             ...styles.tabBar,
-            height: 60 + insets.bottom,
+            height: 50 + insets.bottom,
             paddingBottom: insets.bottom,
           },
           tabBarActiveTintColor: 'rgb(40, 40, 37), 0.12)',
@@ -87,7 +87,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: Colors.background,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingBottom: 20,
     flexDirection: 'row',
     justifyContent: 'space-around',

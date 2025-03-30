@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { useLocalSearchParams, router } from 'expo-router';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Colors from '@/constants/Colors';
 import { getWorkoutLogById, deleteWorkoutLog } from '@/utils/storage';
 import { WorkoutLog } from '@/types';
 import Header from '@/components/Header';
@@ -81,10 +80,10 @@ export default function WorkoutLogScreen() {
         rightIcon={
           <View style={styles.actionButtons}>
             <TouchableOpacity onPress={handleEditLog} style={styles.actionButton}>
-              <Pencil size={22} color={Colors.text} />
+              <Pencil size={22} color="#6B4C3B" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleDeleteLog} style={styles.actionButton}>
-              <Trash2 size={22} color={Colors.error} />
+              <Trash2 size={22} color="#D66A6A" />
             </TouchableOpacity>
           </View>
         }
@@ -142,10 +141,10 @@ export default function WorkoutLogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFF8EC', // warm cream
   },
   bottomSafeArea: {
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFF8EC',
   },
   loadingContainer: {
     flex: 1,
@@ -154,105 +153,98 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: Colors.gray,
+    color: '#A18A74',
   },
   content: {
     flex: 1,
     padding: 16,
   },
   logHeader: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FDE8D7',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
+    shadowColor: '#D7C0AE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
   },
   workoutName: {
-    fontWeight: 'bold',
-    fontSize: 22,
-    color: Colors.text,
-    marginBottom: 4,
+    fontWeight: '700',
+    fontSize: 24,
+    color: '#6B4C3B',
+    marginBottom: 6,
   },
   workoutDate: {
     fontSize: 14,
-    color: Colors.gray,
+    color: '#A18A74',
   },
   exercisesContainer: {
     marginBottom: 24,
   },
   exerciseCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: '#F7D9D9',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 6,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    elevation: 3,
   },
   exerciseName: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    color: Colors.text,
-    marginBottom: 16,
+    fontWeight: '700',
+    fontSize: 20,
+    color: '#6B4C3B',
+    marginBottom: 12,
   },
   setsContainer: {
-    backgroundColor: Colors.background,
-    borderRadius: 8,
+    backgroundColor: '#FFFDF9',
+    borderRadius: 12,
     padding: 12,
   },
   setsHeader: {
     flexDirection: 'row',
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#F5E4D7',
     paddingBottom: 8,
   },
   setsHeaderText: {
     flex: 1,
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 14,
-    color: Colors.gray,
+    color: '#B3907A',
     textAlign: 'center',
   },
   setRow: {
     flexDirection: 'row',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#F5E4D7',
   },
   setText: {
     flex: 1,
     fontSize: 14,
-    color: Colors.text,
+    color: '#6B4C3B',
     textAlign: 'center',
   },
   summaryCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#D8F3DC',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: '#C8E6C9',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    shadowRadius: 5,
+    elevation: 3,
   },
   summaryTitle: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    color: Colors.text,
+    fontWeight: '700',
+    fontSize: 20,
+    color: '#386641',
     marginBottom: 16,
   },
   summaryRow: {
@@ -262,12 +254,12 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: Colors.gray, 
+    color: '#5F7161', 
   },
   summaryValue: {
     fontSize: 14,
-    color: Colors.text,
-    fontWeight: '500',
+    color: '#386641',
+    fontWeight: '600',
   },
   actionButtons: {
     flexDirection: 'row',

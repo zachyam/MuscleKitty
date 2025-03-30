@@ -263,7 +263,7 @@ function WorkoutPlansScreen() {
       <View style={styles.heroContainer}>
         <ImageBackground
           // source={{ uri: 'https://i.pinimg.com/736x/88/4c/3c/884c3c4285c79df0be1371b5344788da.jpg' }}
-          source={isDayTime ? require('@/assets/images/gym.png') : require('@/assets/images/gym-night.png')}
+          source={isDayTime ? require('@/assets/images/gym-background-light.png') : require('@/assets/images/gym-night.png')}
           style={styles.heroImage}
         >
           {/* <View style={styles.heroOverlay} /> */}
@@ -370,7 +370,7 @@ function WorkoutPlansScreen() {
                   {
                     translateY: workoutPanelAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [screenHeight, screenHeight * 0.1], // Adjusted to match the new panel position at 20% from top
+                      outputRange: [screenHeight, screenHeight * 0.05], // Adjusted to match the new panel position at 20% from top
                       extrapolate: 'clamp',
                     }),
                   },
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   containerDayTime: {
     flex: 1,
     marginTop: 0,
-    backgroundColor: 'rgb(223, 171, 142)'
+    backgroundColor: 'rgb(217, 148, 100)'
   },
   coinContainer: {
     position: 'absolute',

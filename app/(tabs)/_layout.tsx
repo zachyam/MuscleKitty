@@ -1,15 +1,17 @@
 import React, { useRef, useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Dumbbell, HouseIcon, Trophy, User, ShoppingCart, PersonStanding } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
+import HomeTabIcon from '@/components/tab-icons/HomeTabIcon';
+import FriendsTabIcon from '@/components/tab-icons/FriendsTabIcon';
+import ProfileTabIcon from '@/components/tab-icons/ProfileTabIcon';
+import ShopTabIcon from '@/components/tab-icons/ShopTabIcon';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Fade in when the component mounts
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -21,8 +23,8 @@ export default function TabLayout() {
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
       <Tabs
-        id="app-tabs" // Add a stable ID for the tabs
-        initialRouteName="index" // Explicitly set the initial route
+        id="app-tabs"
+        initialRouteName="index"
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
@@ -30,56 +32,47 @@ export default function TabLayout() {
             height: 50 + insets.bottom,
             paddingBottom: insets.bottom,
           },
-          tabBarActiveTintColor: 'rgb(40, 40, 37), 0.12)',
-          tabBarInactiveTintColor: 'rgb(148, 148, 131), 0.12)',
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.gray,
           tabBarLabelStyle: styles.tabBarLabel,
           tabBarItemStyle: {
-            flex: 1, // This ensures each tab takes equal space
+            flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
           },
-          swipeEnabled: false, // Disable swiping between tabs
-          unmountOnBlur: false, // Keep tab screens mounted
-          freezeOnBlur: true, // Freeze screens when they lose focus
-          
+          swipeEnabled: false,
+          unmountOnBlur: false,
+          freezeOnBlur: true,
         }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <HouseIcon size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="friends"
-        options={{
-          title: 'Friends',
-          tabBarIcon: ({ color, size }) => (
-            <PersonStanding size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="shop"
-        options={{
-          title: 'Shop',
-          tabBarIcon: ({ color, size }) => (
-            <ShoppingCart size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <User size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ focused }) => <HomeTabIcon focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="friends"
+          options={{
+            title: 'Friends',
+            tabBarIcon: ({ focused }) => <FriendsTabIcon focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="shop"
+          options={{
+            title: 'Shop',
+            tabBarIcon: ({ focused }) => <ShopTabIcon focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ focused }) => <ProfileTabIcon focused={focused} />,
+          }}
+        />
+      </Tabs>
     </Animated.View>
   );
 }

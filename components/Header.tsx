@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -45,8 +46,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: Colors.background,
+    paddingVertical: 15,
+    // backgroundColor: Colors.background,
   },
   leftContainer: {
     width: 40,
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rightContainer: {
-    width: 80,
+    width: 40,
     alignItems: 'flex-end',
   },
   rightButton: {

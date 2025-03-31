@@ -14,6 +14,7 @@ import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
+import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 // Kitty name storage key - must match the one in name-kitty.tsx
 const KITTY_NAME_KEY = 'muscle_kitty_name';
@@ -200,30 +201,36 @@ export default function ProfileScreen() {
       
       {/* Settings Menu */}
       {showMenu && (
-        <View style={styles.menuContainer}>
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={() => {
-              setShowMenu(false);
-              setShowNameModal(true);
-              setNewKittyName(kittyName);
-            }}
-          >
-            <Edit size={18} color={Colors.text} style={styles.menuIcon} />
-            <Text style={styles.menuText}>Change Kitty Name</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={() => {
-              setShowMenu(false);
-              handleLogout();
-            }}
-          >
-            <LogOut size={18} color={Colors.error} style={styles.menuIcon} />
-            <Text style={[styles.menuText, {color: Colors.error}]}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
+          <View style={styles.backdrop}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.menuContainer}>
+                <TouchableOpacity 
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowMenu(false);
+                    setShowNameModal(true);
+                    setNewKittyName(kittyName);
+                  }}
+                >
+                  <Edit size={18} color={Colors.text} style={styles.menuIcon} />
+                  <Text style={styles.menuText}>Change Kitty Name</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowMenu(false);
+                    handleLogout();
+                  }}
+                >
+                  <LogOut size={18} color={Colors.error} style={styles.menuIcon} />
+                  <Text style={[styles.menuText, {color: Colors.error}]}>Logout</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
       )}
       
       {/* Change Kitty Name Modal */}
@@ -506,5 +513,13 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9, // should be just under menuContainer’s 10
   },
 });

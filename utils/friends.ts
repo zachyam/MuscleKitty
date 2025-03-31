@@ -14,7 +14,7 @@ export interface FriendProfile {
   kitty_hash: string;  // Database uses snake_case
   user_id: string;     // Database uses snake_case
   kitty_name: string;  // Database uses snake_case
-  kitty_type: string;  // Database uses snake_case
+  kitty_breed: string;  // Database uses snake_case
   level: number;
   xp: number;
   full_name: string;
@@ -27,7 +27,7 @@ export interface FriendProfile {
   userId?: string;
   fullName: string;
   kittyName?: string;
-  kittyType?: string;
+  kittyBreed?: string;
   createdAt?: string;
   updatedAt?: string;
   status?: FriendshipStatus; // Alias for friendship_status for app use
@@ -38,7 +38,7 @@ export const registerKittyProfile = async (
   userId: string,
   fullName: string,
   kittyName: string,
-  kittyType: string,
+  kittyBreed: string,
   kittyHash: string
 ): Promise<boolean> => {
   try {
@@ -61,7 +61,7 @@ export const registerKittyProfile = async (
         .update({
           kitty_name: kittyName,
           full_name: fullName,
-          kitty_type: kittyType,
+          kitty_breed: kittyBreed,
           kitty_hash: kittyHash,
           updated_at: new Date().toISOString()
         })
@@ -76,7 +76,7 @@ export const registerKittyProfile = async (
           user_id: userId,
           kitty_name: kittyName,
           full_name: fullName,
-          kitty_type: kittyType,
+          kitty_breed: kittyBreed,
           kitty_hash: kittyHash,
           level,
           xp,
@@ -155,7 +155,7 @@ export const getFriendProfileByHash = async (kittyHash: string): Promise<FriendP
       data.kittyHash = data.kitty_hash;
       data.userId = data.user_id;
       data.kittyName = data.kitty_name;
-      data.kittyType = data.kitty_type;
+      data.kittyBreed = data.kitty_breed;
       data.createdAt = data.created_at;
       data.updatedAt = data.updated_at;
     }
@@ -415,7 +415,7 @@ export const getFriendProfiles = async (userId: string): Promise<FriendProfile[]
         profile.kittyName = profile.kitty_name;
         profile.fullName = profile.full_name;
         profile.name = profile.name;
-        profile.kittyType = profile.kitty_type;
+        profile.kittyBreed = profile.kitty_breed;
         profile.createdAt = profile.created_at;
         profile.updatedAt = profile.updated_at;
         // Set status to accepted for these profiles
@@ -478,7 +478,7 @@ export const getPendingFriendRequests = async (userId: string): Promise<FriendPr
         profile.userId = profile.user_id;
         profile.kittyName = profile.kitty_name;
         profile.fullName = profile.full_name;
-        profile.kittyType = profile.kitty_type;
+        profile.kittyBreed = profile.kitty_breed;
         profile.createdAt = profile.created_at;
         profile.updatedAt = profile.updated_at;
         // Set status to pending for these profiles

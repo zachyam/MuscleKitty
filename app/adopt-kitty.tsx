@@ -60,7 +60,7 @@ const KITTY_PROFILES = [
     breed: 'Maine Coon',
     image: require('@/assets/images/maine-coon.png'),
     personality: 'Smart, Active, Quirky 🦁',
-    favoriteExercise: 'Bicep Curls 💪♂️',
+    favoriteExercise: 'Bicep Curls 💪',
     favoriteFood: 'Duck 🦆',
   },
 ];
@@ -172,7 +172,7 @@ export default function AdoptKittyScreen() {
         {/* Title Card */}
         <View style={styles.titleCard}>
           <Text style={styles.titleText}>
-            Adopt your new fitness kitten!
+            Adopt your new kitten!
           </Text>
         </View>
       
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   titleText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333333',
     textAlign: 'center',
@@ -335,8 +335,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   kittyImage: {
-    width: '100%',
-    height: '100%',
+    width: '80%',
+    height: '80%',
   },
   carouselButton: {
     width: 40,
@@ -398,14 +398,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   profileLabel: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#666666',
     fontWeight: '500',
   },
   profileValue: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#333333',
-    fontWeight: '600',
+    fontWeight: '500',
     maxWidth: '60%',
     textAlign: 'right',
   },
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   },
   adoptButtonText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   profileImage: {

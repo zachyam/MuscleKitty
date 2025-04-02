@@ -15,6 +15,8 @@ import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
 import { TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
+import AdoptKittyScreenComponents from '@/components/AdoptKittyScreenComponents';
 
 // Kitty name storage key - must match the one in name-kitty.tsx
 const KITTY_NAME_KEY = 'muscle_kitty_name';
@@ -27,11 +29,14 @@ export default function ProfileScreen() {
   const [showMenu, setShowMenu] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [newKittyName, setNewKittyName] = useState('');
+  const [changeKittyBreed, setChangeKittyBreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workoutStats, setWorkoutStats] = useState({
     thisMonth: 0,
     total: 0,
   });
+  const [selectedKittyIndex, setSelectedKittyIndex] = useState(0);
+
   
   // Load kitty name directly from AsyncStorage
   useEffect(() => {
@@ -95,7 +100,8 @@ export default function ProfileScreen() {
   // Get streak and kitty health from utility functions
   const streak = calculateStreak(workoutLogs);
   const kittyHealth = calculateKittyHealth(workoutLogs);
-  
+  const selectedKitty = KITTY_PROFILES[selectedKittyIndex];
+
   const stats = [
     { label: 'Workouts', value: workoutStats.total.toString(), icon: <Dumbbell size={20} color={Colors.primary} /> },
     { label: 'Streak', value: `${streak} day${streak !== 1 ? 's' : ''}`, icon: <Calendar size={20} color={Colors.primary} /> },
@@ -191,133 +197,154 @@ export default function ProfileScreen() {
     }
   };
 
+  // Handle change kitty breed
+  const handleChangeKittyBreed = async () => {
+    console.log('User is adopting kitty:', selectedKitty.breed);
+    setChangeKittyBreed(false);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <Header 
-        title="Profile"
-        rightIcon={<Settings size={24} color={Colors.text} />}
-        onRightPress={() => setShowMenu(!showMenu)}
-      />
-      
-      {/* Settings Menu */}
-      {showMenu && (
-        <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
-          <View style={styles.backdrop}>
-            <TouchableWithoutFeedback onPress={() => {}}>
-              <View style={styles.menuContainer}>
-                <TouchableOpacity 
-                  style={styles.menuItem}
-                  onPress={() => {
-                    setShowMenu(false);
-                    setShowNameModal(true);
-                    setNewKittyName(kittyName);
-                  }}
-                >
-                  <Edit size={18} color={Colors.text} style={styles.menuIcon} />
-                  <Text style={styles.menuText}>Change Kitty Name</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={styles.menuItem}
-                  onPress={() => {
-                    setShowMenu(false);
-                    handleLogout();
-                  }}
-                >
-                  <LogOut size={18} color={Colors.error} style={styles.menuIcon} />
-                  <Text style={[styles.menuText, {color: Colors.error}]}>Logout</Text>
-                </TouchableOpacity>
+      {changeKittyBreed ? (
+        <View style={styles.content}>
+            <AdoptKittyScreenComponents
+            selectedKittyIndex={selectedKittyIndex}
+            setSelectedKittyIndex={setSelectedKittyIndex}
+          />
+
+          <TouchableOpacity style={styles.adoptButton} onPress={handleChangeKittyBreed}>
+            <Text style={styles.adoptButtonText}>Adopt</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <Header 
+            title="Profile"
+            rightIcon={<Settings size={24} color={Colors.text} />}
+            onRightPress={() => setShowMenu(!showMenu)}
+          />
+  
+          {/* Settings Menu */}
+          {showMenu && (
+            <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
+              <View style={styles.backdrop}>
+                <TouchableWithoutFeedback onPress={() => {}}>
+                  <View style={styles.menuContainer}>
+                    <TouchableOpacity 
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setShowMenu(false);
+                        setChangeKittyBreed(true);
+                      }}
+                    >
+                      <Edit size={18} color={Colors.text} style={styles.menuIcon} />
+                      <Text style={styles.menuText}>Change Kitty Avatar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setShowMenu(false);
+                        setShowNameModal(true);
+                        setNewKittyName(kittyName);
+                      }}
+                    >
+                      <Edit size={18} color={Colors.text} style={styles.menuIcon} />
+                      <Text style={styles.menuText}>Change Kitty Name</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setShowMenu(false);
+                        handleLogout();
+                      }}
+                    >
+                      <LogOut size={18} color={Colors.error} style={styles.menuIcon} />
+                      <Text style={[styles.menuText, {color: Colors.error}]}>Logout</Text>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
             </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
+          )}
+  
+          {/* Change Kitty Name Modal */}
+          <Modal
+            visible={showNameModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowNameModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Change Kitty Name</Text>
+                  <TouchableOpacity onPress={() => setShowNameModal(false)}>
+                    <X size={20} color={Colors.text} />
+                  </TouchableOpacity>
+                </View>
+                <TextInput
+                  style={styles.nameInput}
+                  placeholder="Enter new name"
+                  placeholderTextColor="#999"
+                  value={newKittyName}
+                  onChangeText={setNewKittyName}
+                  maxLength={20}
+                  autoFocus
+                />
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity 
+                    style={styles.cancelButton}
+                    onPress={() => setShowNameModal(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[
+                      styles.saveButton,
+                      (!newKittyName.trim() || isSubmitting) && styles.disabledButton
+                    ]}
+                    onPress={handleSaveKittyName}
+                    disabled={!newKittyName.trim() || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator color="#FFF" size="small" />
+                    ) : (
+                      <Text style={styles.saveButtonText}>Save</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+  
+
+          <View style={styles.profileHeader}>
+              <Image 
+                source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
+                style={styles.profileImage}
+              />
+              <Text style={styles.profileName}>{kittyName || ''}</Text>
+              <Text style={styles.profileBio}>{user?.fullName || ''}</Text>
+            </View>
+            <View style={styles.statsContainer}>
+              {stats.map((stat, index) => (
+                <View key={index} style={styles.statItem}>
+                  {stat.icon}
+                  <Text style={styles.statValue}>{stat.value}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.section}>
+              <View style={styles.activityGraphContainer}>
+                <ActivityGraph workoutLogs={workoutLogs} months={3} />
+              </View>
+            </View>
+  
+          {/* <SafeAreaView style={styles.bottomSafeArea} edges={['bottom']} /> */}
+        </>
       )}
-      
-      {/* Change Kitty Name Modal */}
-      <Modal
-        visible={showNameModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowNameModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Change Kitty Name</Text>
-              <TouchableOpacity onPress={() => setShowNameModal(false)}>
-                <X size={20} color={Colors.text} />
-              </TouchableOpacity>
-            </View>
-            
-            <TextInput
-              style={styles.nameInput}
-              placeholder="Enter new name"
-              placeholderTextColor="#999"
-              value={newKittyName}
-              onChangeText={setNewKittyName}
-              maxLength={20}
-              autoFocus
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={() => setShowNameModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[
-                  styles.saveButton,
-                  (!newKittyName.trim() || isSubmitting) && styles.disabledButton
-                ]}
-                onPress={handleSaveKittyName}
-                disabled={!newKittyName.trim() || isSubmitting}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <Text style={styles.saveButtonText}>Save</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileHeader}>
-          <Image 
-            source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
-            style={styles.profileImage}
-          />
-          <Text style={styles.profileName}>{kittyName || ''}</Text>
-          <Text style={styles.profileBio}>{user?.fullName || ''}</Text>
-        </View>
-        
-        <View style={styles.statsContainer}>
-          {stats.map((stat, index) => (
-            <View key={index} style={styles.statItem}>
-              {stat.icon}
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
-          ))}
-        </View>
-        
-        <View style={styles.section}>
-          <View style={styles.activityGraphContainer}>
-            <ActivityGraph 
-              workoutLogs={workoutLogs} 
-              months={3}
-            />
-          </View>
-        </View>
-        
-        {/* Removed logout button that was here previously as it's now in the dropdown menu */}
-      </ScrollView>
-      <SafeAreaView style={styles.bottomSafeArea} edges={['bottom']} />
     </SafeAreaView>
   );
 }
@@ -332,11 +359,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    alignItems: 'center'
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom:30,
+    marginBottom:30
   },
   profileImage: {
     width: 110,
@@ -364,7 +391,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 28,
+    padding: 20
   },
   statItem: {
     flex: 1,
@@ -393,9 +420,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   section: {
-    marginBottom: 16,
-    marginTop: 12,
+    marginTop: 0,
     width: '100%',
+    padding: 20
   },
   activityGraphContainer: {
     backgroundColor: '#FFF4D6',
@@ -521,5 +548,24 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 9, // should be just under menuContainer’s 10
+  },
+  adoptButton: {
+    backgroundColor: Colors.primary,
+    width: '85%',
+    height: 60,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+    marginBottom: 0,
+  },
+  adoptButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

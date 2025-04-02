@@ -1,78 +1,27 @@
  import React, { useState, useRef, useEffect } from 'react';
 import { 
-  View, 
   Text, 
   StyleSheet, 
-  Image, 
   SafeAreaView, 
   TouchableOpacity,
-  FlatList,
   Dimensions,
-  Platform,
   Animated,
-  Easing
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useUser } from '@/utils/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
+import { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
+import AdoptKittyScreenComponents from '@/components/AdoptKittyScreenComponents';
 
 const { width } = Dimensions.get('window');
 
-// Predefined kitty profiles
-const KITTY_PROFILES = [
-  {
-    id: '1',
-    breed: 'Munchkin',
-    image: require('@/assets/images/munchkin.png'), // Used for display in this screen
-    personality: 'Playful, Outgoing, Sociable 🤠',
-    favoriteExercise: 'Push-ups 🏋️',
-    favoriteFood: 'Tuna 🍣',
-  },
-  {
-    id: '2',
-    breed: 'Orange Tabby',
-    image: require('@/assets/images/orange-tabby.png'),
-    personality: 'Friendly, Affectionate, Intelligent 🧘',
-    favoriteExercise: 'Yoga 🧘‍♀️',
-    favoriteFood: 'Salmon 🐟',
-  },
-  {
-    id: '3',
-    breed: 'Russian Blue',
-    image: require('@/assets/images/russian-blue.png'),
-    personality: 'Sweet, Loyal, Sensitive 🦁',
-    favoriteExercise: 'Squats 🏋️‍♂️',
-    favoriteFood: 'Chicken 🍗',
-  },
-  {
-    id: '4',
-    breed: 'Calico',
-    image: require('@/assets/images/calico.png'),
-    personality: 'Thoughtful, Curious, Playful 🤓',
-    favoriteExercise: 'Running 🏃‍♀️',
-    favoriteFood: 'Beef 🌮',
-  },
-  {
-    id: '5',
-    breed: 'Maine Coon',
-    image: require('@/assets/images/maine-coon.png'),
-    personality: 'Smart, Active, Quirky 🦁',
-    favoriteExercise: 'Bicep Curls 💪',
-    favoriteFood: 'Duck 🦆',
-  },
-];
-
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
-const AVATAR_DIRECTORY = `${FileSystem.documentDirectory}avatars/`;
 
 type KittyProfile = typeof KITTY_PROFILES[0];
 
 export default function AdoptKittyScreen() {
   const [selectedKittyIndex, setSelectedKittyIndex] = useState(0);
-  const flatListRef = useRef<FlatList<KittyProfile>>(null);
   const router = useRouter();
   const { completeOnboarding, isFirstLogin, user, setUser } = useUser();
   const fadeAnim = useRef(new Animated.Value(0)).current; // Start with opacity 0
@@ -91,24 +40,6 @@ export default function AdoptKittyScreen() {
   }, []);
   
   const selectedKitty = KITTY_PROFILES[selectedKittyIndex];
-  
-  // Handle scrolling to next kitty
-  const handleNextKitty = () => {
-    if (selectedKittyIndex < KITTY_PROFILES.length - 1) {
-      const newIndex = selectedKittyIndex + 1;
-      setSelectedKittyIndex(newIndex);
-      flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
-    }
-  };
-  
-  // Handle scrolling to previous kitty
-  const handlePrevKitty = () => {
-    if (selectedKittyIndex > 0) {
-      const newIndex = selectedKittyIndex - 1;
-      setSelectedKittyIndex(newIndex);
-      flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
-    }
-  };
   
   // Handle adopting the selected kitty
   const handleAdopt = async () => {
@@ -147,119 +78,14 @@ export default function AdoptKittyScreen() {
     }
   };
   
-  // Handle scroll events to update selected kitty
-  const handleMomentumScrollEnd = (event: { nativeEvent: { contentOffset: { x: number } } }) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(contentOffsetX / width);
-    setSelectedKittyIndex(newIndex);
-  };
-
-  // Render kitty item
-  const renderKittyItem = ({ item, index }: { item: KittyProfile, index: number }) => {
-    return (
-      <View style={styles.kittySlide}>
-        <View style={styles.kittyImageContainer}>
-          <Image source={item.image} style={styles.kittyImage} resizeMode="contain" />
-        </View>
-      </View>
-    );
-  };
 
   return (
     <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
       <SafeAreaView style={styles.container}>
         
-        {/* Title Card */}
-        <View style={styles.titleCard}>
-          <Text style={styles.titleText}>
-            Adopt your new kitten!
-          </Text>
-        </View>
-      
-      {/* Kitty Selection Carousel */}
-      <View style={styles.carouselContainer}>
-        <TouchableOpacity 
-          style={[
-            styles.carouselButton, 
-            styles.leftButton,
-            selectedKittyIndex === 0 && styles.disabledButton
-          ]} 
-          onPress={handlePrevKitty}
-          disabled={selectedKittyIndex === 0}
-        >
-          <ChevronLeft size={36} color={"#4CAF50"} />
-        </TouchableOpacity>
-        
-        <FlatList
-          ref={flatListRef}
-          data={KITTY_PROFILES}
-          renderItem={renderKittyItem}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          snapToInterval={width}
-          snapToAlignment="center"
-          decelerationRate="fast"
-          bounces={false}
-          contentContainerStyle={styles.carouselList}
-        />
-        
-        <TouchableOpacity 
-          style={[
-            styles.carouselButton, 
-            styles.rightButton,
-            selectedKittyIndex === KITTY_PROFILES.length - 1 && styles.disabledButton
-          ]} 
-          onPress={handleNextKitty}
-          disabled={selectedKittyIndex === KITTY_PROFILES.length - 1}
-        >
-          <ChevronRight size={36} color={"#4CAF50"} />
-        </TouchableOpacity>
-      </View>
-      
-      {/* Pagination Indicators */}
-      <View style={styles.pagination}>
-        {KITTY_PROFILES.map((_, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.paginationDot, 
-              index === selectedKittyIndex && styles.activeDot
-            ]} 
-          />
-        ))}
-      </View>
-      
-      {/* Kitty Profile Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.profileRow}>
-          <Text style={styles.profileLabel}>Breed</Text>
-          <Text style={styles.profileValue}>{selectedKitty.breed}</Text>
-        </View>
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.profileRow}>
-          <Text style={styles.profileLabel}>Personality</Text>
-          <Text style={styles.profileValue}>{selectedKitty.personality}</Text>
-        </View>
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.profileRow}>
-          <Text style={styles.profileLabel}>Favorite Exercise</Text>
-          <Text style={styles.profileValue}>{selectedKitty.favoriteExercise}</Text>
-        </View>
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.profileRow}>
-          <Text style={styles.profileLabel}>Favorite Food</Text>
-          <Text style={styles.profileValue}>{selectedKitty.favoriteFood}</Text>
-        </View>
-      </View>
+      <AdoptKittyScreenComponents
+        selectedKittyIndex={selectedKittyIndex}
+        setSelectedKittyIndex={setSelectedKittyIndex}/>
       
       {/* Adopt Button */}
         <TouchableOpacity style={styles.adoptButton} onPress={handleAdopt}>

@@ -33,7 +33,7 @@ interface Friend {
   xp: number;
   rank?: number;
   kittyHash: string;
-  kittyType: string;
+  kittyBreed: string;
   status?: FriendshipStatus;
   userId?: string;  // The DB user_id, needed for friend request operations
 }
@@ -128,11 +128,11 @@ export default function FriendsScreen() {
         id: profile.id,
         fullName: profile.fullName || "Unknown Kitty",
         kittyName: profile.kittyName || "Unknown Kitty",
-        avatar: profile.kittyType ? KITTY_IMAGES[profile.kittyType] : KITTY_IMAGES.Unknown,
+        avatar: profile.kittyBreed ? KITTY_IMAGES[profile.kittyBreed] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
         xp: profile.xp || 0,
         kittyHash: profile.kittyHash || "",
-        kittyType: profile.kittyType || "Unknown",
+        kittyBreed: profile.kittyBreed || "Unknown",
         status: FriendshipStatus.PENDING,
         userId: profile.userId  // Make sure to include the userId for friend request handling
       }));
@@ -163,11 +163,11 @@ export default function FriendsScreen() {
         id: profile.id,
         kittyName: profile.kittyName || "Unknown Kitty",
         fullName: profile.fullName || "Unknown Kitty",
-        avatar: profile.kittyType ? KITTY_IMAGES[profile.kittyType] : KITTY_IMAGES.Unknown,
+        avatar: profile.kittyBreed ? KITTY_IMAGES[profile.kittyBreed] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
         xp: profile.xp || 0,
         kittyHash: profile.kittyHash || "",
-        kittyType: profile.kittyType || "Unknown",
+        kittyBreed: profile.kittyBreed || "Unknown",
         userId: profile.userId  // Include userId for API operations
       }));
 
@@ -180,7 +180,7 @@ export default function FriendsScreen() {
         level: user.level || 1,
         xp: user.xp || 0,
         kittyHash: uniqueKittyHash,
-        kittyType: user.kittyType || "Unknown"
+        kittyBreed: user.kittyBreed || "Unknown"
       }];
       
       // Sort and assign ranks
@@ -432,7 +432,7 @@ export default function FriendsScreen() {
           level: user.level || 1, 
           xp: user.xp || 0,
           kittyHash: uniqueKittyHash,
-          kittyType: user.kittyType || "Unknown"
+          kittyBreed: user.kittyBreed || "Unknown"
         }
       ];
       const sorted = sortFriendsAndAssignRanks(allParticipants);

@@ -11,6 +11,8 @@ import Header from '@/components/Header';
 import { UserContext, useUser } from '@/utils/UserContext';
 import ExerciseWeightChart from '@/components/ExerciseWeightChart';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import CoinPopup from '@/components/CoinPopup';
+import FancyAlert from '@/components/FancyAlert';
 
 export default function StartWorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,8 +26,10 @@ export default function StartWorkoutScreen() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showCoinPopup, setShowCoinPopup] = useState(false);
   const confettiAnimation = useRef<LottieView>(null);
   const [coinsEarned, setCoinsEarned] = useState(5);
+  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -153,7 +157,8 @@ export default function StartWorkoutScreen() {
     );
     
     if (completedExercises.length === 0) {
-      Alert.alert('Cannot Save', 'Please complete at least one exercise set before finishing.');
+      setShowAlert(true);
+      console.log(showAlert)
       return;
     }
     
@@ -177,6 +182,7 @@ export default function StartWorkoutScreen() {
     
     // Show confetti celebration
     setShowConfetti(true);
+    setShowCoinPopup(true);
     // if (confettiAnimation.current) {
     //   confettiAnimation.current.play();
     // }
@@ -211,6 +217,9 @@ export default function StartWorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
+      {showAlert && (
+        <FancyAlert type={'error'} message="Cannot Save! Please complete at least one exercise set before finishing" onClose={() => setShowAlert(false)} />
+      )}
       <Header 
         title={workout.name} 
         showBackButton 
@@ -355,7 +364,7 @@ export default function StartWorkoutScreen() {
           onPress={handlePreviousExercise}
           disabled={currentExerciseIndex === 0}
         >
-          <Text style={styles.navButtonText}>Previous</Text>
+          <Text style={styles.previousNavButtonText}>Previous</Text>
         </TouchableOpacity>
         
         {currentExerciseIndex < workout.exercises.length - 1 ? (
@@ -384,6 +393,14 @@ export default function StartWorkoutScreen() {
         explosionSpeed={300}
         fallSpeed={2000}
         onAnimationEnd={() => setShowConfetti(false)}
+        />
+      )}
+
+      {/* Coin Popup Celebration Modal */}
+      {showCoinPopup && (
+        <CoinPopup
+          coinsEarned={coinsEarned}
+          onComplete={() => setShowCoinPopup(false)}
         />
       )}
     </SafeAreaView>
@@ -545,6 +562,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  previousNavButtonText: {
+    fontWeight: '600',
+    fontSize: 16,
+    color: '#6B4C3B',
+    opacity: 0.5
+  },
   navButtonText: {
     fontWeight: '600',
     fontSize: 16,
@@ -557,7 +580,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#A3C9A8',
   },
   finishButtonText: {
-    color: '#fff',
+    color: 'black',
   },
   previousWorkoutContainer: {
     marginTop: 24,

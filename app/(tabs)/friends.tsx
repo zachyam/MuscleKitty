@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, TextInput, Modal, StatusBar, Platform, ActivityIndicator, Share } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Alert, Platform, ActivityIndicator, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { Settings, Award, Users, Crown, Medal, UserPlus, Bell, Check, X } from 'lucide-react-native';
+import { Users, Crown, UserPlus, Bell, Check, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { useState, useEffect, useContext } from 'react';
@@ -22,6 +21,7 @@ import {
   FriendshipStatus 
 } from '@/utils/friends';
 import * as KittyStats from '@/utils/kittyStats';
+import FancyAlert from '@/components/FancyAlert';
 
 // Define the Friend type that includes what we get from the server
 interface Friend {
@@ -67,7 +67,10 @@ export default function FriendsScreen() {
   const [isProcessingRequest, setIsProcessingRequest] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [hasPendingRequests, setHasPendingRequests] = useState<boolean>(false);
-  
+  const [showAlert, setShowAlert] = useState(false);
+  const [showAlertMessage, setShowAlertMessage] = useState("")
+  const [alertType, setAlertType] = useState('error')
+
   // Load user data and friends on component mount
   useEffect(() => {
     const loadUserAndFriends = async () => {
@@ -214,10 +217,13 @@ export default function FriendsScreen() {
   const copyIdToClipboard = async () => {
     try {
       await Clipboard.setString(uniqueKittyHash);
-      Alert.alert("Copied!", "Your unique kitty ID has been copied to clipboard.");
+      setShowAlert(true);
+      setShowAlertMessage("Copied! Your unique kitty ID has been copied to clipboard.");
+      setAlertType("success");
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      Alert.alert("Error", "Failed to copy to clipboard.");
+      setShowAlert(true);
+      setShowAlertMessage("Error! Failed to copy to clipboard.");
+      setAlertType("error");
     }
   };
   
@@ -243,26 +249,34 @@ export default function FriendsScreen() {
       }
     } catch (error) {
       console.error('Error sharing ID:', error);
-      Alert.alert("Error", "Failed to share your ID. Please try copying it instead.");
+      setShowAlert(true);
+      setShowAlertMessage("Error! Failed to share your ID. Please try copying it instead.");
+      setAlertType("error");
     }
   };
 
   // Function to add a new friend (sends a friend request)
   const handleAddFriend = async () => {
     if (!newFriendId.trim() || !user?.id) {
-      Alert.alert("Error", "Please enter a friend ID");
+      setShowAlert(true);
+      setShowAlertMessage("Error! Please enter a friend ID.");
+      setAlertType("error");
       return;
     }
 
     // Check if trying to add self
     if (newFriendId.trim() === uniqueKittyHash) {
-      Alert.alert("Can't add yourself", "You can't add yourself as a friend!");
+      setShowAlert(true);
+      setShowAlertMessage("Error! You can't add yourself as a friend.");
+      setAlertType("error");
       return;
     }
 
     // Check if friend already exists
     if (friends.some((friend) => friend.kittyHash === newFriendId.trim())) {
-      Alert.alert("Already friends", "This kitty is already in your friends list!");
+      setShowAlert(true);
+      setShowAlertMessage("This kitty is already in your friends list!");
+      setAlertType("error");
       return;
     }
 
@@ -273,7 +287,9 @@ export default function FriendsScreen() {
       const friendProfile = await getFriendProfileByHash(newFriendId.trim());
       
       if (!friendProfile) {
-        Alert.alert("Friend Not Found", "Could not find a kitty with that ID. Please check and try again.");
+        setShowAlert(true);
+        setShowAlertMessage("Error! Could not find a kitty with that ID. Please check and try again!");
+        setAlertType("error");
         setIsAddingFriend(false);
         return;
       }
@@ -286,10 +302,13 @@ export default function FriendsScreen() {
       }
       
       setNewFriendId("");
-      Alert.alert("Request sent!", `Friend request sent to ${friendProfile.kittyName}!`);
+      setShowAlert(true);
+      setShowAlertMessage(`Friend request sent to ${friendProfile.kittyName}!`);
+      setAlertType("success");
     } catch (error) {
-      console.error('Error adding friend:', error);
-      Alert.alert("Error", "Failed to send friend request. Please try again later.");
+      setShowAlert(true);
+      setShowAlertMessage("Error! Failed to send friend request. Please try again later");
+      setAlertType("error");
     } finally {
       setIsAddingFriend(false);
     }
@@ -302,7 +321,8 @@ export default function FriendsScreen() {
     // We need the userId of the requester, not the profile id
     if (!friend.userId) {
       console.error('Missing userId in friend request');
-      Alert.alert('Error', 'Could not process this friend request. Missing user information.');
+      setShowAlert(true);
+      setShowAlertMessage("Error! Could not process this friend request. Missing user information");
       return;
     }
     
@@ -331,10 +351,14 @@ export default function FriendsScreen() {
       // Update pending requests flag
       setHasPendingRequests(pendingRequests.length > 1);
       
-      Alert.alert('Success', `You are now friends with ${friend.kittyName}!`);
+      setShowAlert(true);
+      setShowAlertMessage(`Success! You are now friends with ${friend.kittyName}!`);
+      setAlertType("success");
     } catch (error) {
       console.error('Error accepting friend request:', error);
-      Alert.alert('Error', 'Failed to accept friend request. Please try again.');
+      setShowAlert(true);
+      setShowAlertMessage('Error! Failed to accept friend request. Please try again.');
+      setAlertType("error");
     } finally {
       setIsProcessingRequest(false);
     }
@@ -347,7 +371,9 @@ export default function FriendsScreen() {
     // We need the userId of the requester, not the profile id
     if (!friend.userId) {
       console.error('Missing userId in friend request');
-      Alert.alert('Error', 'Could not process this friend request. Missing user information.');
+      setShowAlert(true);
+      setShowAlertMessage('Error! Could not process this friend request. Missing user information.');
+      setAlertType("error");
       return;
     }
     
@@ -366,10 +392,14 @@ export default function FriendsScreen() {
       // Update pending requests flag
       setHasPendingRequests(pendingRequests.length > 1);
       
-      Alert.alert('Rejected', `Friend request from ${friend.kittyName} has been rejected.`);
+      setShowAlert(true);
+      setShowAlertMessage(`Friend request from ${friend.kittyName} has been rejected.`);
+      setAlertType("error");
     } catch (error) {
       console.error('Error rejecting friend request:', error);
-      Alert.alert('Error', 'Failed to reject friend request. Please try again.');
+      setShowAlert(true);
+      setShowAlertMessage('Error! Failed to reject friend request. Please try again');
+      setAlertType("error");
     } finally {
       setIsProcessingRequest(false);
     }
@@ -382,7 +412,9 @@ export default function FriendsScreen() {
     // We need the kittyHash to remove the friend
     if (!friend.kittyHash) {
       console.error('Missing kittyHash for friend');
-      Alert.alert('Error', 'Could not remove this friend. Missing information.');
+      setShowAlert(true);
+      setShowAlertMessage('Error! Could not remove this friend. Missing information');
+      setAlertType("error");
       return;
     }
     
@@ -399,10 +431,14 @@ export default function FriendsScreen() {
       // Re-sort the leaderboard after removing a friend
       await loadFriends();
       
-      Alert.alert('Friend Removed', `You are no longer friends with ${friend.kittyName}.`);
+      setShowAlert(true);
+      setShowAlertMessage(`Friend Removed! You are no longer friends with ${friend.kittyName}.`);
+      setAlertType("success");
     } catch (error) {
       console.error('Error removing friend:', error);
-      Alert.alert('Error', 'Failed to remove friend. Please try again.');
+      setShowAlert(true);
+      setShowAlertMessage('Error! Failed to remove friend. Please try again');
+      setAlertType("error");
     }
   };
 
@@ -446,6 +482,9 @@ export default function FriendsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Leaderboard" />
+      {showAlert && (
+        <FancyAlert type={alertType} message={showAlertMessage} onClose={() => setShowAlert(false)} />
+      )}
       <View 
         style={styles.content}
       >

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -6,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { getWorkoutById, saveWorkout, deleteWorkout } from '@/utils/storage';
 import { Workout, Exercise } from '@/types';
-import React from 'react';
+import FancyAlert from '@/components/FancyAlert';
 
 export default function EditWorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,6 +15,8 @@ export default function EditWorkoutScreen() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [newExerciseName, setNewExerciseName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -78,12 +81,14 @@ export default function EditWorkoutScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter a workout name');
+      setShowAlert(true);
+      setAlertMessage('Please enter a workout name');
       return;
     }
     
     if (exercises.length === 0) {
-      Alert.alert('Error', 'Please add at least one exercise');
+      setShowAlert(true);
+      setAlertMessage('Please add at least one exercise');
       return;
     }
     
@@ -119,6 +124,7 @@ export default function EditWorkoutScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        {showAlert && <FancyAlert type="error" message={alertMessage} onClose={() => setShowAlert(false)} />}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color={Colors.text} />

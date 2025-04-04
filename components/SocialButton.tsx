@@ -1,7 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { Feather, AntDesign } from '@expo/vector-icons';
-import Colors from '@/constants/Colors';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 
 type SocialButtonProps = {
   provider: 'google' | 'facebook';

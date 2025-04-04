@@ -7,8 +7,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { getWorkouts, deleteWorkout, getWorkoutLogs } from '@/utils/storage';
 import { Workout, WorkoutLog } from '@/types';
-import Header from '@/components/Header';
-import WorkoutCard from '@/components/WorkoutCard';
 import WorkoutLogCard from '@/components/WorkoutLogCard';
 import { UserContext } from '@/utils/UserContext';
 import { calculateStreak, calculateKittyHealth, KittyHealth } from '@/utils/loadStats';

@@ -17,6 +17,7 @@ import { supabase } from '@/utils/supabase';
 import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
 import AdoptKittyScreenComponents from '@/components/AdoptKittyScreenComponents';
+import FancyAlert from '@/components/FancyAlert';
 
 // Kitty name storage key - must match the one in name-kitty.tsx
 const KITTY_NAME_KEY = 'muscle_kitty_name';
@@ -36,6 +37,8 @@ export default function ProfileScreen() {
     total: 0,
   });
   const [selectedKittyIndex, setSelectedKittyIndex] = useState(0);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   
   // Load kitty name directly from AsyncStorage
@@ -188,11 +191,8 @@ export default function ProfileScreen() {
       setIsSubmitting(false);
     } catch (error) {
       console.error('Error saving new kitty name:', error);
-      Alert.alert(
-        "Error",
-        "There was a problem updating your kitty's name. Please try again.",
-        [{ text: "OK" }]
-      );
+      setShowAlert(true);
+      setAlertMessage("There was a problem updating your kitty's name. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -205,6 +205,12 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {showAlert && (
+        <FancyAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       {changeKittyBreed ? (
         <View style={styles.content}>
             <AdoptKittyScreenComponents

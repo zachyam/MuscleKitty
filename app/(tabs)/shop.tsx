@@ -18,6 +18,9 @@ import * as KittyStats from '@/utils/kittyStats';
 import LottieView from 'lottie-react-native';
 import { Dimensions } from 'react-native';
 import CoinIcon from '@/components/CoinIcon';
+import FancyAlert from '@/components/FancyAlert';
+import ConfettiCannon from 'react-native-confetti-cannon';
+import XpPopup from '@/components/XpPopup';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -42,7 +45,11 @@ export default function ShopScreen() {
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'food' | 'toy'>('food');
-  
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+  const [showXpPopup, setShowXpPopup] = useState(false);
+
   // Update local state when user data changes
   // useEffect(() => {
   //   if (user) {
@@ -252,23 +259,21 @@ export default function ShopScreen() {
       setTotalXP(prevXP => prevXP + selectedItem.xpReward);
       setTotalCoins(prevCoins => prevCoins - selectedItem.price);
       
-      // Show confetti
+      // Show confetti and XP popup
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 2000);
+      setShowXpPopup(true);
       
       // Here you would save the purchase to user's inventory
       
       setIsModalVisible(false);
-      Alert.alert(
-        'Purchase Successful!',
-        `You've purchased ${selectedItem.name} for your kitty! +${selectedItem.xpReward} XP gained!`,
-      );
+      // setShowAlert(true);
+      // setAlertType('success');
+      // setAlertMessage(`Purchase Successful! You've purchased ${selectedItem.name} for your kitty! +${selectedItem.xpReward} XP gained!`);
     } else {
       setIsModalVisible(false);
-      Alert.alert(
-        'Insufficient Coins',
-        'You don\'t have enough coins to purchase this item.',
-      );
+      setShowAlert(true);
+      setAlertType('error');
+      setAlertMessage("Insufficient Coins You don't have enough coins to purchase this item!");
     }
   };
   
@@ -300,16 +305,33 @@ export default function ShopScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Shop" />
-      
-      {showConfetti && (
-        <View style={styles.confettiContainer}>
-          <LottieView
-            source={require('@/assets/animations/confetti.json')}
-            autoPlay
-            loop={false}
-            style={styles.confetti}
+      {showAlert && (
+        <FancyAlert
+          message={alertMessage}
+          type={alertType}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
+      <View style={styles.overlaysContainer}>
+        {/* Confetti Celebration Modal */}
+        {showConfetti && (
+          <ConfettiCannon
+            count={100}
+            origin={{ x: Dimensions.get('window').width / 2, y: 0 }}
+            fadeOut
+            explosionSpeed={300}
+            fallSpeed={2000}
+            onAnimationEnd={() => setShowConfetti(false)}
           />
-        </View>
+        )}
+      </View>
+      
+      {/* XP Popup Celebration Modal */}
+      {showXpPopup && (
+        <XpPopup
+          xpEarned={selectedItem?.xpReward || 0}
+          onComplete={() => setShowXpPopup(false)}
+        />
       )}
       
       <View style={styles.content}>
@@ -714,4 +736,13 @@ const styles = StyleSheet.create({
   modalCoinIcon: {
     fontSize: 16,
   },
+  overlaysContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    pointerEvents: 'none',
+  }
 });

@@ -27,7 +27,6 @@ export default function StartWorkoutScreen() {
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCoinPopup, setShowCoinPopup] = useState(false);
-  const confettiAnimation = useRef<LottieView>(null);
   const [coinsEarned, setCoinsEarned] = useState(5);
   const [showAlert, setShowAlert] = useState(false);
 

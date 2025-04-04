@@ -7,12 +7,16 @@ import Colors from '@/constants/Colors';
 import { getWorkoutLogById, saveWorkoutLog } from '@/utils/storage';
 import { WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
+import React from 'react';
+import FancyAlert from '@/components/FancyAlert';
 
 export default function EditWorkoutLogScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [log, setLog] = useState<WorkoutLog | null>(null);
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -85,7 +89,8 @@ export default function EditWorkoutLogScreen() {
     );
     
     if (completedExercises.length === 0) {
-      Alert.alert('Cannot Save', 'Please complete at least one exercise set before saving.');
+      setShowAlert(true);
+      setAlertMessage('Cannot Save! Please complete at least one exercise set before saving.');
       return;
     }
     
@@ -102,6 +107,7 @@ export default function EditWorkoutLogScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <Header title="Edit Workout Log" showBackButton />
+        {showAlert && <FancyAlert type="error" message={alertMessage} onClose={() => setShowAlert(false)} />}
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading workout log...</Text>
         </View>

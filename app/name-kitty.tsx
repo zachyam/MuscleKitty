@@ -23,6 +23,7 @@ import { useUser } from '@/utils/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
 import { registerKittyProfile } from '@/utils/friends';
+import FancyAlert from '@/components/FancyAlert';
 
 // Kitty images mapping for avatar selection
 const KITTY_IMAGES: Record<string, any> = {
@@ -53,8 +54,8 @@ export default function NameKittyScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
   const { user, completeOnboarding } = useUser();
-
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     const getSelectedKitty = async () => {
@@ -247,17 +248,20 @@ export default function NameKittyScreen() {
       }, 1500);
     } catch (error) {
       console.error('Error saving kitty name:', error);
-      Alert.alert(
-        "Error",
-        "There was a problem saving your kitty's name. Please try again.",
-        [{ text: "OK" }]
-      );
+      setShowAlert(true);
+      setAlertMessage("Error! There was a problem saving your kitty's name. Please try again.");
       setIsSubmitting(false);
     }
   };
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      {showAlert && (
+        <FancyAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === "ios" ? "padding" : "height"}

@@ -7,11 +7,14 @@ import Colors from '@/constants/Colors';
 import { saveWorkout } from '@/utils/storage';
 import { Workout, Exercise } from '@/types';
 import { UserContext } from '@/utils/UserContext';
+import FancyAlert from '@/components/FancyAlert';
 
 export default function CreateWorkoutScreen() {
   const [name, setName] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [newExerciseName, setNewExerciseName] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const { user } = useContext(UserContext);
 
   const handleAddExercise = () => {
@@ -59,12 +62,14 @@ export default function CreateWorkoutScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter a workout plan name');
+      setShowAlert(true);
+      setAlertMessage('Please enter a workout plan name');
       return;
     }
     
     if (exercises.length === 0) {
-      Alert.alert('Error', 'Please add at least one exercise');
+      setShowAlert(true);
+      setAlertMessage('Please add at least one exercise');
       return;
     }
     
@@ -82,6 +87,7 @@ export default function CreateWorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
+      {showAlert && <FancyAlert type="error" message={alertMessage} onClose={() => setShowAlert(false)} />}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color={Colors.text} />
@@ -296,8 +302,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     color: '#fff',
-  },
-  disabledButton: {
-    opacity: 0.6,
   },
 });

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getWorkoutLogById, deleteWorkoutLog } from '@/utils/storageAdapter';
@@ -14,11 +14,19 @@ export default function WorkoutLogScreen() {
   const [log, setLog] = useState<WorkoutLog | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      loadWorkoutLog(id);
-    }
-  }, [id]);
+  // Use useFocusEffect instead of useEffect to reload data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      console.log("WorkoutLogScreen focused, reloading data for ID:", id);
+      if (id) {
+        loadWorkoutLog(id);
+      }
+      return () => {
+        // This runs when the screen goes out of focus
+        console.log("WorkoutLogScreen unfocused");
+      };
+    }, [id])
+  );
 
   const loadWorkoutLog = async (logId: string) => {
     console.log(`WorkoutLogScreen: Loading workout log with ID: ${logId}`);

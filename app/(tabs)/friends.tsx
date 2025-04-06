@@ -873,7 +873,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 24,
+    marginTop: 12,
     flexWrap: 'wrap',
     gap: 12,
   },
@@ -916,6 +917,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     marginBottom: 24,
+    marginTop: 10,
   },
   emptyFriendsText: {
     fontSize: 16,
@@ -934,6 +936,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: '#E3CB9F',
+    marginTop: 20
   },
   sectionTitle: {
     fontSize: 16,

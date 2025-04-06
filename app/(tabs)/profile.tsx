@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback }from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Modal, TextInput, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Settings, Calendar, Dumbbell, LogOut, Edit, X } from 'lucide-react-native';
@@ -13,7 +13,7 @@ import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
-import { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
+import AdoptKittyScreenComponents, { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
 import FancyAlert from '@/components/FancyAlert';
 
 // Kitty name storage key - must match the one in name-kitty.tsx

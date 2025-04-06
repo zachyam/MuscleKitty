@@ -1,13 +1,23 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { UserContext } from '@/utils/UserContext';
+
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Plus, X, Trash2, Minus } from 'lucide-react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import Colors from '@/constants/Colors';
-import { getWorkoutById, saveWorkout, deleteWorkout } from '@/utils/storage';
+
+import { getWorkoutById, saveWorkout, deleteWorkout } from '@/utils/storageAdapter';
+
 import { Workout, Exercise } from '@/types';
+
 import FancyAlert from '@/components/FancyAlert';
+
+// Use timestamp-based ID generation instead of UUID which requires crypto
+const generateId = () => `exercise_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
 export default function EditWorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,6 +27,7 @@ export default function EditWorkoutScreen() {
   const [loading, setLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     if (id) {
@@ -42,7 +53,7 @@ export default function EditWorkoutScreen() {
     }
     
     const newExercise: Exercise = {
-      id: Date.now().toString(),
+      id: `temp_${Date.now()}`, // This ID is just temporary and will be replaced by Supabase
       name: newExerciseName.trim(),
       sets: 1
     };
@@ -92,11 +103,14 @@ export default function EditWorkoutScreen() {
       return;
     }
     
+    const existingWorkout = await getWorkoutById(id as string);
+    
     const updatedWorkout: Workout = {
       id: id as string,
       name: name.trim(),
       exercises,
-      createdAt: (await getWorkoutById(id as string))?.createdAt || new Date().toISOString(),
+      createdAt: existingWorkout?.createdAt || new Date().toISOString(),
+      userId: user?.id || existingWorkout?.userId || 'unknown',
     };
     
     await saveWorkout(updatedWorkout);

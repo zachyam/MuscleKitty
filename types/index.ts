@@ -1,15 +1,7 @@
-export type Exercise = {
-  id: string;
-  name: string;
-  sets?: number;
-};
-
-export type Workout = {
-  id: string;
-  name: string;
-  exercises: Exercise[];
-  createdAt: string;
-  userId: string;
+// Unified Database & UI Models
+export type SetData = {
+  reps: number;
+  weight: number;
 };
 
 export type SetLog = {
@@ -18,17 +10,35 @@ export type SetLog = {
   weight: number;
 };
 
-export type ExerciseLog = {
+// Exercise in a workout plan
+export type Exercise = {
+  id: string;
+  name: string;
+  sets?: number;
+};
+
+// Complete workout plan
+export type Workout = {
+  id: string;
+  name: string;
+  exercises: Exercise[];
+  createdAt: string; 
+  userId: string;
+};
+
+// Exercise completed during a workout
+export type ExerciseLogDisplay = {
   exerciseId: string;
   exerciseName: string;
   sets: SetLog[];
 };
 
+// Complete log of a finished workout
 export type WorkoutLog = {
-  id: string;
+  id?: string;  // Made optional to allow creating logs without an ID (Supabase will generate one)
   workoutId: string;
   workoutName: string;
-  exercises: ExerciseLog[];
+  exercises: ExerciseLogDisplay[];
   date: string;
   userId: string;
 };

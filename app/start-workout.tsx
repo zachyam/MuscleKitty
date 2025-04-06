@@ -5,7 +5,7 @@ import { ArrowLeft, Check, Plus, Minus, X } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
 import Colors from '@/constants/Colors';
-import { getWorkoutById, saveWorkoutLog, getLatestWorkoutLog, getExerciseHistory } from '@/utils/storage';
+import { getWorkoutById, saveWorkoutLog, getLatestWorkoutLog, getExerciseHistory } from '@/utils/storageAdapter';
 import { Workout, WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
 import { UserContext, useUser } from '@/utils/UserContext';
@@ -13,6 +13,8 @@ import ExerciseWeightChart from '@/components/ExerciseWeightChart';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import CoinPopup from '@/components/CoinPopup';
 import FancyAlert from '@/components/FancyAlert';
+// Don't generate custom IDs - let Supabase generate UUID
+// We'll rely on the server-generated ID from saveWorkoutLog instead
 
 export default function StartWorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -147,50 +149,80 @@ export default function StartWorkoutScreen() {
     setCoinsEarned(5)
     return 5;
   }
-  const handleFinishWorkout = async () => {
-    if (!workout) return;
-    
-    // Filter out exercises with no sets or all sets have 0 reps
-    const completedExercises = exerciseLogs.filter(exercise => 
-      exercise.sets.length > 0 && exercise.sets.some(set => set.reps > 0)
+  const handleFinishWorkout = () => {
+    // Check if there are any completed sets (with reps > 0)
+    const hasCompletedSets = exerciseLogs.some(log => 
+      log.sets.some(set => set.reps > 0)
     );
     
-    if (completedExercises.length === 0) {
+    if (!hasCompletedSets) {
       setShowAlert(true);
-      console.log(showAlert)
       return;
     }
-    
-    const workoutLog: WorkoutLog = {
-      id: Date.now().toString(),
-      workoutId: workout.id,
-      workoutName: workout.name,
-      exercises: completedExercises,
-      date: new Date().toISOString(),
-      userId: user?.id || 'unknown',
-    };
-    
-    await saveWorkoutLog(workoutLog);
-    
-    // Add coins to the user's account
-    try {
-      await addCoins(getCoinsPerWorkout());
-    } catch (error) {
-      console.error('Error adding coins:', error);
-    }
-    
-    // Show confetti celebration
-    setShowConfetti(true);
-    setShowCoinPopup(true);
-    // if (confettiAnimation.current) {
-    //   confettiAnimation.current.play();
-    // }
-    
-    // Navigate to Index tab after a delay to show the completed workout
-    setTimeout(() => {
-      //setShowConfetti(false);
-      router.replace('/(tabs)/');
-    }, 2000);
+
+    // Show a confirmation alert
+    Alert.alert(
+      'Finish Workout',
+      'Are you sure you want to finish this workout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Yes, Finish',
+          onPress: async () => {
+            try {
+              if (!workout || !user?.id) {
+                Alert.alert('Error', 'Missing workout or user information.');
+                return;
+              }
+              
+              // Create workout log object without an ID - let Supabase generate it
+              const workoutLog = {
+                workoutId: workout.id,
+                workoutName: workout.name,
+                exercises: exerciseLogs,
+                date: new Date().toISOString(),
+                userId: user.id
+              };
+              
+              console.log('Saving workout log:', JSON.stringify(workoutLog, null, 2));
+              
+              // Save the workout log and get the server-generated ID
+              const savedLogId = await saveWorkoutLog(workoutLog);
+              
+              if (savedLogId) {
+                console.log(`Using server-generated log ID: ${savedLogId}`);
+                // Add the ID to our local workoutLog object
+                (workoutLog as any).id = savedLogId;
+              } else {
+                console.warn('No server-generated log ID returned, this may cause issues viewing the log later');
+              }
+              
+              // Show celebration effects
+              setShowConfetti(true);
+              
+              // Add coins to user
+              const coinsToAdd = getCoinsPerWorkout();
+              await addCoins(coinsToAdd);
+              
+              // Show coin popup
+              setShowCoinPopup(true);
+              
+              // Navigate back after a short delay to allow animations
+              setTimeout(() => {
+                router.replace('/(tabs)/');
+              }, 2000);
+              
+            } catch (err) {
+              console.error('Error finishing workout:', err);
+              Alert.alert('Error', 'Could not save workout log. Please try again.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   if (loading || !workout) {

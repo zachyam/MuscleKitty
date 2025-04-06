@@ -1,13 +1,23 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
+
 import { ArrowLeft, Plus, X, Minus } from 'lucide-react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import Colors from '@/constants/Colors';
-import { saveWorkout } from '@/utils/storage';
+
+import { saveWorkout } from '@/utils/storageAdapter';
+
 import { Workout, Exercise } from '@/types';
+
 import { UserContext } from '@/utils/UserContext';
+
 import FancyAlert from '@/components/FancyAlert';
+
+// Use timestamp-based ID generation instead of UUID which requires crypto
+const generateId = () => `exercise_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
 export default function CreateWorkoutScreen() {
   const [name, setName] = useState('');
@@ -23,7 +33,7 @@ export default function CreateWorkoutScreen() {
     }
     
     const newExercise: Exercise = {
-      id: Date.now().toString(),
+      id: `temp_${Date.now()}`, // This ID is just temporary and will be replaced by Supabase
       name: newExerciseName.trim(),
       sets: 1
     };
@@ -74,12 +84,12 @@ export default function CreateWorkoutScreen() {
     }
     
     const newWorkout: Workout = {
-      id: Date.now().toString(),
+      // Don't include an id field for new workouts (rather than passing an empty string)
       name: name.trim(),
       exercises,
       createdAt: new Date().toISOString(),
       userId: user?.id || 'unknown',
-    };
+    } as Workout;
     
     await saveWorkout(newWorkout);
     router.back();

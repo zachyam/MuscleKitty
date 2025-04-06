@@ -1,5 +1,5 @@
 import { User } from '@/types';
-import { getWorkoutLogs } from '@/utils/storage';
+import { getWorkoutLogs } from '@/utils/storageAdapter';
 
 export const loadWorkoutLogs = async (
   user: User | null, 
@@ -8,11 +8,7 @@ export const loadWorkoutLogs = async (
 ) => {
   if (user?.id) {
     try {
-      // TEMPORARY: Generate fake data for demo purposes - REMOVE THIS LATER
-      const { generateFakeWorkoutLogs } = await import('@/utils/storage');
-      await generateFakeWorkoutLogs(user.id);
-      
-      // Get logs AFTER generating fake data
+      // Get workout logs from storage
       const logs = await getWorkoutLogs(user.id);
       console.log(`Loaded ${logs.length} workout logs for user ${user.id}`);
       

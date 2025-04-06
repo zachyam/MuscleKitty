@@ -2,10 +2,10 @@ import React from 'react';
 import { useState, useCallback, useRef, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, ImageBackground, Animated, Easing, ScrollView } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, ArrowUp, ChevronDown } from 'lucide-react-native';
+import { Plus, ArrowUp, ChevronDown, Pencil, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
-import { getWorkouts, deleteWorkout, getWorkoutLogs } from '@/utils/storage';
+import { getWorkouts, deleteWorkout, getWorkoutLogs } from '@/utils/storageAdapter';
 import { Workout, WorkoutLog } from '@/types';
 import WorkoutLogCard from '@/components/WorkoutLogCard';
 import { UserContext } from '@/utils/UserContext';
@@ -64,26 +64,26 @@ function WorkoutPlansScreen() {
 
   const loadWorkouts = async () => {
     setLoading(true);
-    // Get only workouts for the current user
-    // const savedWorkouts = await generateFakeWorkouts(user?.id);
-
-    // TEMPORARY: Generate fake data for demo purposes - REMOVE THIS LATER
-    const { generateFakeWorkouts } = await import('@/utils/storage');
-    const savedWorkouts = await generateFakeWorkouts(user?.id);
-    
-    setWorkouts(savedWorkouts);
+    if (user?.id) {
+      // Get only workouts for the current user
+      const savedWorkouts = await getWorkouts(user.id);
+      setWorkouts(savedWorkouts);
+    }
     setLoading(false);
   };
   
   const loadWorkoutLogs = async () => {
     if (user?.id) {
       try {
-        // TEMPORARY: Generate fake data for demo purposes - REMOVE THIS LATER
-        const { generateFakeWorkoutLogs } = await import('@/utils/storage');
-        await generateFakeWorkoutLogs(user.id);
-        
-        // Get logs AFTER generating fake data
+        // Get workout logs from storage
         const logs = await getWorkoutLogs(user.id);
+        
+        // Debug log IDs
+        if (logs.length > 0) {
+          console.log('WorkoutPlansScreen: Workout log IDs:', 
+            logs.slice(0, 5).map(log => `${log.id} (${log.workoutName})`).join(', '));
+        }
+        
         setWorkoutLogs(logs);
         
         // Reset selection when logs are reloaded
@@ -121,6 +121,7 @@ function WorkoutPlansScreen() {
   };
 
   const handleEditWorkout = (workoutId: string) => {
+    // Prevent event propagation when edit is clicked
     router.push({
       pathname: '/edit-workout',
       params: { id: workoutId }
@@ -149,6 +150,16 @@ function WorkoutPlansScreen() {
   };
   
   const handleViewLog = (log: WorkoutLog) => {
+    console.log(`WorkoutPlansScreen: Viewing log with ID: ${log.id}, name: ${log.workoutName}`);
+    
+    // Verify the log ID format
+    if (!log.id || typeof log.id !== 'string') {
+      console.error('WorkoutPlansScreen: Invalid log ID:', log.id);
+      Alert.alert('Error', 'Invalid workout log ID.');
+      return;
+    }
+    
+    // Navigate to the log details
     router.push({
       pathname: '/workout-log',
       params: { id: log.id }
@@ -222,17 +233,35 @@ function WorkoutPlansScreen() {
   }, []);
 
   const handleDeleteWorkout = (workoutId: string) => {
+    // Find workout name for the confirmation message
+    const workoutToDelete = workouts.find(w => w.id === workoutId);
+    
     Alert.alert(
       'Delete Workout Plan',
-      'Are you sure you want to delete this workout plan? This action cannot be undone.',
+      `Are you sure you want to delete "${workoutToDelete?.name || 'this workout plan'}"? This action cannot be undone and will also delete all associated workout logs.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Delete', 
           style: 'destructive',
           onPress: async () => {
-            await deleteWorkout(workoutId);
-            loadWorkouts();
+            try {
+              await deleteWorkout(workoutId);
+              console.log(`Deleted workout plan with ID: ${workoutId}`);
+              
+              // Reset selected workout if we're deleting the currently selected one
+              if (selectedWorkout === workoutId) {
+                setSelectedWorkout(null);
+                setWorkoutHistory([]);
+              }
+              
+              // Reload workouts and logs
+              loadWorkouts();
+              loadWorkoutLogs();
+            } catch (error) {
+              console.error('Error deleting workout:', error);
+              Alert.alert('Error', 'Failed to delete the workout plan. Please try again.');
+            }
           }
         }
       ]
@@ -410,21 +439,37 @@ function WorkoutPlansScreen() {
                     
                     <View style={styles.workoutCardsGrid}>
                       {workouts.map(workout => (
-                        <TouchableOpacity 
-                          key={workout.id}
-                          style={styles.workoutPlanCard}
-                          onPress={() => handleSelectWorkout(workout)} 
-                        >
-                          <View style={styles.workoutCardIcon}>
-                            <Text style={styles.workoutCardEmoji}>💪</Text>
+                        <View key={workout.id} style={styles.workoutPlanCardContainer}>
+                          <TouchableOpacity 
+                            style={styles.workoutPlanCard}
+                            onPress={() => handleSelectWorkout(workout)} 
+                          >
+                            <View style={styles.workoutCardIcon}>
+                              <Text style={styles.workoutCardEmoji}>💪</Text>
+                            </View>
+                            <View style={styles.workoutCardContent}>
+                              <Text style={styles.workoutPlanCardTitle}>{workout.name}</Text>
+                              <Text style={styles.workoutPlanCardSubtitle}>
+                                {workout.exercises.length} {workout.exercises.length === 1 ? 'exercise' : 'exercises'}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                          
+                          <View style={styles.workoutCardActions}>
+                            <TouchableOpacity 
+                              style={styles.workoutCardAction}
+                              onPress={() => handleEditWorkout(workout.id)}
+                            >
+                              <Pencil size={18} color={Colors.primary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                              style={styles.workoutCardAction}
+                              onPress={() => handleDeleteWorkout(workout.id)}
+                            >
+                              <Trash2 size={18} color="#D66A6A" />
+                            </TouchableOpacity>
                           </View>
-                          <View style={styles.workoutCardContent}>
-                            <Text style={styles.workoutPlanCardTitle}>{workout.name}</Text>
-                            <Text style={styles.workoutPlanCardSubtitle}>
-                              {workout.exercises.length} {workout.exercises.length === 1 ? 'exercise' : 'exercises'}
-                            </Text>
-                          </View>
-                        </TouchableOpacity>
+                        </View>
                       ))}
                     </View>
                   </View>
@@ -845,11 +890,14 @@ const styles = StyleSheet.create({
   workoutCardsGrid: {
     flexDirection: 'column', // Changed to column layout
   },
+  workoutPlanCardContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
   workoutPlanCard: {
     backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
     width: '100%', // Full width for longer cards
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -860,6 +908,25 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.03)',
     flexDirection: 'row', // Horizontal layout for content
     alignItems: 'center',
+  },
+  workoutCardActions: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    flexDirection: 'row',
+    padding: 8,
+    zIndex: 10,
+  },
+  workoutCardAction: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    padding: 6,
+    marginLeft: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   selectedWorkoutPlanCard: {
     borderColor: Colors.primary,

@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { useLocalSearchParams, router } from 'expo-router';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getWorkoutLogById, deleteWorkoutLog } from '@/utils/storage';
+import { getWorkoutLogById, deleteWorkoutLog } from '@/utils/storageAdapter';
+import * as SupabaseAPI from '@/utils/supabase';
 import { WorkoutLog } from '@/types';
 import Header from '@/components/Header';
 import React from 'react';
@@ -20,10 +21,63 @@ export default function WorkoutLogScreen() {
   }, [id]);
 
   const loadWorkoutLog = async (logId: string) => {
+    console.log(`WorkoutLogScreen: Loading workout log with ID: ${logId}`);
     setLoading(true);
-    const foundLog = await getWorkoutLogById(logId);
-    setLog(foundLog);
-    setLoading(false);
+    
+    try {
+      // First check if this log even exists in the database
+      const exists = await SupabaseAPI.checkIfLogExists(logId);
+      
+      if (!exists) {
+        console.error(`WorkoutLogScreen: Log ID ${logId} does not exist in the database`);
+        Alert.alert(
+          'Log Not Found',
+          'This workout log cannot be found. It may have been deleted or the ID is incorrect.',
+          [
+            { 
+              text: 'Go Back', 
+              onPress: () => router.back() 
+            }
+          ]
+        );
+        setLoading(false);
+        return;
+      }
+      
+      // Try to get the log details
+      const foundLog = await getWorkoutLogById(logId);
+      console.log('WorkoutLogScreen: Found log:', foundLog ? JSON.stringify(foundLog, null, 2) : 'null');
+      
+      if (!foundLog) {
+        console.error('WorkoutLogScreen: No workout log found with ID:', logId);
+        Alert.alert(
+          'Error Loading Details',
+          'The workout log exists but its details could not be loaded.',
+          [
+            { 
+              text: 'Go Back', 
+              onPress: () => router.back() 
+            }
+          ]
+        );
+      }
+      
+      setLog(foundLog);
+    } catch (error) {
+      console.error('WorkoutLogScreen: Error loading workout log:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while loading the workout log.',
+        [
+          { 
+            text: 'Go Back', 
+            onPress: () => router.back() 
+          }
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -91,44 +145,56 @@ export default function WorkoutLogScreen() {
       
       <ScrollView style={styles.content}>
         <View style={styles.logHeader}>
-          <Text style={styles.workoutName}>{log.workoutName}</Text>
-          <Text style={styles.workoutDate}>{formatDate(log.date)}</Text>
+          <Text style={styles.workoutName}>{log.workoutName || 'Workout'}</Text>
+          <Text style={styles.workoutDate}>{formatDate(log.date || new Date().toISOString())}</Text>
         </View>
         
         <View style={styles.exercisesContainer}>
-          {log.exercises.map((exercise, index) => (
-            <View key={index} style={styles.exerciseCard}>
-              <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
-              
-              <View style={styles.setsContainer}>
-                <View style={styles.setsHeader}>
-                  <Text style={styles.setsHeaderText}>Set</Text>
-                  <Text style={styles.setsHeaderText}>Reps</Text>
-                  <Text style={styles.setsHeaderText}>Weight</Text>
-                </View>
+          {log.exercises && log.exercises.length > 0 ? (
+            log.exercises.map((exercise, index) => (
+              <View key={index} style={styles.exerciseCard}>
+                <Text style={styles.exerciseName}>{exercise.exerciseName || 'Exercise'}</Text>
                 
-                {exercise.sets.map((set, setIndex) => (
-                  <View key={setIndex} style={styles.setRow}>
-                    <Text style={styles.setText}>{set.setNumber}</Text>
-                    <Text style={styles.setText}>{set.reps}</Text>
-                    <Text style={styles.setText}>{set.weight > 0 ? `${set.weight} lbs` : '-'}</Text>
+                <View style={styles.setsContainer}>
+                  <View style={styles.setsHeader}>
+                    <Text style={styles.setsHeaderText}>Set</Text>
+                    <Text style={styles.setsHeaderText}>Reps</Text>
+                    <Text style={styles.setsHeaderText}>Weight</Text>
                   </View>
-                ))}
+                  
+                  {exercise.sets && exercise.sets.length > 0 ? (
+                    exercise.sets.map((set, setIndex) => (
+                      <View key={setIndex} style={styles.setRow}>
+                        <Text style={styles.setText}>{set.setNumber || setIndex + 1}</Text>
+                        <Text style={styles.setText}>{set.reps || 0}</Text>
+                        <Text style={styles.setText}>{set.weight > 0 ? `${set.weight} lbs` : '-'}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <View style={styles.emptySetRow}>
+                      <Text style={styles.emptyText}>No sets recorded</Text>
+                    </View>
+                  )}
+                </View>
               </View>
+            ))
+          ) : (
+            <View style={styles.emptyExerciseCard}>
+              <Text style={styles.emptyText}>No exercises found for this workout</Text>
             </View>
-          ))}
+          )}
         </View>
         
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Workout Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Exercises:</Text>
-            <Text style={styles.summaryValue}>{log.exercises.length}</Text>
+            <Text style={styles.summaryValue}>{log.exercises?.length || 0}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Sets:</Text>
             <Text style={styles.summaryValue}>
-              {log.exercises.reduce((total, exercise) => total + exercise.sets.length, 0)}
+              {log.exercises?.reduce((total, exercise) => total + (exercise.sets?.length || 0), 0) || 0}
             </Text>
           </View>
         </View>
@@ -268,5 +334,24 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 6,
     marginLeft: 8,
+  },
+  emptyExerciseCard: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    backgroundColor: '#FDE8D7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 120,
+  },
+  emptySetRow: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#A18A74',
+    fontStyle: 'italic',
   }
 });

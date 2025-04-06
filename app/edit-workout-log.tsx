@@ -4,10 +4,11 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Plus, X } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
-import { getWorkoutLogById, saveWorkoutLog } from '@/utils/storage';
+import { getWorkoutLogById, saveWorkoutLog } from '@/utils/storageAdapter';
 import { WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
 import React from 'react';
+import * as SupabaseAPI from '@/utils/supabase';
 import FancyAlert from '@/components/FancyAlert';
 
 export default function EditWorkoutLogScreen() {
@@ -25,15 +26,55 @@ export default function EditWorkoutLogScreen() {
   }, [id]);
 
   const loadWorkoutLog = async (logId: string) => {
+    console.log(`EditWorkoutLogScreen: Loading workout log with ID: ${logId}`);
     setLoading(true);
-    const foundLog = await getWorkoutLogById(logId);
     
-    if (foundLog) {
+    try {
+      // First check if this log exists in the database
+      const exists = await SupabaseAPI.checkIfLogExists(logId);
+      
+      if (!exists) {
+        console.error(`EditWorkoutLogScreen: Log ID ${logId} does not exist in the database`);
+        Alert.alert(
+          'Log Not Found',
+          'This workout log cannot be found. It may have been deleted or the ID is incorrect.',
+          [
+            { 
+              text: 'Go Back', 
+              onPress: () => router.back() 
+            }
+          ]
+        );
+        setLoading(false);
+        return;
+      }
+      
+      const foundLog = await getWorkoutLogById(logId);
+      console.log('EditWorkoutLogScreen: Found log:', foundLog ? JSON.stringify(foundLog, null, 2) : 'null');
+      
+      if (!foundLog) {
+        console.error('EditWorkoutLogScreen: No workout log data found with ID:', logId);
+        Alert.alert(
+          'Error',
+          'Could not load workout log details. Please try again.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+        setLoading(false);
+        return;
+      }
+      
       setLog(foundLog);
       setExercises([...foundLog.exercises]);
+    } catch (error) {
+      console.error('EditWorkoutLogScreen: Error loading workout log:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while loading the workout log.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleAddSet = (exerciseIndex: number) => {

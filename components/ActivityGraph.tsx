@@ -52,14 +52,6 @@ const ActivityGraph: React.FC<Props> = ({
       workoutMap.set(dateStr, (workoutMap.get(dateStr) || 0) + 1);
     });
     
-    // Debugging workout logs
-    console.log(`ActivityGraph: Processing ${workoutLogs.length} workout logs`);
-    workoutLogs.forEach((log, index) => {
-      if (index < 5) { // Just log a few examples
-        console.log(`Sample log ${index}: ${new Date(log.date).toLocaleDateString()}`);
-      }
-    });
-    
     // Process each of the three months in chronological order (2 months ago, last month, current month)
     for (let i = 2; i >= 0; i--) {
       // Calculate month index (handle wrapping to previous year)
@@ -82,11 +74,6 @@ const ActivityGraph: React.FC<Props> = ({
         const dateStr = date.toISOString().split('T')[0];
         const count = workoutMap.get(dateStr) || 0;
         
-        // Debug a few days to see if we're finding matches
-        if (day === 15) {
-          console.log(`Day check: ${dateStr}, workout count: ${count}`);
-        }
-        
         allDays.push({
           date,
           level: count > 0 ? 1 : 0,
@@ -97,7 +84,6 @@ const ActivityGraph: React.FC<Props> = ({
     }
     
     setDays(allDays);
-    console.log('allDays', allDays)
     setMonthLabels(monthNames); // Already in chronological order (oldest to newest)
   };
 

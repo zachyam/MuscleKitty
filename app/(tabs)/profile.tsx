@@ -1,22 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback }from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Settings, Award, Calendar, Dumbbell, LogOut, Edit, X } from 'lucide-react-native';
+import { Settings, Calendar, Dumbbell, LogOut, Edit, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { useFocusEffect } from 'expo-router';
 import Header from '@/components/Header';
 import { logout } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
-import { useState, useEffect, useContext } from 'react';
-import { getWorkoutLogs } from '@/utils/storage';
 import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
-import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
-import AdoptKittyScreenComponents from '@/components/AdoptKittyScreenComponents';
 import FancyAlert from '@/components/FancyAlert';
 
 // Kitty name storage key - must match the one in name-kitty.tsx
@@ -82,23 +79,25 @@ export default function ProfileScreen() {
     
     updateAvatar();
   }, [user?.id]); // Only run when user ID changes
-  
+
   // Load workout logs
-  useEffect(() => {
-    const loadLogs = async () => {
-      if (user?.id) {
-        try {
-          // Use the abstracted function from loadStats
-          const { loadWorkoutLogs } = await import('@/utils/loadStats');
-          loadWorkoutLogs(user, setWorkoutLogs, setWorkoutStats);
-        } catch (error) {
-          console.error('Error loading workout logs:', error);
-        }
-      }
-    };
-    
-    loadLogs();
-  }, [user?.id]);
+  useFocusEffect(
+      useCallback(() => {
+        const loadLogs = async () => {
+          if (user?.id) {
+            try {
+              // Use the abstracted function from loadStats
+              const { loadWorkoutLogs } = await import('@/utils/loadStats');
+              loadWorkoutLogs(user, setWorkoutLogs, setWorkoutStats);
+            } catch (error) {
+              console.error('Error loading workout logs:', error);
+            }
+          }
+        };
+        
+        loadLogs();
+      }, [user?.id])
+    );
   
   // Get streak and kitty health from utility functions
   const streak = calculateStreak(workoutLogs);

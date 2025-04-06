@@ -173,9 +173,9 @@ export default function EditWorkoutLogScreen() {
         })}</Text>
       </View>
       
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {exercises.map((exercise, exerciseIndex) => (
-          <View key={exerciseIndex} style={styles.exerciseCard}>
+        <View key={exerciseIndex} style={{ marginBottom: 24 }}>
             <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
             
             <View style={styles.setsContainer}>
@@ -275,13 +275,13 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   logHeader: {
-    backgroundColor: Colors.card,
+    backgroundColor: '#FDE8D7',
     borderRadius: 16,
     padding: 16,
     margin: 16,
     marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
@@ -303,107 +303,16 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 8,
   },
-  exerciseCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
-  },
   exerciseName: {
     fontWeight: 'bold',
-    fontSize: 18,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  setsContainer: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 16,
-  },
-  setsHeader: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    paddingHorizontal: 8,
-  },
-  setsHeaderText: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: Colors.gray,
-    flex: 1,
-    textAlign: 'center',
-  },
-  setRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  setNumberContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  setNumber: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    color: '#fff',
-  },
-  inputContainer: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  input: {
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 10,
-    fontWeight: '500',
-    fontSize: 16,
-    color: Colors.text,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  removeButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontSize: 20,
+    color: '#6B4C3B',
+    marginBottom: 8,
+    marginLeft: 8,
   },
   emptyRemoveButton: {
     width: 40,
     height: 40,
-  },
-  addSetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 8,
-    marginTop: 8,
-    backgroundColor: 'rgba(143, 201, 58, 0.1)',
-  },
-  addSetText: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: Colors.primary,
-    marginLeft: 8,
   },
   saveButton: {
     backgroundColor: Colors.primary,
@@ -414,7 +323,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -422,5 +331,98 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     color: '#fff',
+  },
+   // Container for the exercise sets
+   setsContainer: {
+    backgroundColor: '#FFF3DA',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#D7C0AE',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  setsHeader: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  setsHeaderText: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#A08B71', // soft brown-gray
+    flex: 1,
+    textAlign: 'center',
+  },
+
+  // Each set row
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  setNumberContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#A5C58B', // soft green
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  setNumber: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+
+  inputContainer: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  input: {
+    backgroundColor: '#FEF9E6',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontWeight: '500',
+    fontSize: 16,
+    color: '#4E3E2A',
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  addSetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#A3C9A8',
+    borderRadius: 24,
+    marginTop: 12,
+    backgroundColor: '#F1FAF0',
+  },
+  addSetText: {
+    marginLeft: 8,
+    fontWeight: '500',
+    fontSize: 14,
+    color: '#89A96B',
+  },
+
+  removeButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

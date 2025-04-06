@@ -505,11 +505,6 @@ export const getExerciseLogs = async (workoutLogId: string): Promise<ExerciseLog
     
     console.log(`Supabase API: Found ${data?.length || 0} exercise logs for workout log ID: ${workoutLogId}`);
     
-    // Debug the first log if available
-    if (data && data.length > 0) {
-      console.log('Supabase API: First exercise log sample:', JSON.stringify(data[0], null, 2));
-    }
-    
     return data || [];
   } catch (err) {
     console.error(`Exception in getExerciseLogs for log ${workoutLogId}:`, err);

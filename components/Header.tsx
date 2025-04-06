@@ -1,22 +1,24 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
 type HeaderProps = {
   title: string;
   showBackButton?: boolean;
+  headerRight?: () => React.ReactNode;
   rightIcon?: React.ReactNode;
-  onRightPress?: () => void;
 };
 
 export default function Header({ 
   title, 
   showBackButton = false, 
-  rightIcon, 
-  onRightPress 
+  headerRight, 
+  rightIcon,
 }: HeaderProps) {
+  const { fromWorkoutId } = useLocalSearchParams<{ fromWorkoutId?: string }>();
+  console.log(fromWorkoutId)
   return (
     <View style={styles.header}>
       <View style={styles.leftContainer}>
@@ -31,10 +33,13 @@ export default function Header({
       
       <View style={styles.rightContainer}>
         {rightIcon && (
-          <TouchableOpacity onPress={onRightPress} style={styles.rightButton}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.rightButton}>
             {rightIcon}
           </TouchableOpacity>
         )}
+      </View>
+      <View style={{ width: 24 }}>
+        {headerRight ? headerRight() : null}
       </View>
     </View>
   );
@@ -45,9 +50,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 15,
-    // backgroundColor: Colors.background,
   },
   leftContainer: {
     width: 40,
@@ -63,7 +67,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rightContainer: {
-    width: 40,
+    width: 15,
     alignItems: 'flex-end',
   },
   rightButton: {

@@ -143,7 +143,7 @@ export default function WorkoutLogScreen() {
         }
       />
       
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.logHeader}>
           <Text style={styles.workoutName}>{log.workoutName || 'Workout'}</Text>
           <Text style={styles.workoutDate}>{formatDate(log.date || new Date().toISOString())}</Text>
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   exerciseCard: {
     borderRadius: 20,
-    padding: 20,
+    padding: 5,
     marginBottom: 16,
     shadowColor: '#F7D9D9',
     shadowOffset: { width: 0, height: 3 },
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   setRow: {
     flexDirection: 'row',
     paddingVertical: 8,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0,
     borderBottomColor: '#F5E4D7',
   },
   setText: {
@@ -330,9 +330,10 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 10,
   },
   actionButton: {
-    padding: 6,
+    padding: 3,
     marginLeft: 8,
   },
   emptyExerciseCard: {

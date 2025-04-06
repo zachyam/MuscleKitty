@@ -69,8 +69,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF4D6',
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
@@ -79,7 +78,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 4,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
+    borderColor: '#EBD9C2',
   },
   iconContainer: {
     width: 48,

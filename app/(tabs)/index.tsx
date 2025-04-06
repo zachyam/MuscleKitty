@@ -12,6 +12,7 @@ import { UserContext } from '@/utils/UserContext';
 import { calculateStreak, calculateKittyHealth, KittyHealth } from '@/utils/loadStats';
 import { Dimensions } from 'react-native';
 import CoinIcon from '@/components/CoinIcon'
+import { useLocalSearchParams } from 'expo-router';
 
 function WorkoutPlansScreen() {
   const { user } = useContext(UserContext);
@@ -28,6 +29,7 @@ function WorkoutPlansScreen() {
   const kittySwayAnim = useRef(new Animated.Value(0)).current; // For kitty swaying animation
   const workoutPanelAnim = useRef(new Animated.Value(0)).current; // For workout panel slide-up animation
   const screenHeight = Dimensions.get('window').height;
+  const { selectedWorkoutId } = useLocalSearchParams<{ selectedWorkoutId?: string }>();
 
   // Load workouts when the screen comes into focus or user changes
   useFocusEffect(
@@ -47,6 +49,26 @@ function WorkoutPlansScreen() {
       startHorizontalAnimation();
     }, [user?.id, user?.coins]) // Reload when user changes or coins update
   );
+
+  // useEffect(() => {
+  //   if (!loading && selectedWorkoutId && workouts.length > 0 && workoutLogs) {
+  //     const workout = workouts.find(w => w.id === selectedWorkoutId);
+  //     if (workout) {
+  //       setShowWorkoutPlans(true);
+
+  //       Animated.timing(workoutPanelAnim, {
+  //         toValue: 1,
+  //         duration: 300,
+  //         useNativeDriver: true,
+  //       }).start(() => {
+  //         console.log('Panel animation complete, selecting workout');
+  //         handleSelectWorkout(workout);
+  //       });
+  //     } else {
+  //       setShowWorkoutPlans(true);
+  //     }
+  //   }
+  // }, [loading, selectedWorkoutId, workouts, workoutLogs]);
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -104,7 +126,7 @@ function WorkoutPlansScreen() {
   const handleSelectWorkout = (workout: Workout) => {
     // If already selected, deselect it - removed this logic to support the new UI flow
     // Now we'll use the back button to return to the list
-    
+    console.log('in handleSelectWorkout', workout.id)
     // Select the workout
     setSelectedWorkout(workout.id);
     
@@ -162,7 +184,10 @@ function WorkoutPlansScreen() {
     // Navigate to the log details
     router.push({
       pathname: '/workout-log',
-      params: { id: log.id }
+      params: {
+        id: log.id,
+        fromWorkoutId: log.workoutId,
+      },
     });
   };
 
@@ -231,42 +256,6 @@ function WorkoutPlansScreen() {
       kittySwayAnim.stopAnimation();
     };
   }, []);
-
-  const handleDeleteWorkout = (workoutId: string) => {
-    // Find workout name for the confirmation message
-    const workoutToDelete = workouts.find(w => w.id === workoutId);
-    
-    Alert.alert(
-      'Delete Workout Plan',
-      `Are you sure you want to delete "${workoutToDelete?.name || 'this workout plan'}"? This action cannot be undone and will also delete all associated workout logs.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteWorkout(workoutId);
-              console.log(`Deleted workout plan with ID: ${workoutId}`);
-              
-              // Reset selected workout if we're deleting the currently selected one
-              if (selectedWorkout === workoutId) {
-                setSelectedWorkout(null);
-                setWorkoutHistory([]);
-              }
-              
-              // Reload workouts and logs
-              loadWorkouts();
-              loadWorkoutLogs();
-            } catch (error) {
-              console.error('Error deleting workout:', error);
-              Alert.alert('Error', 'Failed to delete the workout plan. Please try again.');
-            }
-          }
-        }
-      ]
-    );
-  };
 
   // Ensure user has default values for coins, xp, and level
   useEffect(() => {
@@ -397,7 +386,7 @@ function WorkoutPlansScreen() {
                   {
                     translateY: workoutPanelAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [screenHeight, screenHeight * 0.05], // Adjusted to match the new panel position at 20% from top
+                      outputRange: [screenHeight, screenHeight * 0.05], // Adjusted to match the new panel position
                       extrapolate: 'clamp',
                     }),
                   },
@@ -411,13 +400,15 @@ function WorkoutPlansScreen() {
                   style={styles.closeButton} 
                   onPress={toggleWorkoutPanel}
                 >
-                  <ChevronDown size={24} color={Colors.primary} />
+                  <ChevronDown size={30} color={Colors.primary} />
                 </TouchableOpacity>
-                <Text style={styles.panelTitle}>Workout Plans</Text>
-                <TouchableOpacity style={styles.addButton} onPress={handleCreateWorkout}>
-                  <Plus size={18} color="#fff" />
-                  <Text style={styles.addButtonText}>Add</Text>
-                </TouchableOpacity>
+                <Text style={styles.panelTitle} onPress={toggleWorkoutPanel}>Workout Plans</Text>
+                {workouts.length > 0 && (
+                  <TouchableOpacity style={styles.addButton} onPress={handleCreateWorkout}>
+                    <Plus size={18} color="#fff" />
+                    <Text style={styles.addButtonText}>Add</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             
             {/* Workout Plans */}
@@ -425,18 +416,16 @@ function WorkoutPlansScreen() {
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyEmoji}>🏋️</Text>
                 <Text style={styles.emptyText}>No workout plans yet!</Text>
-                <Text style={styles.emptySubtext}>Tap the + button to create your first workout plan</Text>
+                <Text style={styles.emptySubtext}>Tap the button to create your first workout plan</Text>
                 <TouchableOpacity style={styles.createButton} onPress={handleCreateWorkout}>
                   <Text style={styles.createButtonText}>Create Workout Plan</Text>
                 </TouchableOpacity>
               </View>
             ) : (
-              <ScrollView style={styles.panelScrollView}>
+              <ScrollView style={styles.panelScrollView} showsVerticalScrollIndicator={false}>
                 {!selectedWorkout ? (
                   // Show list of workout plans when no workout is selected
                   <View style={styles.workoutListContainer}>
-                    <Text style={styles.sectionSubtitle}>Select a workout plan to view details</Text>
-                    
                     <View style={styles.workoutCardsGrid}>
                       {workouts.map(workout => (
                         <View key={workout.id} style={styles.workoutPlanCardContainer}>
@@ -461,12 +450,6 @@ function WorkoutPlansScreen() {
                               onPress={() => handleEditWorkout(workout.id)}
                             >
                               <Pencil size={18} color={Colors.primary} />
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                              style={styles.workoutCardAction}
-                              onPress={() => handleDeleteWorkout(workout.id)}
-                            >
-                              <Trash2 size={18} color="#D66A6A" />
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -530,7 +513,10 @@ function WorkoutPlansScreen() {
                             onPress={() => {
                               router.push({
                                 pathname: '/start-workout',
-                                params: { id: workout.id }
+                                params: {
+                                  id: workout.id,
+                                  fromWorkoutId: workout.id,
+                                },
                               });
                             }}
                           >
@@ -850,8 +836,8 @@ const styles = StyleSheet.create({
   },
   panelHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-evenly',
     paddingTop: 10,
     paddingBottom: 15,
     paddingHorizontal: 8,
@@ -859,28 +845,26 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(143, 201, 58, 0.2)',
+    position: 'relative',
   },
   panelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: Colors.text,
     textAlign: 'center',
+    paddingLeft: 30,
+    flex: 1,
   },
   closeButton: {
+    position: 'absolute',
+    left: 8,
     padding: 8,
   },
   panelScrollView: {
     flex: 1,
-    paddingTop: 0,
+    paddingTop: 15,
     marginTop: 0,
     paddingBottom: 60,
-  },
-  sectionSubtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.gray,
-    marginBottom: 12,
-    marginTop: 4,
   },
   // Workout Plans Grid
   workoutListContainer: {
@@ -894,21 +878,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 12,
   },
-  workoutPlanCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
-    width: '100%', // Full width for longer cards
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.03)',
-    flexDirection: 'row', // Horizontal layout for content
-    alignItems: 'center',
-  },
+  
   workoutCardActions: {
     position: 'absolute',
     top: 0,
@@ -918,7 +888,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   workoutCardAction: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 12,
     padding: 6,
     marginLeft: 6,
@@ -933,27 +902,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     backgroundColor: Colors.primaryLight,
   },
-  workoutCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
   workoutCardEmoji: {
-    fontSize: 22,
+    fontSize: 24,
   },
   workoutPlanCardTitle: {
-    fontWeight: 'bold',
-    fontSize: 17,
-    color: Colors.text,
-    marginBottom: 4,
+    fontWeight: '700',
+    fontSize: 18,
+    color: '#3b2f2f',
+    marginBottom: 2,
   },
   workoutPlanCardSubtitle: {
     fontSize: 14,
-    color: Colors.gray,
+    color: '#8f715b',
   },
   workoutCardContent: {
     flex: 1,
@@ -972,26 +932,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   workoutDetailCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#fffaf3',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
     shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    elevation: 2,
   },
   workoutDetailHeader: {
     flexDirection: 'row',
     marginBottom: 16,
   },
   workoutCardIconLarge: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1011,13 +969,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   workoutDetailSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.gray,
     marginBottom: 2,
   },
   workoutDetailDate: {
-    fontSize: 14,
-    color: Colors.gray,
+    fontSize: 13,
+    color: '#b29787',
     fontStyle: 'italic',
   },
   exerciseListContainer: {
@@ -1033,9 +991,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primaryLight,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 12,
-    marginBottom: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.02)',
   },
   exerciseNumberContainer: {
     width: 30,
@@ -1060,7 +1020,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   exerciseSets: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.gray,
     marginTop: 2,
   },
@@ -1173,5 +1133,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     fontWeight: '600',
-  }
+  },
+  workoutPlanCard: {
+    backgroundColor: '#fff9f1', // warmer pastel
+    borderRadius: 20,
+    padding: 16,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.03)',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  workoutCardIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
 });

@@ -22,9 +22,9 @@ const ExerciseWeightChart: React.FC<Props> = ({ historyData, width, height, onPo
 
   if (!historyData || historyData.length === 0) {
     return (
-      <View style={[styles.container, { width, height }]}> 
-        <Text style={styles.title}>Max Weight Progression</Text>
-        <View style={styles.emptyContainer}>
+      <View style={styles.container}> 
+        <View style={styles.emptyTextContainer}>
+          <Text style={styles.title}>Max Weight Progression</Text>
           <Text style={styles.emptyText}>No weight history available</Text>
         </View>
       </View>
@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   container: {
-    // backgroundColor: '#F9F5EB',
     borderRadius: 16,
     padding: 16,
     marginVertical: 16,
@@ -121,7 +120,11 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#A18A74',
     fontSize: 14
-  }
+  },
+  emptyTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 export default ExerciseWeightChart;

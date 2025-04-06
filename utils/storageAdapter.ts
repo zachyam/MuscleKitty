@@ -31,7 +31,6 @@ const formatWorkoutFromSupabase = async (
 const formatWorkoutLogFromSupabase = async (
   log: any // The combined workout log with plan and exercises
 ): Promise<WorkoutLog> => {
-  console.log('Formatting workout log:', JSON.stringify(log, null, 2));
   
   // Fetch the workout plan name
   const workoutPlan = log.plan;
@@ -97,7 +96,6 @@ const formatWorkoutLogFromSupabase = async (
     userId: log.user_id
   };
   
-  console.log('Formatted workout log:', JSON.stringify(result, null, 2));
   return result;
 };
 

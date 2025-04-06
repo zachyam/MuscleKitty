@@ -1,73 +1,47 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-
 import { ArrowLeft, Plus, X, Minus } from 'lucide-react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import Colors from '@/constants/Colors';
-
 import { saveWorkout } from '@/utils/storageAdapter';
-
 import { Workout, Exercise } from '@/types';
-
 import { UserContext } from '@/utils/UserContext';
-
 import FancyAlert from '@/components/FancyAlert';
 
-// Use timestamp-based ID generation instead of UUID which requires crypto
 const generateId = () => `exercise_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
 export default function CreateWorkoutScreen() {
   const [name, setName] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [newExerciseName, setNewExerciseName] = useState('');
+  const [newExercisePending, setNewExercisePending] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const { user } = useContext(UserContext);
 
   const handleAddExercise = () => {
-    if (!newExerciseName.trim()) {
-      return;
-    }
-    
     const newExercise: Exercise = {
-      id: `temp_${Date.now()}`, // This ID is just temporary and will be replaced by Supabase
-      name: newExerciseName.trim(),
-      sets: 1
+      id: generateId(),
+      name: '',
+      sets: 1,
     };
-    
     setExercises([...exercises, newExercise]);
-    setNewExerciseName('');
+    setNewExercisePending(true);
+  };
+
+  const handleUpdateExerciseName = (id: string, name: string) => {
+    setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, name } : ex));
   };
 
   const handleRemoveExercise = (id: string) => {
-    setExercises(exercises.filter(exercise => exercise.id !== id));
+    setExercises(exercises.filter(e => e.id !== id));
   };
 
   const handleIncreaseSets = (id: string) => {
-    setExercises(exercises.map(exercise => {
-      if (exercise.id === id) {
-        return {
-          ...exercise,
-          sets: (exercise.sets || 1) + 1
-        };
-      }
-      return exercise;
-    }));
+    setExercises(exercises.map(e => e.id === id ? { ...e, sets: (e.sets || 1) + 1 } : e));
   };
 
   const handleDecreaseSets = (id: string) => {
-    setExercises(exercises.map(exercise => {
-      if (exercise.id === id && exercise.sets && exercise.sets > 1) {
-        return {
-          ...exercise,
-          sets: exercise.sets - 1
-        };
-      }
-      return exercise;
-    }));
+    setExercises(exercises.map(e => e.id === id && (e.sets || 1) > 1 ? { ...e, sets: e.sets - 1 } : e));
   };
 
   const handleSave = async () => {
@@ -76,21 +50,18 @@ export default function CreateWorkoutScreen() {
       setAlertMessage('Please enter a workout plan name');
       return;
     }
-    
-    if (exercises.length === 0) {
+    const validExercises = exercises.filter(e => e.name.trim());
+    if (validExercises.length === 0) {
       setShowAlert(true);
       setAlertMessage('Please add at least one exercise');
       return;
     }
-    
     const newWorkout: Workout = {
-      // Don't include an id field for new workouts (rather than passing an empty string)
       name: name.trim(),
-      exercises,
+      exercises: validExercises,
       createdAt: new Date().toISOString(),
       userId: user?.id || 'unknown',
-    } as Workout;
-    
+    };
     await saveWorkout(newWorkout);
     router.back();
   };
@@ -98,16 +69,14 @@ export default function CreateWorkoutScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {showAlert && <FancyAlert type="error" message={alertMessage} onClose={() => setShowAlert(false)} />}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Workout Plan</Text>
-        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-        </TouchableOpacity>
-      </View>
-      
       <ScrollView style={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#6B4C3B" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Create Workout Plan</Text>
+        </View>
+
         <View style={styles.formGroup}>
           <Text style={styles.label}>Workout Plan Name</Text>
           <TextInput
@@ -115,67 +84,45 @@ export default function CreateWorkoutScreen() {
             value={name}
             onChangeText={setName}
             placeholder="e.g., Upper Body, Leg Day"
-            placeholderTextColor={Colors.lightGray}
+            placeholderTextColor="#C7B9A5"
           />
         </View>
-        
+
         <View style={styles.formGroup}>
           <Text style={styles.label}>Exercises</Text>
-          
           {exercises.map((exercise) => (
             <View key={exercise.id} style={styles.exerciseItem}>
               <View style={styles.exerciseContent}>
-                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                <TextInput
+                  style={styles.exerciseNameInput}
+                  value={exercise.name}
+                  onChangeText={(text) => handleUpdateExerciseName(exercise.id, text)}
+                  placeholder="Exercise name"
+                  placeholderTextColor="#C7B9A5"
+                />
                 <View style={styles.setsContainer}>
-                  <TouchableOpacity 
-                    onPress={() => handleDecreaseSets(exercise.id)}
-                    style={[styles.setButton, (exercise.sets || 1) <= 1 && styles.disabledButton]}
-                    disabled={(exercise.sets || 1) <= 1}
-                  >
-                    <Minus size={16} color={(exercise.sets || 1) <= 1 ? Colors.lightGray : Colors.text} />
+                  <TouchableOpacity onPress={() => handleDecreaseSets(exercise.id)} disabled={(exercise.sets || 1) <= 1}>
+                    <Minus size={16} color={(exercise.sets || 1) <= 1 ? '#C7B9A5' : '#6B4C3B'} />
                   </TouchableOpacity>
                   <Text style={styles.setsText}>{exercise.sets || 1} {(exercise.sets || 1) === 1 ? 'set' : 'sets'}</Text>
-                  <TouchableOpacity 
-                    onPress={() => handleIncreaseSets(exercise.id)}
-                    style={styles.setButton}
-                  >
-                    <Plus size={16} color={Colors.text} />
+                  <TouchableOpacity onPress={() => handleIncreaseSets(exercise.id)}>
+                    <Plus size={16} color="#6B4C3B" />
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity 
-                onPress={() => handleRemoveExercise(exercise.id)}
-                style={styles.removeButton}
-              >
-                <X size={18} color={Colors.error} />
+              <TouchableOpacity onPress={() => handleRemoveExercise(exercise.id)}>
+                <X size={18} color="#C25A5A" />
               </TouchableOpacity>
             </View>
           ))}
-          
-          <View style={styles.addExerciseContainer}>
-            <TextInput
-              style={styles.exerciseInput}
-              value={newExerciseName}
-              onChangeText={setNewExerciseName}
-              placeholder="Add exercise"
-              placeholderTextColor={Colors.lightGray}
-              onSubmitEditing={handleAddExercise}
-            />
-            <TouchableOpacity 
-              onPress={handleAddExercise}
-              style={styles.addButton}
-              disabled={!newExerciseName.trim()}
-            >
-              <Plus size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
+
+          <TouchableOpacity style={styles.addButton} onPress={handleAddExercise}>
+            <Plus size={20} color="#000" />
+            <Text style={styles.addButtonText}>Add Exercise</Text>
+          </TouchableOpacity>
         </View>
-        
-        <TouchableOpacity 
-          style={[styles.saveFullButton, (!name.trim() || exercises.length === 0) && styles.disabledButton]}
-          onPress={handleSave}
-          disabled={!name.trim() || exercises.length === 0}
-        >
+
+        <TouchableOpacity style={[styles.saveFullButton, (exercises.length === 0) && styles.disabledButton]} onPress={handleSave} disabled={exercises.length === 0}>
           <Text style={styles.saveFullButtonText}>Save Workout Plan</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -186,7 +133,7 @@ export default function CreateWorkoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFF8EC',
   },
   header: {
     flexDirection: 'row',
@@ -194,7 +141,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.background,
   },
   backButton: {
     padding: 4,
@@ -202,20 +148,10 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontWeight: 'bold',
-    fontSize: 18,
-    color: Colors.text,
+    fontSize: 20,
+    color: '#6B4C3B',
     flex: 1,
     textAlign: 'center',
-  },
-  saveButton: {
-    padding: 4,
-    width: 40,
-    alignItems: 'flex-end',
-  },
-  saveButtonText: {
-    fontWeight: '500',
-    fontSize: 16,
-    color: Colors.primary,
   },
   content: {
     flex: 1,
@@ -225,92 +161,79 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 16,
-    color: Colors.text,
+    color: '#6B4C3B',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: '#FFF6EA',
+    borderRadius: 16,
+    padding: 14,
     fontSize: 16,
-    color: Colors.text,
+    color: '#6B4C3B',
+    borderWidth: 1,
+    borderColor: '#E7CBA9',
   },
   exerciseItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    backgroundColor: '#FFF6EA',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#EBD9C2',
   },
   exerciseContent: {
     flex: 1,
   },
-  exerciseName: {
+  exerciseNameInput: {
     fontSize: 16,
-    color: Colors.text,
+    color: '#6B4C3B',
     marginBottom: 4,
+    paddingVertical: 4,
   },
   setsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  setButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  disabledButton: {
-    opacity: 0.5,
+    marginTop: 10,
   },
   setsText: {
     marginHorizontal: 8,
     fontSize: 14,
-    color: Colors.gray,
-  },
-  removeButton: {
-    padding: 4,
-  },
-  addExerciseContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  exerciseInput: {
-    flex: 1,
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: Colors.text,
-    marginRight: 8,
+    color: '#A18A74',
   },
   addButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#A3C9A8',
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginTop: 16,
+  },
+  addButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 16,
   },
   saveFullButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#A3C9A8',
     borderRadius: 30,
-    padding: 16,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
     marginBottom: 40,
   },
   saveFullButtonText: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: '#fff',
+    color: '#000',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });

@@ -31,6 +31,7 @@ export default function StartWorkoutScreen() {
   const [showCoinPopup, setShowCoinPopup] = useState(false);
   const [coinsEarned, setCoinsEarned] = useState(5);
   const [showAlert, setShowAlert] = useState(false);
+  const { fromWorkoutId } = useLocalSearchParams<{ fromWorkoutId?: string }>();
 
   useEffect(() => {
     if (id) {
@@ -228,7 +229,6 @@ export default function StartWorkoutScreen() {
   if (loading || !workout) {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
-        <Header title="Start Workout" showBackButton />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading workout...</Text>
         </View>
@@ -246,14 +246,43 @@ export default function StartWorkoutScreen() {
     return previousWorkoutLog.exercises.find(ex => ex.exerciseId === exerciseId);
   };
 
+  const handleCancelWorkout = () => {
+    Alert.alert(
+      'Cancel Workout',
+      'Are you sure? Your progress will be lost.',
+      [
+        { text: 'Go Back', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: () => {
+            // if (fromWorkoutId) {
+            //   router.replace({
+            //     pathname: '/(tabs)/',
+            //     params: { selectedWorkoutId: fromWorkoutId },
+            //   });
+            // } else {
+            //   router.replace('/(tabs)/'); // fallback
+            // }
+            router.back();
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {showAlert && (
         <FancyAlert type={'error'} message="Cannot Save! Please complete at least one exercise set before finishing" onClose={() => setShowAlert(false)} />
       )}
       <Header 
-        title={workout.name} 
-        showBackButton 
+        title={workout.name}
+        headerRight={() => (
+          <TouchableOpacity onPress={handleCancelWorkout}>
+            <X size={24} color="#C25A5A" />
+          </TouchableOpacity>
+        )}
       />
       
       <View style={styles.progressBar}>
@@ -635,8 +664,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5CBAF',
   },
   previousSetText: {
     fontSize: 14,

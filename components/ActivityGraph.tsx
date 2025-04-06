@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Colors from '@/constants/Colors';
 import { WorkoutLog } from '@/types';
 
@@ -14,13 +14,11 @@ interface DayData {
 
 interface Props {
   workoutLogs: WorkoutLog[];
-  months?: number; // Number of months to show (default: 3)
   onDayPress?: (date: Date, count: number) => void;
 }
 
 const ActivityGraph: React.FC<Props> = ({ 
   workoutLogs, 
-  months = 3,
   onDayPress 
 }) => {
   const [days, setDays] = useState<DayData[]>([]);
@@ -99,6 +97,7 @@ const ActivityGraph: React.FC<Props> = ({
     }
     
     setDays(allDays);
+    console.log('allDays', allDays)
     setMonthLabels(monthNames); // Already in chronological order (oldest to newest)
   };
 

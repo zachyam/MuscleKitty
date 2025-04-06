@@ -9,6 +9,7 @@ type HeaderProps = {
   showBackButton?: boolean;
   headerRight?: () => React.ReactNode;
   rightIcon?: React.ReactNode;
+  onRightPress?: () => void;
 };
 
 export default function Header({ 
@@ -16,6 +17,7 @@ export default function Header({
   showBackButton = false, 
   headerRight, 
   rightIcon,
+  onRightPress,
 }: HeaderProps) {
   const { fromWorkoutId } = useLocalSearchParams<{ fromWorkoutId?: string }>();
   console.log(fromWorkoutId)
@@ -33,13 +35,11 @@ export default function Header({
       
       <View style={styles.rightContainer}>
         {rightIcon && (
-          <TouchableOpacity onPress={() => router.back()} style={styles.rightButton}>
+          <TouchableOpacity onPress={onRightPress} style={styles.rightButton}>
             {rightIcon}
           </TouchableOpacity>
         )}
-      </View>
-      <View style={{ width: 24 }}>
-        {headerRight ? headerRight() : null}
+        {headerRight && headerRight()}
       </View>
     </View>
   );
@@ -54,7 +54,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   leftContainer: {
-    width: 40,
+    minWidth: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   backButton: {
     padding: 4,
@@ -65,10 +67,13 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     flex: 1,
+    paddingHorizontal: 10,
   },
   rightContainer: {
-    width: 15,
+    minWidth: 60,
+    justifyContent: 'center',
     alignItems: 'flex-end',
+    paddingRight: 2,
   },
   rightButton: {
     padding: 4,

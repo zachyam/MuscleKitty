@@ -226,7 +226,7 @@ export default function ProfileScreen() {
         <>
           <Header 
             title="Profile"
-            rightIcon={<Settings size={24} color={Colors.text} />}
+            rightIcon={<Settings size={24} color={Colors.text} style={styles.settingsIcon} />}
             onRightPress={() => setShowMenu(!showMenu)}
           />
   
@@ -344,7 +344,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.section}>
               <View style={styles.activityGraphContainer}>
-                <ActivityGraph workoutLogs={workoutLogs} months={3} />
+                <ActivityGraph workoutLogs={workoutLogs} />
               </View>
             </View>
   
@@ -573,5 +573,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  settingsIcon: {
+    padding: 8,  // Add more padding around the icon for a better touch target
   },
 });

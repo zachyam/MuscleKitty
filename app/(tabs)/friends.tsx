@@ -56,12 +56,9 @@ export default function FriendsScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [addFriendModalVisible, setAddFriendModalVisible] = useState(false);
   const [userRank, setUserRank] = useState<number>(1);
-  const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
   const [uniqueKittyHash, setUniqueKittyHash] = useState<string>("");
   const [levelProgress, setLevelProgress] = useState(0); // 0-100%
-  const [kittyLevel, setKittyLevel] = useState(user?.level || 1);
-  const [nextLevelXP, setNextLevelXP] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAddingFriend, setIsAddingFriend] = useState<boolean>(false);
   const [isProcessingRequest, setIsProcessingRequest] = useState<boolean>(false);
@@ -92,9 +89,7 @@ export default function FriendsScreen() {
           setUniqueKittyHash(kittyHash);
         }
 
-        setUserLevel(KittyStats.calculateLevel(user?.level ?? 1, user?.xp ?? 0));
         setLevelProgress(KittyStats.calculateLevelProgress(user?.level ?? 1, user?.xp ?? 0));
-        setNextLevelXP(KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0));
 
         // Load friends and pending requests from Supabase
         await Promise.all([
@@ -477,7 +472,7 @@ export default function FriendsScreen() {
     } catch (error) {
       console.error('Error calculating user rank:', error);
     }
-  }, [friends, userLevel, userXp, user, uniqueKittyHash]);
+  }, [friends, user?.level, user?.xp, user, uniqueKittyHash]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -512,7 +507,7 @@ export default function FriendsScreen() {
                 style={styles.catImage}
               />
               <View style={styles.statsInfo}>
-                <Text style={styles.statsTitle}>Level {userLevel} Kitty</Text>
+                <Text style={styles.statsTitle}>Level {user?.level ?? 1} Kitty</Text>
                 <View style={styles.currencyRow}>
                   <View style={styles.currencyItem}>
                     <View style={styles.coinIconWrapper}>
@@ -534,7 +529,7 @@ export default function FriendsScreen() {
                       ]} 
                     />
                   </View>
-                  <Text style={styles.xpText}>{user?.xp ?? 0}/{KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0)} XP to Level {kittyLevel + 1}</Text>
+                  <Text style={styles.xpText}>{KittyStats.calculateCurrentLevelDisplayXP(user?.level ?? 1, user?.xp ?? 0 )}/{KittyStats.calculateTotalLevelDisplayXP(user?.level ?? 1)} XP to Level {(user?.level ?? 1) + 1}</Text>
                   </View>
               </View>
             </View>

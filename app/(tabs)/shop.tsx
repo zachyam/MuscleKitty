@@ -37,11 +37,8 @@ type ShopItem = {
 export default function ShopScreen() {
   const { user, setUser, addCoins, addXP, updateUserAttributes } = useUser();
   const [showConfetti, setShowConfetti] = useState(false);
-  const [totalXP, setTotalXP] = useState(user?.xp || 0);
   const [totalCoins, setTotalCoins] = useState(user?.coins || 0);
-  const [kittyLevel, setKittyLevel] = useState(user?.level || 1);
   const [levelProgress, setLevelProgress] = useState(0); // 0-100%
-  const [nextLevelXP, setNextLevelXP] = useState(0);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'food' | 'toy'>('food');
@@ -66,10 +63,8 @@ export default function ShopScreen() {
 
   // Calculate level, progress, and XP needed for next level using kittyStats utility
   useEffect(() => {
-    setKittyLevel(KittyStats.calculateLevel(user?.level ?? 1, user?.xp ?? 0));
     setLevelProgress(KittyStats.calculateLevelProgress(user?.level ?? 1, user?.xp ?? 0));
-    setNextLevelXP(KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0));
-  }, [totalXP]);
+  }, [user?.level, user?.xp]);
   
   // Shop items data
   const shopItems: ShopItem[] = [
@@ -251,12 +246,11 @@ export default function ShopScreen() {
     if (selectedItem && totalCoins >= selectedItem.price) {
       await updateUserAttributes({
         coins: (user?.coins ?? 0) - selectedItem.price,
-        xp: KittyStats.calculateCurrentLevelXP(user?.level ?? 1, (user?.xp ?? 0) + selectedItem.xpReward),
-        level: KittyStats.calculateLevel(user?.level ?? 1, (user?.xp ?? 0) + selectedItem.xpReward)
+        xp: (user?.xp ?? 0) + selectedItem.xpReward,
+        level: KittyStats.calculateLevel((user?.xp ?? 0) + selectedItem.xpReward)
       });
       
       // Update local state
-      setTotalXP(prevXP => prevXP + selectedItem.xpReward);
       setTotalCoins(prevCoins => prevCoins - selectedItem.price);
       
       // Show confetti and XP popup
@@ -341,7 +335,7 @@ export default function ShopScreen() {
             style={styles.catImage}
           />
           <View style={styles.statsInfo}>
-            <Text style={styles.statsTitle}>Level {kittyLevel} Kitty</Text>
+            <Text style={styles.statsTitle}>Level {user?.level ?? 1} Kitty</Text>
             <View style={styles.currencyRow}>
               <View style={styles.currencyItem}>
                 <View style={styles.coinIconWrapper}>
@@ -363,8 +357,9 @@ export default function ShopScreen() {
                   ]} 
                 />
               </View>
-              <Text style={styles.xpText}>{user?.xp ?? 0}/{KittyStats.calculateNextLevelXP(user?.level ?? 1, user?.xp ?? 0)} XP to Level {kittyLevel + 1}</Text>
             </View>
+            <Text style={styles.xpText}>{KittyStats.calculateCurrentLevelDisplayXP(user?.level ?? 1, user?.xp ?? 0 )}/{KittyStats.calculateTotalLevelDisplayXP(user?.level ?? 1)} XP to Level {(user?.level ?? 1) + 1}</Text>
+
           </View>
         </View>
         
@@ -386,6 +381,9 @@ export default function ShopScreen() {
           
           <View style={styles.shopBox}>
             <FlatList
+              initialNumToRender={6}
+              maxToRenderPerBatch={9}
+              windowSize={5}
               data={shopItems.filter(item => item.category === activeTab)}
               keyExtractor={item => item.id}
               renderItem={renderShopItemGrid}

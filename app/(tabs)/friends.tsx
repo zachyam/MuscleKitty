@@ -56,7 +56,7 @@ export default function FriendsScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [addFriendModalVisible, setAddFriendModalVisible] = useState(false);
   const [userRank, setUserRank] = useState<number>(1);
-  const [userXp, setUserXp] = useState<number>(0);
+  const [userXp, setUserXp] = useState<number>(10);
   const [uniqueKittyHash, setUniqueKittyHash] = useState<string>("");
   const [levelProgress, setLevelProgress] = useState(0); // 0-100%
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -128,7 +128,7 @@ export default function FriendsScreen() {
         kittyName: profile.kittyName || "Unknown Kitty",
         avatar: profile.kittyBreed ? KITTY_IMAGES[profile.kittyBreed] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
-        xp: profile.xp || 0,
+        xp: profile.xp || 10,
         kittyHash: profile.kittyHash || "",
         kittyBreed: profile.kittyBreed || "Unknown",
         status: FriendshipStatus.PENDING,
@@ -163,7 +163,7 @@ export default function FriendsScreen() {
         fullName: profile.fullName || "Unknown Kitty",
         avatar: profile.kittyBreed ? KITTY_IMAGES[profile.kittyBreed] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
-        xp: profile.xp || 0,
+        xp: profile.xp || 10,
         kittyHash: profile.kittyHash || "",
         kittyBreed: profile.kittyBreed || "Unknown",
         userId: profile.userId  // Include userId for API operations
@@ -176,7 +176,7 @@ export default function FriendsScreen() {
         fullName: user.fullName || "You",
         avatar: user.avatarUrl || "",
         level: user.level || 1,
-        xp: user.xp || 0,
+        xp: user.xp || 10,
         kittyHash: uniqueKittyHash,
         kittyBreed: user.kittyBreed || "Unknown"
       }];

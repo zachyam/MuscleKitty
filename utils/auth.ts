@@ -44,7 +44,7 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
         updatedUser = {
           ...updatedUser,
           coins: profileData.coins ?? updatedUser.coins ?? 0,
-          xp: profileData.xp ?? updatedUser.xp ?? 0,
+          xp: profileData.xp ?? updatedUser.xp ?? 10,
           level: profileData.level ?? updatedUser.level ?? 1,
           kittyName: profileData.kittyName ?? profileData.kitty_name,
           hasCompletedOnboarding: true,

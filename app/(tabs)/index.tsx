@@ -265,8 +265,8 @@ function WorkoutPlansScreen() {
         const { setUser } = useContext(UserContext);
         setUser({
           ...user,
-          coins: user.coins ?? 50,
-          xp: user.xp ?? 0,
+          coins: user.coins ?? 0,
+          xp: user.xp ?? 10,
           level: user.level ?? 1
         });
       }

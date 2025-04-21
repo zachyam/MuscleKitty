@@ -125,8 +125,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
           const updatedUser = { 
             ...user,
             hasCompletedOnboarding: true,
-            coins: profileData.coins ?? user.coins ?? 50,
-            xp: profileData.xp ?? user.xp ?? 0,
+            coins: profileData.coins ?? user.coins ?? 0,
+            xp: profileData.xp ?? user.xp ?? 10,
             level: profileData.level ?? user.level ?? 1,
             kittyName: profileData.kittyName ?? profileData.kitty_name ?? user.kittyName,
           };
@@ -160,8 +160,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
           try {
             console.log('Creating profile in Supabase for existing user who completed onboarding');
             await updateUserProfile(userId, {
-              coins: user.coins ?? 50,
-              xp: user.xp ?? 0,
+              coins: user.coins ?? 0,
+              xp: user.xp ?? 10,
               level: user.level ?? 1, 
               kittyName: user.kittyName,
             });
@@ -217,8 +217,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         hasCompletedOnboarding: true,
         avatarUrl,
         kittyName: kittyName || user.kittyName || '',
-        coins: user.coins || 50, // Start with 50 coins
-        xp: user.xp || 0,    // Start with 0 XP
+        coins: user.coins || 0, // Start with 0 coins
+        xp: user.xp || 10,    // Start with 10 XP
         level: user.level || 1, // Start at level 1
         fullName: user.fullName || '',
       };
@@ -266,8 +266,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
           
           // Ensure userData has coins, xp, and level properties (for existing users)
           if (userData.hasCompletedOnboarding) {
-            userData.coins = userData.coins ?? 50; // Default to 50 coins if not present
-            userData.xp = userData.xp ?? 0;       // Default to 0 XP if not present
+            userData.coins = userData.coins ?? 0; // Default to 0 coins if not present
+            userData.xp = userData.xp ?? 10;       // Default to 10 XP if not present
             userData.level = userData.level ?? 1;  // Default to level 1 if not present
             userData.fullName = userData.fullName || '';
           }
@@ -327,8 +327,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
             
             // Ensure currentUser has coins, xp, and level properties (for existing users)
             if (currentUser.hasCompletedOnboarding) {
-              currentUser.coins = currentUser.coins ?? 50; // Default to 50 coins if not present
-              currentUser.xp = currentUser.xp ?? 0;        // Default to 0 XP if not present
+              currentUser.coins = currentUser.coins ?? 0; // Default to 0 coins if not present
+              currentUser.xp = currentUser.xp ?? 10;        // Default to 10 XP if not present
               currentUser.level = currentUser.level ?? 1;  // Default to level 1 if not present
               currentUser.fullName = currentUser.fullName || '';
             }
@@ -391,7 +391,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (!user) return;
     
     try {
-      const currentXP = user.xp || 0;
+      const currentXP = user.xp || 10;
       const currentLevel = user.level || 1;
       
       // Calculate new XP and level using the kittyStats utility

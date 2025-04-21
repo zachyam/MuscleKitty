@@ -27,7 +27,7 @@ export interface FriendProfile {
   userId?: string;
   fullName: string;
   kittyName?: string;
-  kittyBreed?: string;
+  kittyBreedId?: string;
   createdAt?: string;
   updatedAt?: string;
   status?: FriendshipStatus; // Alias for friendship_status for app use
@@ -38,7 +38,7 @@ export const registerKittyProfile = async (
   userId: string,
   fullName: string,
   kittyName: string,
-  kittyBreed: string,
+  kittyBreedId: string,
   kittyHash: string
 ): Promise<boolean> => {
   try {
@@ -61,7 +61,7 @@ export const registerKittyProfile = async (
         .update({
           kitty_name: kittyName,
           full_name: fullName,
-          kitty_breed: kittyBreed,
+          kitty_breed_id: kittyBreedId,
           kitty_hash: kittyHash,
           updated_at: new Date().toISOString()
         })
@@ -76,7 +76,7 @@ export const registerKittyProfile = async (
           user_id: userId,
           kitty_name: kittyName,
           full_name: fullName,
-          kitty_breed: kittyBreed,
+          kitty_breed_id: kittyBreedId,
           kitty_hash: kittyHash,
           level,
           xp,
@@ -119,6 +119,36 @@ export const updateKittyName = async (
   }
 };
 
+// Update kitty breed in the profile
+export const updateKittyBreed = async (
+  userId: string,
+  kittyBreedId: string
+): Promise<boolean> => {
+  try {
+    console.log(`Updating kitty breed for user ${userId} to ${kittyBreedId}`);
+    
+    // Update existing breed only
+    const { error } = await supabase
+      .from('kitty_profiles')
+      .update({
+        kitty_breed_id: kittyBreedId, // This is the database column name
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error('Error in updateKittyBreed:', error);
+      throw error;
+    }
+    
+    console.log('Kitty breed updated successfully in database');
+    return true;
+  } catch (error) {
+    console.error('Error updating kitty breed:', error);
+    return false;
+  }
+};
+
 // Update a kitty's level and XP
 export const updateKittyStats = async (userId: string, level: number, xp: number): Promise<boolean> => {
   try {
@@ -155,9 +185,10 @@ export const getFriendProfileByHash = async (kittyHash: string): Promise<FriendP
       data.kittyHash = data.kitty_hash;
       data.userId = data.user_id;
       data.kittyName = data.kitty_name;
-      data.kittyBreed = data.kitty_breed;
+      data.kittyBreedId = data.kitty_breed_id; // This is the one we care about most
       data.createdAt = data.created_at;
       data.updatedAt = data.updated_at;
+      console.log(`Mapped kitty profile with breed ID: ${data.kittyBreedId}`);
     }
     
     return data;
@@ -415,11 +446,12 @@ export const getFriendProfiles = async (userId: string): Promise<FriendProfile[]
         profile.kittyName = profile.kitty_name;
         profile.fullName = profile.full_name;
         profile.name = profile.name;
-        profile.kittyBreed = profile.kitty_breed;
+        profile.kittyBreedId = profile.kitty_breed_id;
         profile.createdAt = profile.created_at;
         profile.updatedAt = profile.updated_at;
         // Set status to accepted for these profiles
         profile.status = profile.friendship_status || FriendshipStatus.ACCEPTED;
+        console.log(`Friend mapped with kittyBreedId: ${profile.kittyBreedId}`);
       }
     }
     
@@ -478,11 +510,12 @@ export const getPendingFriendRequests = async (userId: string): Promise<FriendPr
         profile.userId = profile.user_id;
         profile.kittyName = profile.kitty_name;
         profile.fullName = profile.full_name;
-        profile.kittyBreed = profile.kitty_breed;
+        profile.kittyBreedId = profile.kitty_breed_id;
         profile.createdAt = profile.created_at;
         profile.updatedAt = profile.updated_at;
         // Set status to pending for these profiles
         profile.status = profile.friendship_status || FriendshipStatus.PENDING;
+        console.log(`Friend request mapped with kittyBreedId: ${profile.kittyBreedId}`);
       }
     }
     

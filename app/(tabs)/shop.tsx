@@ -331,8 +331,15 @@ export default function ShopScreen() {
       <View style={styles.content}>
         <View style={styles.statsContainer}>
           <Image 
-            source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
+            source={user?.avatarUrl 
+              ? (typeof user.avatarUrl === 'string' 
+                 ? { uri: user.avatarUrl } 
+                 : user.avatarUrl) 
+              : user?.kittyBreedId 
+                ? KITTY_IMAGES[user.kittyBreedId] 
+                : KITTY_IMAGES['0']}
             style={styles.catImage}
+            onError={() => console.log('Failed to load avatar image in Shop')}
           />
           <View style={styles.statsInfo}>
             <Text style={styles.statsTitle}>Level {user?.level ?? 1} Kitty</Text>

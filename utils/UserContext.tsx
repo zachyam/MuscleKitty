@@ -5,15 +5,7 @@ import { supabase } from './supabase';
 import { updateUserProfile } from './supabase';
 import { User, KittyProfile } from '@/types';
 import * as KittyStats from './kittyStats';
-
-// Kitty images mapping for avatar selection
-const KITTY_IMAGES: Record<string, any> = {
-  '1': require('@/assets/images/munchkin.png'),
-  '2': require('@/assets/images/orange-tabby.png'),
-  '3': require('@/assets/images/russian-blue.png'),
-  '4': require('@/assets/images/calico.png'),
-  '5': require('@/assets/images/maine-coon.png'),
-};
+import { KITTY_IMAGES } from '@/app/name-kitty';
 
 // Create context
 type UserContextType = {
@@ -64,18 +56,36 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
     xp?: number;
     level?: number;
     kittyName?: string;
-    kittyBreed?: string;
+    kittyBreedId?: string;
     fullName?: string;
     [key: string]: any;
   }) => {
     if (!user) return null;
+    
+    // If kittyBreedId is being updated, also update the avatarUrl
+    if (updates.kittyBreedId !== undefined && KITTY_IMAGES[updates.kittyBreedId]) {
+      updates.avatarUrl = KITTY_IMAGES[updates.kittyBreedId];
+      console.log('Updated avatarUrl based on kittyBreedId:', updates.kittyBreedId);
+    }
+    
     const updatedUser = { ...user, ...updates };
+    
     setUser(updatedUser);
     await saveUserToStorage(updatedUser);
     
     // Single database update with all changes
     console.log('Updating user in context updateUserAttributes:', updatedUser);
-    await updateUserProfile(user.id, updates);
+    
+    // Convert camelCase to snake_case for database
+    const dbUpdates: any = {};
+    if (updates.kittyName !== undefined) dbUpdates.kitty_name = updates.kittyName;
+    if (updates.kittyBreedId !== undefined) dbUpdates.kitty_breed_id = updates.kittyBreedId;
+    if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+    if (updates.coins !== undefined) dbUpdates.coins = updates.coins;
+    if (updates.xp !== undefined) dbUpdates.xp = updates.xp;
+    if (updates.level !== undefined) dbUpdates.level = updates.level;
+    
+    await updateUserProfile(user.id, dbUpdates);
     
     return updatedUser;
   };

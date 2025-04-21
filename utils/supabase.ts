@@ -663,12 +663,12 @@ export const getCompleteWorkoutLogData = async (workoutLogId: string): Promise<a
  * @param userData Partial user data to update
  * @returns Success status and any error
  */
-export const updateUserProfile = async (userId: string, userData: { 
+export const updateUserProfile = async (userId: string, userData: {
   coins?: number;
   xp?: number; 
   level?: number;
-  kittyName?: string;
-  kittyBreed?: string;
+  kitty_name?: string;
+  kitty_breed_id?: string;
   [key: string]: any;
 }) => {
   try {
@@ -719,7 +719,7 @@ export const updateUserProfile = async (userId: string, userData: {
       
       // Determine which field to use for matching
       const matchField = profileById ? 'id' : 'user_id';
-      
+      console.log('updateData', updateData)
       result = await supabase
         .from('kitty_profiles')
         .update(updateData)

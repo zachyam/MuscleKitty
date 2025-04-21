@@ -287,9 +287,12 @@ export const getCurrentUser = async (): Promise<User | null> => {
     const user: User = {
       id: data.user.id,
       email: data.user.email || '',
-      name: data.user.user_metadata?.name,
-      avatarUrl: data.user.user_metadata?.avatar_url,
+      fullName: data.user.user_metadata?.full_name || data.user.user_metadata?.name || '',
+      kittyBreedId: data.user.user_metadata?.kittyBreedId, // Try to get kittyBreedId from metadata
     };
+    
+    // Don't use the social media avatar_url directly - our app uses the kitty image
+    // based on kittyBreedId instead
     
     return user;
   } catch (error) {

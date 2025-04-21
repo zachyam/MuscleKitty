@@ -3,15 +3,7 @@ import { supabase } from './supabase';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Kitty images mapping for avatar selection
-const KITTY_IMAGES: Record<string, any> = {
-  '1': require('@/assets/images/munchkin.png'),
-  '2': require('@/assets/images/orange-tabby.png'),
-  '3': require('@/assets/images/russian-blue.png'),
-  '4': require('@/assets/images/calico.png'),
-  '5': require('@/assets/images/maine-coon.png'),
-};
+import { KITTY_IMAGES } from '@/app/name-kitty';
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
 const KITTY_NAME_KEY = 'muscle_kitty_name';

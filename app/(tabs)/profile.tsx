@@ -8,6 +8,7 @@ import { useFocusEffect } from 'expo-router';
 import Header from '@/components/Header';
 import { logout } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
+import { KITTY_ID_TO_BREED, KITTY_IMAGES } from '@/app/name-kitty';
 import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
@@ -18,17 +19,21 @@ import FancyAlert from '@/components/FancyAlert';
 
 // Storage keys - must match those used elsewhere in the app
 const KITTY_NAME_KEY = 'muscle_kitty_name';
+const KITTY_BREED_ID_KEY = 'muscle_kitty_breed_id';
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
 const USER_STORAGE_KEY = 'muscle_kitty_user_data';
 
 export default function ProfileScreen() {
   // Get user data and the setUser function from context
-  const { user, setUser } = useUser();
+  const { user, setUser, updateUserAttributes } = useUser();
   const [kittyName, setKittyName] = useState<string>('');
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [kittyBreed, setKittyBreed] = useState<string>('');
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [newKittyName, setNewKittyName] = useState('');
+  const [newKittyBreed, setNewKittyBreed] = useState('');
   const [changeKittyBreed, setChangeKittyBreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workoutStats, setWorkoutStats] = useState({
@@ -67,20 +72,37 @@ export default function ProfileScreen() {
   
   // Refresh avatar when profile screen loads
   useEffect(() => {
-    const updateAvatar = async () => {
-      if (user) {
+    const loadKittyAvatar = async () => {
+      if (user?.id) {
         try {
-          // Use the abstracted function from loadStats
-          const { refreshAvatar } = await import('@/utils/loadStats');
-          refreshAvatar(user, setUser);
+          
+          const breedId = user.kittyBreedId
+          
+          // Get from AsyncStorage if not in user object
+          if (!breedId) {
+            const userKittyBreedIdKey = `${KITTY_BREED_ID_KEY}_${user.id}`;
+            const storedKittyBreedId = await AsyncStorage.getItem(userKittyBreedIdKey);
+            if (storedKittyBreedId) {
+              setSelectedKittyIndex(parseInt(storedKittyBreedId));
+              setAvatarUrl(KITTY_IMAGES[storedKittyBreedId]);
+              setKittyBreed(KITTY_ID_TO_BREED[storedKittyBreedId] || '');
+              console.log('Using kitty breed from AsyncStorage:', storedKittyBreedId);
+            }
+          } else {
+            // Use the breed ID from user object
+            console.log('Using kitty breed from user object:', breedId);
+            setSelectedKittyIndex(parseInt(breedId));
+            setAvatarUrl(KITTY_IMAGES[breedId]);
+            setKittyBreed(KITTY_ID_TO_BREED[breedId] || '');
+          }
         } catch (error) {
-          console.error('Error refreshing avatar:', error);
+          console.error('Error loading kitty breed:', error);
         }
       }
     };
     
-    updateAvatar();
-  }, [user?.id]); // Only run when user ID changes
+    loadKittyAvatar();
+  }, [user?.id]);
 
   // Load workout logs
   useFocusEffect(
@@ -199,10 +221,56 @@ export default function ProfileScreen() {
   };
 
   // Handle change kitty breed
-  const handleChangeKittyBreed = async () => {
-    console.log('User is adopting kitty:', selectedKitty.breed);
-    setChangeKittyBreed(false);
-  }
+  const handleSaveKittyBreed = async () => {
+    if (!user?.id) return;
+    console.log('Saving kitty breed:', selectedKitty.breed);
+    try {
+      setIsSubmitting(true);
+      
+      // Store the new kitty breed in AsyncStorage
+      const userKittyBreedIdKey = `${KITTY_BREED_ID_KEY}_${user.id}`;
+      await AsyncStorage.setItem(userKittyBreedIdKey, selectedKittyIndex.toString());
+      
+      // Update Supabase user metadata
+      const { error: userUpdateError } = await supabase.auth.updateUser({
+        data: { 
+          kittyBreed: KITTY_ID_TO_BREED[selectedKittyIndex],
+          kittyBreedId: selectedKittyIndex.toString(), // Add this to keep user metadata consistent
+        }
+      });
+      
+      if (userUpdateError) {
+        console.error('Error updating user metadata:', userUpdateError);
+      }
+      
+      // Update kitty profile in Supabase for friend search
+      const { updateKittyBreed } = await import('@/utils/friends');
+      await updateKittyBreed(
+        user.id,
+        selectedKittyIndex.toString()
+      );
+
+      console.log('Updating user attributes with kittyBreedId:', selectedKittyIndex.toString());
+      await updateUserAttributes({
+        kittyBreedId: selectedKittyIndex.toString() // Use kittyBreedId instead of kitty_breed_id
+      });
+      
+      // Update local state
+      setKittyBreed(selectedKitty.breed);
+      setAvatarUrl(KITTY_IMAGES[selectedKittyIndex]);
+      
+      // Close modal and reset
+      setShowNameModal(false);
+      setNewKittyBreed('');
+      setIsSubmitting(false);
+      setChangeKittyBreed(false);
+    } catch (error) {
+      console.error('Error saving new kitty breed:', error);
+      setShowAlert(true);
+      setAlertMessage("There was a problem updating your kitty's breed. Please try again.");
+      setIsSubmitting(false);
+    }
+  };
 
   // Handle account deletion
   const handleDeleteAccount = () => {
@@ -353,8 +421,16 @@ export default function ProfileScreen() {
             setSelectedKittyIndex={setSelectedKittyIndex}
           />
 
-          <TouchableOpacity style={styles.adoptButton} onPress={handleChangeKittyBreed}>
-            <Text style={styles.adoptButtonText}>Adopt</Text>
+          <TouchableOpacity 
+            style={[styles.adoptButton, isSubmitting && styles.disabledButton]} 
+            onPress={handleSaveKittyBreed}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <Text style={styles.adoptButtonText}>Adopt</Text>
+            )}
           </TouchableOpacity>
         </View>
       ) : (
@@ -462,7 +538,7 @@ export default function ProfileScreen() {
 
           <View style={styles.profileHeader}>
               <Image 
-                source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
+                source={avatarUrl}
                 style={styles.profileImage}
               />
               <Text style={styles.profileName}>{kittyName || ''}</Text>

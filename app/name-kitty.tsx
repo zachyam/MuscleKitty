@@ -26,21 +26,21 @@ import { registerKittyProfile } from '@/utils/friends';
 import FancyAlert from '@/components/FancyAlert';
 
 // Kitty images mapping for avatar selection
-const KITTY_IMAGES: Record<string, any> = {
-  '1': require('@/assets/images/munchkin.png'),
-  '2': require('@/assets/images/orange-tabby.png'),
-  '3': require('@/assets/images/russian-blue.png'),
-  '4': require('@/assets/images/calico.png'),
-  '5': require('@/assets/images/maine-coon.png'),
+export const KITTY_IMAGES: Record<string, any> = {
+  '0': require('@/assets/images/munchkin.png'),
+  '1': require('@/assets/images/orange-tabby.png'),
+  '2': require('@/assets/images/russian-blue.png'),
+  '3': require('@/assets/images/calico.png'),
+  '4': require('@/assets/images/maine-coon.png'),
 };
 
 // Map kitty ID to breed name
-const KITTY_BREEDS: Record<string, string> = {
-  '1': 'Munchkin',
-  '2': 'Orange Tabby',
-  '3': 'Russian Blue',
-  '4': 'Calico',
-  '5': 'Maine Coon',
+export const KITTY_ID_TO_BREED: Record<string, string> = {
+  '0': 'Munchkin',
+  '1': 'Orange Tabby',
+  '2': 'Russian Blue',
+  '3': 'Calico',
+  '4': 'Maine Coon',
 };
 
 const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
@@ -207,15 +207,12 @@ export default function NameKittyScreen() {
         console.log("User Kitty Unique Hash key:", kittyHashKey);
         console.log("User Kitty Unique Hash:", kittyHashString);
         
-        // Get the kitty breed name
-        const kittyBreed = KITTY_BREEDS[kittyId] || 'Unknown';
-        
         // Register kitty profile in Supabase for friend search
         await registerKittyProfile(
           user.id,
           user.fullName || "Unknown Kitty",
           kittyName.trim(),
-          kittyBreed,
+          kittyId,
           kittyHashString
         );
         
@@ -225,7 +222,7 @@ export default function NameKittyScreen() {
             kittyName: kittyName.trim(),
             fullName: user.fullName || "Unknown Kitty",
             kittyId: kittyId,
-            kittyBreed: kittyBreed,
+            kittyBreedId: kittyId,
             kittyHash: kittyHashString
           }
         });

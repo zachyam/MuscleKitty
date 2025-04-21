@@ -13,7 +13,7 @@ type AdoptKittyScreenComponentsProp = {
 // Predefined kitty profiles
 export const KITTY_PROFILES = [
     {
-      id: '1',
+      id: '0',
       breed: 'Munchkin',
       image: require('@/assets/images/munchkin.png'), // Used for display in this screen
       personality: 'Playful, Outgoing, Sociable 🤠',
@@ -21,7 +21,7 @@ export const KITTY_PROFILES = [
       favoriteFood: 'Tuna 🍣',
     },
     {
-      id: '2',
+      id: '1',
       breed: 'Orange Tabby',
       image: require('@/assets/images/orange-tabby.png'),
       personality: 'Friendly, Affectionate, Intelligent 🧘',
@@ -29,7 +29,7 @@ export const KITTY_PROFILES = [
       favoriteFood: 'Salmon 🐟',
     },
     {
-      id: '3',
+      id: '2',
       breed: 'Russian Blue',
       image: require('@/assets/images/russian-blue.png'),
       personality: 'Sweet, Loyal, Sensitive 🦁',
@@ -37,7 +37,7 @@ export const KITTY_PROFILES = [
       favoriteFood: 'Chicken 🍗',
     },
     {
-      id: '4',
+      id: '3',
       breed: 'Calico',
       image: require('@/assets/images/calico.png'),
       personality: 'Thoughtful, Curious, Playful 🤓',
@@ -45,7 +45,7 @@ export const KITTY_PROFILES = [
       favoriteFood: 'Beef 🌮',
     },
     {
-      id: '5',
+      id: '4',
       breed: 'Maine Coon',
       image: require('@/assets/images/maine-coon.png'),
       personality: 'Smart, Active, Quirky 🦁',

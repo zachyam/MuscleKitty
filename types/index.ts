@@ -50,7 +50,7 @@ export type User = {
   avatarUrl?: string;
   hasCompletedOnboarding?: boolean;
   kittyName?: string;
-  kittyBreed?: string;
+  kittyBreedId?: string;
   coins?: number;
   xp?: number;
   level?: number;

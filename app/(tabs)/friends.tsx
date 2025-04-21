@@ -22,6 +22,7 @@ import {
 } from '@/utils/friends';
 import * as KittyStats from '@/utils/kittyStats';
 import FancyAlert from '@/components/FancyAlert';
+import { KITTY_IMAGES } from '@/app/name-kitty';
 
 // Define the Friend type that includes what we get from the server
 interface Friend {
@@ -37,16 +38,6 @@ interface Friend {
   status?: FriendshipStatus;
   userId?: string;  // The DB user_id, needed for friend request operations
 }
-
-// Map kitty type to avatar image
-const KITTY_IMAGES: Record<string, any> = {
-  'Munchkin': require('@/assets/images/munchkin.png'),
-  'Orange Tabby': require('@/assets/images/orange-tabby.png'),
-  'Russian Blue': require('@/assets/images/russian-blue.png'),
-  'Calico': require('@/assets/images/calico.png'),
-  'Maine Coon': require('@/assets/images/maine-coon.png'),
-  'Unknown': 'https://via.placeholder.com/100?text=K'
-};
 
 export default function FriendsScreen() {
   const { user } = useUser();
@@ -161,11 +152,11 @@ export default function FriendsScreen() {
         id: profile.id,
         kittyName: profile.kittyName || "Unknown Kitty",
         fullName: profile.fullName || "Unknown Kitty",
-        avatar: profile.kittyBreed ? KITTY_IMAGES[profile.kittyBreed] : KITTY_IMAGES.Unknown,
+        avatar: profile.kittyBreedId ? KITTY_IMAGES[profile.kittyBreedId] : KITTY_IMAGES.Unknown,
         level: profile.level || 1,
         xp: profile.xp || 10,
         kittyHash: profile.kittyHash || "",
-        kittyBreed: profile.kittyBreed || "Unknown",
+        kittyBreedId: profile.kittyBreedId || "Unknown",
         userId: profile.userId  // Include userId for API operations
       }));
 
@@ -178,7 +169,7 @@ export default function FriendsScreen() {
         level: user.level || 1,
         xp: user.xp || 10,
         kittyHash: uniqueKittyHash,
-        kittyBreed: user.kittyBreed || "Unknown"
+        kittyBreedId: user.kittyBreedId || "Unknown"
       }];
       
       // Sort and assign ranks
@@ -463,7 +454,7 @@ export default function FriendsScreen() {
           level: user.level || 1, 
           xp: user.xp || 0,
           kittyHash: uniqueKittyHash,
-          kittyBreed: user.kittyBreed || "Unknown"
+          kittyBreedId: user.kittyBreedId || "Unknown"
         }
       ];
       const sorted = sortFriendsAndAssignRanks(allParticipants);
@@ -501,10 +492,15 @@ export default function FriendsScreen() {
                 </View>
               )}
               <Image
-                source={user?.avatarUrl ? 
-                  (typeof user.avatarUrl === 'string' ? { uri: user.avatarUrl } : user.avatarUrl) :
-                  { uri: `https://via.placeholder.com/100?text=You` }}
+                source={user?.avatarUrl 
+                  ? (typeof user.avatarUrl === 'string' 
+                     ? { uri: user.avatarUrl } 
+                     : user.avatarUrl) 
+                  : user?.kittyBreedId 
+                    ? KITTY_IMAGES[user.kittyBreedId] 
+                    : KITTY_IMAGES['0']}
                 style={styles.catImage}
+                onError={() => console.log('Failed to load avatar image in Friends')}
               />
               <View style={styles.statsInfo}>
                 <Text style={styles.statsTitle}>Level {user?.level ?? 1} Kitty</Text>

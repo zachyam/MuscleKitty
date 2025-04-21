@@ -1,0 +1,14 @@
+# Allowed HTTP methods
+allowed_http_methods = ["POST"]
+
+# Allowed request content types
+allowed_content_types = ["application/json"]
+
+# Import maps
+imports = {}
+
+# Set true to define the function as a service
+is_service = false
+
+# Set true to indicate that the function requires custom verification for the JWT token
+verify_jwt = false

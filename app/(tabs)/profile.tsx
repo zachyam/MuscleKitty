@@ -12,12 +12,14 @@ import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
 import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '@/utils/supabase';
+import { supabase, deleteSupabaseUser } from '@/utils/supabase';
 import AdoptKittyScreenComponents, { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
 import FancyAlert from '@/components/FancyAlert';
 
-// Kitty name storage key - must match the one in name-kitty.tsx
+// Storage keys - must match those used elsewhere in the app
 const KITTY_NAME_KEY = 'muscle_kitty_name';
+const SELECTED_KITTY_KEY = 'muscle_kitty_selected_mascot';
+const USER_STORAGE_KEY = 'muscle_kitty_user_data';
 
 export default function ProfileScreen() {
   // Get user data and the setUser function from context
@@ -202,6 +204,140 @@ export default function ProfileScreen() {
     setChangeKittyBreed(false);
   }
 
+  // Handle account deletion
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This will permanently delete all your data including your kitty, workouts, and friends. This action cannot be undone.\n\nNote: The auth user will only be fully deleted when the Edge Function is deployed.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Delete Account", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsSubmitting(true);
+              
+              if (!user?.id) {
+                throw new Error('User ID not found');
+              }
+              
+              // 1. Delete all workout logs and exercises for this user
+              const { data: workoutLogs, error: workoutLogsError } = await supabase
+                .from('workout_logs')
+                .select('id')
+                .eq('user_id', user.id);
+              
+              if (workoutLogsError) {
+                console.error('Error fetching workout logs:', workoutLogsError);
+              } else if (workoutLogs && workoutLogs.length > 0) {
+                // For each workout log, delete associated exercise logs
+                for (const log of workoutLogs) {
+                  await supabase
+                    .from('exercise_logs')
+                    .delete()
+                    .eq('workout_log_id', log.id);
+                }
+                
+                // Delete all workout logs
+                await supabase
+                  .from('workout_logs')
+                  .delete()
+                  .eq('user_id', user.id);
+              }
+              
+              // 2. Delete all workout plans and exercises for this user
+              const { data: workoutPlans, error: workoutPlansError } = await supabase
+                .from('workout_plans')
+                .select('id')
+                .eq('user_id', user.id);
+              
+              if (workoutPlansError) {
+                console.error('Error fetching workout plans:', workoutPlansError);
+              } else if (workoutPlans && workoutPlans.length > 0) {
+                // For each workout plan, delete associated exercises
+                for (const plan of workoutPlans) {
+                  await supabase
+                    .from('workout_exercises')
+                    .delete()
+                    .eq('workout_plan_id', plan.id);
+                }
+                
+                // Delete all workout plans
+                await supabase
+                  .from('workout_plans')
+                  .delete()
+                  .eq('user_id', user.id);
+              }
+              
+              // 3. Delete all friends relationships (bidirectional)
+              // First, get the user's kitty hash to find reverse relationships
+              const { data: userProfile } = await supabase
+                .from('kitty_profiles')
+                .select('kitty_hash')
+                .eq('user_id', user.id)
+                .single();
+              
+              if (userProfile?.kitty_hash) {
+                // Delete friendships where others have added this user
+                await supabase
+                  .from('friends')
+                  .delete()
+                  .eq('friend_kitty_hash', userProfile.kitty_hash);
+              }
+              
+              // Delete friendships where this user added others
+              await supabase
+                .from('friends')
+                .delete()
+                .eq('user_id', user.id);
+              
+              // 4. Delete kitty profile
+              await supabase
+                .from('kitty_profiles')
+                .delete()
+                .eq('user_id', user.id);
+              
+              // 5. Delete user data from local storage
+              const userKittyNameKey = `${KITTY_NAME_KEY}_${user.id}`;
+              const userKittyKey = `${SELECTED_KITTY_KEY}_${user.id}`;
+              const onboardingKey = `onboarding_completed_${user.id}`;
+              
+              await AsyncStorage.removeItem(userKittyNameKey);
+              await AsyncStorage.removeItem(userKittyKey);
+              await AsyncStorage.removeItem(onboardingKey);
+              await AsyncStorage.removeItem(USER_STORAGE_KEY);
+              
+              // 6. Delete the Supabase auth user using our Edge Function
+              const { success: deleteSuccess, error: deleteError } = await deleteSupabaseUser(user.id);
+              
+              if (deleteError) {
+                console.error('Error deleting auth user:', deleteError);
+                // Continue anyway to log the user out
+              }
+              
+              // 7. Log out the user and redirect to login screen
+              await logout();
+              setUser(null);
+              
+              // Navigate to login screen
+              router.replace('/login');
+              
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              setShowAlert(true);
+              setAlertMessage("There was a problem deleting your account. Please try again.");
+              setIsSubmitting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {showAlert && (
@@ -346,8 +482,21 @@ export default function ProfileScreen() {
                 <ActivityGraph workoutLogs={workoutLogs} />
               </View>
             </View>
-  
-          {/* <SafeAreaView style={styles.bottomSafeArea} edges={['bottom']} /> */}
+            
+            {/* Delete Account Button */}
+            <View style={styles.deleteAccountContainer}>
+              <TouchableOpacity 
+                style={styles.deleteAccountButton}
+                onPress={handleDeleteAccount}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
+                )}
+              </TouchableOpacity>
+            </View>
         </>
       )}
     </SafeAreaView>
@@ -575,5 +724,29 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     padding: 8,  // Add more padding around the icon for a better touch target
+  },
+  // Delete account button styles
+  deleteAccountContainer: {
+    padding: 20,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  deleteAccountButton: {
+    backgroundColor: Colors.error,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    width: '60%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  deleteAccountButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

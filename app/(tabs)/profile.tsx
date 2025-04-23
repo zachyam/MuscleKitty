@@ -252,7 +252,8 @@ export default function ProfileScreen() {
 
       console.log('Updating user attributes with kittyBreedId:', selectedKittyIndex.toString());
       await updateUserAttributes({
-        kittyBreedId: selectedKittyIndex.toString() // Use kittyBreedId instead of kitty_breed_id
+        kittyBreedId: selectedKittyIndex.toString(),
+        avatarUrl: KITTY_IMAGES[selectedKittyIndex]
       });
       
       // Update local state
@@ -538,7 +539,7 @@ export default function ProfileScreen() {
 
           <View style={styles.profileHeader}>
               <Image 
-                source={avatarUrl}
+                source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl}
                 style={styles.profileImage}
               />
               <Text style={styles.profileName}>{kittyName || ''}</Text>
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 9, // should be just under menuContainer’s 10
+    zIndex: 9, // should be just under menuContainer's 10
   },
   adoptButton: {
     backgroundColor: Colors.primary,

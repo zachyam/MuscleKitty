@@ -21,6 +21,7 @@ import CoinIcon from '@/components/CoinIcon';
 import FancyAlert from '@/components/FancyAlert';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import XpPopup from '@/components/XpPopup';
+import { KITTY_IMAGES } from '@/app/name-kitty';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -741,6 +742,15 @@ const styles = StyleSheet.create({
   modalCoinIcon: {
     fontSize: 16,
   },
+  modalDescription: {
+    fontSize: 14,
+    color: '#7A6348',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  bottomSafeArea: {
+    backgroundColor: '#FFFBEA',
+  },
   overlaysContainer: {
     position: 'absolute',
     top: 0,
@@ -749,5 +759,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 1000,
     pointerEvents: 'none',
-  }
+  },
+  miniCoinWrapper: {
+    marginRight: 4,
+  },
 });

@@ -22,19 +22,20 @@ import {
 } from '@/utils/friends';
 import * as KittyStats from '@/utils/kittyStats';
 import FancyAlert from '@/components/FancyAlert';
-import { KITTY_IMAGES } from '@/app/name-kitty';
+import { KITTY_IMAGES, KITTY_ID_TO_BREED } from '@/app/name-kitty';
 
 // Define the Friend type that includes what we get from the server
 interface Friend {
   id: string;
   fullName: string;
   kittyName: string;
-  avatar: string;
+  avatar: any; // Change type to any to accommodate both string and ImageSourcePropType
   level: number;
   xp: number;
   rank?: number;
   kittyHash: string;
-  kittyBreed: string;
+  kittyBreed?: string; // Make optional
+  kittyBreedId?: string; // Add this property to match what's in the database and user object
   status?: FriendshipStatus;
   userId?: string;  // The DB user_id, needed for friend request operations
 }
@@ -57,7 +58,7 @@ export default function FriendsScreen() {
   const [hasPendingRequests, setHasPendingRequests] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showAlertMessage, setShowAlertMessage] = useState("")
-  const [alertType, setAlertType] = useState('error')
+  const [alertType, setAlertType] = useState<'success' | 'error'>('error')
 
   // Load user data and friends on component mount
   useEffect(() => {
@@ -117,11 +118,12 @@ export default function FriendsScreen() {
         id: profile.id,
         fullName: profile.fullName || "Unknown Kitty",
         kittyName: profile.kittyName || "Unknown Kitty",
-        avatar: profile.kittyBreed ? KITTY_IMAGES[profile.kittyBreed] : KITTY_IMAGES.Unknown,
+        avatar: profile.kittyBreedId ? KITTY_IMAGES[profile.kittyBreedId] : KITTY_IMAGES['0'],
         level: profile.level || 1,
         xp: profile.xp || 10,
         kittyHash: profile.kittyHash || "",
-        kittyBreed: profile.kittyBreed || "Unknown",
+        kittyBreed: KITTY_ID_TO_BREED[profile.kittyBreedId || '0'] || "Unknown",
+        kittyBreedId: profile.kittyBreedId || "0",
         status: FriendshipStatus.PENDING,
         userId: profile.userId  // Make sure to include the userId for friend request handling
       }));
@@ -152,11 +154,12 @@ export default function FriendsScreen() {
         id: profile.id,
         kittyName: profile.kittyName || "Unknown Kitty",
         fullName: profile.fullName || "Unknown Kitty",
-        avatar: profile.kittyBreedId ? KITTY_IMAGES[profile.kittyBreedId] : KITTY_IMAGES.Unknown,
+        avatar: profile.kittyBreedId ? KITTY_IMAGES[profile.kittyBreedId] : KITTY_IMAGES['0'],
         level: profile.level || 1,
         xp: profile.xp || 10,
         kittyHash: profile.kittyHash || "",
-        kittyBreedId: profile.kittyBreedId || "Unknown",
+        kittyBreed: KITTY_ID_TO_BREED[profile.kittyBreedId || '0'] || "Unknown",
+        kittyBreedId: profile.kittyBreedId || "0",
         userId: profile.userId  // Include userId for API operations
       }));
 
@@ -165,11 +168,12 @@ export default function FriendsScreen() {
         id: user.id,
         kittyName: user.kittyName || "Kitty Name",
         fullName: user.fullName || "You",
-        avatar: user.avatarUrl || "",
+        avatar: user.avatarUrl || KITTY_IMAGES[user.kittyBreedId || '0'],
         level: user.level || 1,
         xp: user.xp || 10,
         kittyHash: uniqueKittyHash,
-        kittyBreedId: user.kittyBreedId || "Unknown"
+        kittyBreed: KITTY_ID_TO_BREED[user.kittyBreedId || '0'] || "Unknown",
+        kittyBreedId: user.kittyBreedId || "0"
       }];
       
       // Sort and assign ranks

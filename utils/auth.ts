@@ -32,20 +32,32 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
       if (profileData && !error) {
         console.log('Found user profile in Supabase:', profileData);
         
+        // Ensure we have the correct kitty breed ID
+        const kittyBreedId = profileData.kitty_breed_id;
+        
         // Update user with the latest database values
         updatedUser = {
           ...updatedUser,
           coins: profileData.coins ?? updatedUser.coins ?? 0,
           xp: profileData.xp ?? updatedUser.xp ?? 10,
           level: profileData.level ?? updatedUser.level ?? 1,
-          kittyName: profileData.kittyName ?? profileData.kitty_name,
+          kittyName: profileData.kitty_name ?? updatedUser.kittyName,
+          kittyBreedId: kittyBreedId,
           hasCompletedOnboarding: true,
         };
         
+        // Always update avatarUrl based on kittyBreedId from database
+        if (kittyBreedId && KITTY_IMAGES[kittyBreedId]) {
+          updatedUser.avatarUrl = KITTY_IMAGES[kittyBreedId];
+          console.log('Setting avatar from Supabase kittyBreedId:', kittyBreedId);
+          
+          // Update AsyncStorage with the latest kitty breed ID
+          await AsyncStorage.setItem(userKittyKey, kittyBreedId);
+        }
+        
         // If we have kitty data in Supabase, update AsyncStorage as well
-        if (profileData.kittyName || profileData.kitty_name) {
-          const kittyName = profileData.kittyName || profileData.kitty_name;
-          await AsyncStorage.setItem(userKittyNameKey, kittyName);
+        if (profileData.kitty_name) {
+          await AsyncStorage.setItem(userKittyNameKey, profileData.kitty_name);
         }
         
         console.log('Updated user with Supabase data:', updatedUser);
@@ -62,10 +74,11 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
     const kittyId = await AsyncStorage.getItem(userKittyKey);
     const kittyName = !updatedUser.kittyName ? await AsyncStorage.getItem(userKittyNameKey) : null;
     
-    // If we have a stored kitty ID, use the corresponding image
-    if (kittyId && KITTY_IMAGES[kittyId]) {
-      console.log(`Loading user ${user.id} avatar with kitty ID:`, kittyId);
+    // If we have a stored kitty ID and didn't get one from Supabase, use the corresponding image
+    if (kittyId && !updatedUser.kittyBreedId && KITTY_IMAGES[kittyId]) {
+      console.log(`Loading user ${user.id} avatar with kitty ID from AsyncStorage:`, kittyId);
       updatedUser.avatarUrl = KITTY_IMAGES[kittyId];
+      updatedUser.kittyBreedId = kittyId;
     }
     
     // If we have a stored kitty name and didn't get one from Supabase, add it to the user object
@@ -97,15 +110,15 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
 };
 
 // Login with OAuth (Google)
-export const loginWithSocialMedia = async (socialMediaProvider: String): Promise<AuthResponse> => {
+export const loginWithSocialMedia = async (socialMediaProvider: 'google' | 'github' | 'facebook'): Promise<AuthResponse> => {
   try {
     // Clear any existing session first to prevent issues
     await supabase.auth.signOut();
-    console.log('Starting {} login process...', socialMediaProvider);
+    console.log(`Starting ${socialMediaProvider} login process...`);
     
     // Get the URL from Supabase for OAuth
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: socialMediaProvider,
+      provider: socialMediaProvider as any,
       options: {
         redirectTo: Platform.OS === 'ios' 
           ? 'musclekitty://' 
@@ -137,7 +150,7 @@ export const loginWithSocialMedia = async (socialMediaProvider: String): Promise
       try {
         const url = new URL(result.url);
         const hashParams = url.hash.substring(1).split('&');
-        const params = {};
+        const params: Record<string, string> = {};
         
         hashParams.forEach(param => {
           const [key, value] = param.split('=');
@@ -201,7 +214,7 @@ export const loginWithSocialMedia = async (socialMediaProvider: String): Promise
       throw new Error('Authentication failed - No session created after redirect');
     }
   } catch (error) {
-    console.error('Error logging in with {}:', error, socialMedia);
+    console.error('Error logging in with:', socialMediaProvider);
     return { 
       user: {} as User, 
       token: '', 
@@ -213,6 +226,10 @@ export const loginWithSocialMedia = async (socialMediaProvider: String): Promise
 // Logout
 export const logout = async (): Promise<void> => {
   try {
+    // First get the current user to save their ID
+    const currentUser = await supabase.auth.getUser();
+    const userId = currentUser?.data?.user?.id;
+    
     // Sign out from Supabase
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -221,11 +238,29 @@ export const logout = async (): Promise<void> => {
     }
     
     // Clear user data from AsyncStorage
-    await AsyncStorage.removeItem('muscle_kitty_user_data');
+    await AsyncStorage.removeItem(USER_STORAGE_KEY);
     
-    // Don't clear the user-specific kitty selections
-    // This allows each user to keep their kitty choice even after logging out
+    // Clear any temporary cache that might be used across tabs
+    // This will force reloading fresh data when logging in again
+    if (userId) {
+      console.log('Cleaning up temporary avatar cache for user', userId);
+      // Create a backup of kitty settings under user-specific keys before logout
+      const userKittyKey = `${SELECTED_KITTY_KEY}_${userId}`;
+      const userKittyNameKey = `${KITTY_NAME_KEY}_${userId}`;
+      const kittyBreedId = await AsyncStorage.getItem(userKittyKey);
+      const kittyName = await AsyncStorage.getItem(userKittyNameKey);
+      
+      // Store these as backup values with a different prefix to avoid conflicts
+      if (kittyBreedId) {
+        await AsyncStorage.setItem(`backup_${userKittyKey}`, kittyBreedId);
+      }
+      if (kittyName) {
+        await AsyncStorage.setItem(`backup_${userKittyNameKey}`, kittyName);
+      }
+    }
     
+    // This ensures we don't use stale avatar data across different users
+    console.log('Logout complete, user data cleared from memory');
   } catch (error) {
     console.error('Error logging out:', error);
     throw error;
@@ -245,7 +280,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
     const user: User = {
       id: data.user.id,
       email: data.user.email || '',
-      name: data.user.user_metadata?.name,
+      fullName: data.user.user_metadata?.name,
       avatarUrl: data.user.user_metadata?.avatar_url,
     };
     

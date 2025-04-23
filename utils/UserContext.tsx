@@ -228,7 +228,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         avatarUrl,
         kittyName: kittyName || user.kittyName || '',
         coins: user.coins || 0, // Start with 0 coins
-        xp: user.xp || 10,    // Start with 10 XP
+        xp: user.xp || 10,    // Start with1 10 XP
         level: user.level || 1, // Start at level 1
         fullName: user.fullName || '',
       };

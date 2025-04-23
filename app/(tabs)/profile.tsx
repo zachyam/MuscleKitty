@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback }from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Modal, TextInput, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Settings, Calendar, Dumbbell, LogOut, Edit, X } from 'lucide-react-native';
+import { Settings, Calendar, Dumbbell, LogOut, Edit, X, PersonStanding, Cat } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useFocusEffect } from 'expo-router';
 import Header from '@/components/Header';
@@ -455,7 +455,7 @@ export default function ProfileScreen() {
                         setChangeKittyBreed(true);
                       }}
                     >
-                      <Edit size={18} color={Colors.text} style={styles.menuIcon} />
+                      <Cat size={18} color={Colors.text} style={styles.menuIcon} />
                       <Text style={styles.menuText}>Change Kitty Avatar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 

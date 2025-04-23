@@ -15,13 +15,6 @@ export const calculateLevel = (xp: number): number => {
 };
 
 /**
- * Calculate the XP needed to reach the next level from current level
- */
-export const calculateNextLevelXP = (currentLevel: number): number => {
-  return Math.pow(currentLevel + 1, 2) * 10;
-};
-
-/**
  * Calculate how much XP the user has accumulated in the current level
  */
 export const calculateCurrentLevelXP = (currentLevel: number): number => {
@@ -41,7 +34,7 @@ export const calculateCurrentLevelDisplayXP = (currentLevel: number, currentXP: 
 };
 
 export const calculateTotalLevelDisplayXP = (currentLevel: number): number => {
-  const nextLevelXP = calculateNextLevelXP(currentLevel);
+  const nextLevelXP = calculateCurrentLevelXP(currentLevel + 1);
   const currentLevelXP = calculateCurrentLevelXP(currentLevel);
   return nextLevelXP - currentLevelXP;
 };

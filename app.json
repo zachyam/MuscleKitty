@@ -11,10 +11,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "zachyam.MuscleKitty",
+      "buildNumber": "1.0.0",
       "associatedDomains": ["applinks:eanbeozedjxftwbgmvfn.supabase.co"]
     },
     "android": {
-      "package": "com.yourcompany.musclekitty",
+      "package": "com.zachyam.musclekitty",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#F5F9EE"

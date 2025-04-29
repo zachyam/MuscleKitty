@@ -16,14 +16,14 @@ module.exports = {
   ],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.yourcompany.musclekitty"
+    bundleIdentifier: "zachyam.MuscleKitty"
   },
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/images/icon.png",
       backgroundColor: "#F5F9EE"
     },
-    package: "com.yourcompany.musclekitty"
+    package: "zachyam.MuscleKitty"
   },
   web: {
     favicon: "./assets/images/favicon.png"
@@ -32,7 +32,7 @@ module.exports = {
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseKey: process.env.EXPO_PUBLIC_SUPABASE_KEY,
     eas: {
-      projectId: "your-eas-project-id"
+      projectId: "2e613563-a732-4584-a683-47acc719288c"
     }
   },
   scheme: "musclekitty",

@@ -3,7 +3,7 @@ import { Workout, WorkoutLog } from '@/types';
 
 const WORKOUTS_KEY = 'muscle_kitty_workouts';
 const WORKOUT_LOGS_KEY = 'muscle_kitty_workout_logs';
-
+const WORKOUT_IN_PROGRESS_KEY = 'muscle_kitty_workout_in_progress';
 
 
 // Workouts
@@ -189,5 +189,88 @@ export const getExerciseHistory = async (workoutId: string, exerciseId: string, 
   } catch (error) {
     console.error('Error getting exercise history:', error);
     return [];
+  }
+};
+
+// Workout in Progress
+interface WorkoutInProgress {
+  workoutLog: WorkoutLog;
+  startTime: string; // ISO string of when the workout was started
+}
+
+export const saveWorkoutInProgress = async (workoutLog: WorkoutLog): Promise<void> => {
+  try {
+    const workoutInProgress: WorkoutInProgress = {
+      workoutLog,
+      startTime: new Date().toISOString()
+    };
+    
+    await AsyncStorage.setItem(WORKOUT_IN_PROGRESS_KEY, JSON.stringify(workoutInProgress));
+    console.log('Saved workout in progress');
+  } catch (error) {
+    console.error('Error saving workout in progress:', error);
+  }
+};
+
+export const getWorkoutInProgress = async (): Promise<WorkoutInProgress | null> => {
+  try {
+    const json = await AsyncStorage.getItem(WORKOUT_IN_PROGRESS_KEY);
+    if (!json) return null;
+    
+    const workoutInProgress: WorkoutInProgress = JSON.parse(json);
+    
+    // Validate the workout in progress data
+    if (!workoutInProgress || !workoutInProgress.workoutLog || !workoutInProgress.startTime) {
+      console.log('Invalid workout in progress data, discarding it');
+      await clearWorkoutInProgress();
+      return null;
+    }
+    
+    // Check if workout is recent (less than 3 hours old)
+    const startTime = new Date(workoutInProgress.startTime);
+    const now = new Date();
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
+    
+    if (now.getTime() - startTime.getTime() > threeHoursInMs) {
+      // Workout is too old, clear it and return null
+      console.log('Workout in progress is older than 3 hours, discarding it');
+      await clearWorkoutInProgress();
+      return null;
+    }
+    
+    // Add validation for exercises and sets
+    if (!workoutInProgress.workoutLog.exercises || !Array.isArray(workoutInProgress.workoutLog.exercises)) {
+      console.log('Invalid exercises data in workout in progress, discarding it');
+      await clearWorkoutInProgress();
+      return null;
+    }
+    
+    // Filter out any invalid exercise logs
+    workoutInProgress.workoutLog.exercises = workoutInProgress.workoutLog.exercises.filter(exercise => {
+      return exercise && exercise.exerciseId && exercise.exerciseName && 
+             exercise.sets && Array.isArray(exercise.sets);
+    });
+    
+    // Filter out any invalid sets in each exercise
+    workoutInProgress.workoutLog.exercises.forEach(exercise => {
+      if (exercise.sets) {
+        exercise.sets = exercise.sets.filter(set => set && typeof set.setNumber === 'number');
+      }
+    });
+    
+    return workoutInProgress;
+  } catch (error) {
+    console.error('Error getting workout in progress:', error);
+    await clearWorkoutInProgress(); // Clear on error to prevent persistent errors
+    return null;
+  }
+};
+
+export const clearWorkoutInProgress = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(WORKOUT_IN_PROGRESS_KEY);
+    console.log('Cleared workout in progress');
+  } catch (error) {
+    console.error('Error clearing workout in progress:', error);
   }
 };

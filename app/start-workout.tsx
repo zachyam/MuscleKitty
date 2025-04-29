@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
 import Colors from '@/constants/Colors';
 import { getWorkoutById, saveWorkoutLog, getLatestWorkoutLog, getExerciseHistory } from '@/utils/storageAdapter';
+import { saveWorkoutInProgress, getWorkoutInProgress, clearWorkoutInProgress } from '@/utils/storage';
 import { Workout, WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
 import { UserContext, useUser } from '@/utils/UserContext';
@@ -17,7 +18,7 @@ import FancyAlert from '@/components/FancyAlert';
 // We'll rely on the server-generated ID from saveWorkoutLog instead
 
 export default function StartWorkoutScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, resumeWorkout } = useLocalSearchParams<{ id: string, resumeWorkout?: string }>();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>([]);
   const [previousWorkoutLog, setPreviousWorkoutLog] = useState<WorkoutLog | null>(null);
@@ -32,13 +33,35 @@ export default function StartWorkoutScreen() {
   const [coinsEarned, setCoinsEarned] = useState(5);
   const [showAlert, setShowAlert] = useState(false);
   const { fromWorkoutId } = useLocalSearchParams<{ fromWorkoutId?: string }>();
+  const isResuming = resumeWorkout === 'true';
 
   useEffect(() => {
     if (id) {
-      loadWorkout(id);
+      if (isResuming) {
+        loadWorkoutWithProgress(id);
+      } else {
+        loadWorkout(id);
+      }
     }
-  }, [id]);
+  }, [id, isResuming]);
+  
+  // Save workout state whenever exerciseLogs change
+  useEffect(() => {
+    // Only save if workout is loaded and at least one exercise log exists
+    if (workout && exerciseLogs.length > 0 && user?.id) {
+      const workoutInProgress: WorkoutLog = {
+        workoutId: workout.id,
+        workoutName: workout.name,
+        exercises: exerciseLogs,
+        date: new Date().toISOString(),
+        userId: user.id
+      };
+      
+      saveWorkoutInProgress(workoutInProgress);
+    }
+  }, [exerciseLogs, workout, user?.id]);
 
+  // Load a workout from scratch
   const loadWorkout = async (workoutId: string) => {
     setLoading(true);
     const foundWorkout = await getWorkoutById(workoutId);
@@ -81,6 +104,107 @@ export default function StartWorkoutScreen() {
     
     setLoading(false);
   };
+  
+  // Load a workout with in-progress data
+  const loadWorkoutWithProgress = async (workoutId: string) => {
+    setLoading(true);
+    
+    try {
+      console.log('Attempting to load workout with progress for ID:', workoutId);
+      
+      // First try getting the workout in progress data
+      let workoutInProgress = null;
+      try {
+        workoutInProgress = await getWorkoutInProgress();
+        console.log('Workout in progress data retrieved:', workoutInProgress ? 'yes' : 'no');
+      } catch (e) {
+        console.error('Error getting workout in progress:', e);
+        // Fall back to normal loading on error
+        await loadWorkout(workoutId);
+        return;
+      }
+      
+      // Load workout details
+      const foundWorkout = await getWorkoutById(workoutId);
+      if (!foundWorkout) {
+        console.error('Could not find workout with ID:', workoutId);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Found workout with name:', foundWorkout.name);
+      setWorkout(foundWorkout);
+      
+      // Check if we have valid workout in progress data
+      if (workoutInProgress && 
+          workoutInProgress.workoutLog && 
+          workoutInProgress.workoutLog.workoutId === workoutId && 
+          workoutInProgress.workoutLog.exercises && 
+          Array.isArray(workoutInProgress.workoutLog.exercises)) {
+        console.log('Resuming workout in progress');
+        
+        // Use the exercise logs from the workout in progress
+        setExerciseLogs(workoutInProgress.workoutLog.exercises);
+        
+        // Find the last exercise with data entered to set the current index
+        let lastActiveExerciseIndex = 0;
+        workoutInProgress.workoutLog.exercises.forEach((exercise, index) => {
+          // Make sure the exercise and sets exist before trying to access them
+          if (exercise && exercise.sets && Array.isArray(exercise.sets) && 
+              exercise.sets.some(set => set && (set.reps > 0 || set.weight > 0))) {
+            lastActiveExerciseIndex = Math.max(lastActiveExerciseIndex, index);
+          }
+        });
+        
+        // Ensure index is within bounds
+        const safeIndex = Math.min(lastActiveExerciseIndex, foundWorkout.exercises.length - 1);
+        console.log('Setting current exercise index to:', safeIndex);
+        setCurrentExerciseIndex(safeIndex);
+      } else {
+        // Fallback to normal initialization if no valid workout in progress found
+        console.log('No valid workout in progress found, starting fresh');
+        await loadWorkout(workoutId);
+        return;
+      }
+      
+      // Load previous workout log and exercise history
+      if (user?.id) {
+        try {
+          const latestLog = await getLatestWorkoutLog(workoutId, user.id);
+          setPreviousWorkoutLog(latestLog);
+          
+          // Load exercise history for each exercise
+          const historyData: {[key: string]: {date: string, maxWeight: number}[]} = {};
+          for (const exercise of foundWorkout.exercises) {
+            try {
+              const history = await getExerciseHistory(workoutId, exercise.id, user.id);
+              historyData[exercise.id] = history;
+            } catch (e) {
+              console.error(`Error loading history for exercise ${exercise.id}:`, e);
+              historyData[exercise.id] = []; // Default to empty history on error
+            }
+          }
+          setExerciseHistory(historyData);
+        } catch (e) {
+          console.error('Error loading workout history:', e);
+          // Continue even if history loading fails
+        }
+      }
+      
+      console.log('Successfully loaded workout with progress');
+    } catch (error) {
+      console.error('Error loading workout with progress:', error);
+      // Fallback to normal initialization
+      try {
+        await loadWorkout(workoutId);
+      } catch (fallbackError) {
+        console.error('Error in fallback loading:', fallbackError);
+        setLoading(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddSet = (exerciseIndex: number) => {
     const updatedLogs = [...exerciseLogs];
@@ -93,7 +217,7 @@ export default function StartWorkoutScreen() {
     updatedLogs[exerciseIndex].sets.push({
       setNumber: newSetNumber,
       reps: 0,
-      weight: previousWeight,
+      weight: 0,
     });
     
     setExerciseLogs(updatedLogs);
@@ -152,8 +276,8 @@ export default function StartWorkoutScreen() {
   }
   const handleFinishWorkout = () => {
     // Check if there are any completed sets (with reps > 0)
-    const hasCompletedSets = exerciseLogs.some(log => 
-      log.sets.some(set => set.reps > 0)
+    const hasCompletedSets = exerciseLogs && exerciseLogs.some(log => 
+      log && log.sets && Array.isArray(log.sets) && log.sets.some(set => set && set.reps > 0)
     );
     
     if (!hasCompletedSets) {
@@ -201,6 +325,9 @@ export default function StartWorkoutScreen() {
                 console.warn('No server-generated log ID returned, this may cause issues viewing the log later');
               }
               
+              // Clear workout in progress since it's now completed
+              await clearWorkoutInProgress();
+              
               // Show celebration effects
               setShowConfetti(true);
               
@@ -226,7 +353,7 @@ export default function StartWorkoutScreen() {
     );
   };
 
-  if (loading || !workout) {
+  if (loading || !workout || !exerciseLogs || exerciseLogs.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
@@ -236,9 +363,28 @@ export default function StartWorkoutScreen() {
     );
   }
 
+  // Validate that the current exercise index is within bounds
+  const safeCurrentExerciseIndex = Math.min(currentExerciseIndex, workout.exercises.length - 1);
+  if (safeCurrentExerciseIndex !== currentExerciseIndex) {
+    setCurrentExerciseIndex(safeCurrentExerciseIndex);
+  }
+
   // Get the current exercise and its log
-  const currentExercise = workout.exercises[currentExerciseIndex];
-  const currentExerciseLog = exerciseLogs[currentExerciseIndex];
+  const currentExercise = workout.exercises[safeCurrentExerciseIndex];
+  const currentExerciseLog = exerciseLogs[safeCurrentExerciseIndex];
+  
+  // If currentExerciseLog is somehow missing, reload the workout
+  if (!currentExerciseLog || !currentExerciseLog.sets) {
+    console.error('Missing exercise log data, reloading workout');
+    loadWorkout(workout.id);
+    return (
+      <SafeAreaView style={styles.container} edges={[]}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Reloading workout data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
   
   // Function to find the previous exercise log from the last workout
   const getPreviousExerciseLog = (exerciseId: string): ExerciseLog | undefined => {
@@ -255,15 +401,14 @@ export default function StartWorkoutScreen() {
         {
           text: 'Yes, Cancel',
           style: 'destructive',
-          onPress: () => {
-            // if (fromWorkoutId) {
-            //   router.replace({
-            //     pathname: '/(tabs)/',
-            //     params: { selectedWorkoutId: fromWorkoutId },
-            //   });
-            // } else {
-            //   router.replace('/(tabs)/'); // fallback
-            // }
+          onPress: async () => {
+            try {
+              // Clear the workout in progress when canceling
+              await clearWorkoutInProgress();
+              console.log('Cleared workout in progress due to cancellation');
+            } catch (e) {
+              console.error('Error clearing workout in progress:', e);
+            }
             router.back();
           },
         },
@@ -313,47 +458,52 @@ export default function StartWorkoutScreen() {
             <View style={{ width: 40 }} />
           </View>
           
-          {currentExerciseLog.sets.map((set, setIndex) => (
-            <View key={setIndex} style={styles.setRow}>
-              <View style={styles.setNumberContainer}>
-                <Text style={styles.setNumber}>{set.setNumber}</Text>
+          {Array.isArray(currentExerciseLog.sets) && currentExerciseLog.sets.map((set, setIndex) => {
+            // Skip rendering if set is invalid
+            if (!set) return null;
+            
+            return (
+              <View key={setIndex} style={styles.setRow}>
+                <View style={styles.setNumberContainer}>
+                  <Text style={styles.setNumber}>{set.setNumber}</Text>
+                </View>
+                
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={set.reps > 0 ? set.reps.toString() : ''}
+                    onChangeText={(text) => handleUpdateReps(safeCurrentExerciseIndex, setIndex, text)}
+                    keyboardType="number-pad"
+                    placeholder="0"
+                    placeholderTextColor={Colors.lightGray}
+                  />
+                </View>
+                
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={set.weight > 0 ? set.weight.toString() : ''}
+                    onChangeText={(text) => handleUpdateWeight(safeCurrentExerciseIndex, setIndex, text)}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    placeholderTextColor={Colors.lightGray}
+                  />
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.removeButton}
+                  onPress={() => handleRemoveSet(safeCurrentExerciseIndex, setIndex)}
+                  disabled={currentExerciseLog.sets.length <= 1}
+                >
+                  <X size={16} color={currentExerciseLog.sets.length <= 1 ? Colors.lightGray : Colors.error} />
+                </TouchableOpacity>
               </View>
-              
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  value={set.reps > 0 ? set.reps.toString() : ''}
-                  onChangeText={(text) => handleUpdateReps(currentExerciseIndex, setIndex, text)}
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor={Colors.lightGray}
-                />
-              </View>
-              
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  value={set.weight > 0 ? set.weight.toString() : ''}
-                  onChangeText={(text) => handleUpdateWeight(currentExerciseIndex, setIndex, text)}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={Colors.lightGray}
-                />
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.removeButton}
-                onPress={() => handleRemoveSet(currentExerciseIndex, setIndex)}
-                disabled={currentExerciseLog.sets.length <= 1}
-              >
-                <X size={16} color={currentExerciseLog.sets.length <= 1 ? Colors.lightGray : Colors.error} />
-              </TouchableOpacity>
-            </View>
-          ))}
+            );
+          })}
           
           <TouchableOpacity 
             style={styles.addSetButton}
-            onPress={() => handleAddSet(currentExerciseIndex)}
+            onPress={() => handleAddSet(safeCurrentExerciseIndex)}
           >
             <Plus size={16} color={Colors.primary} />
             <Text style={styles.addSetText}>Add Set</Text>

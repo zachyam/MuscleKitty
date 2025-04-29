@@ -6,6 +6,7 @@ import { Plus, ArrowUp, ChevronDown, Pencil, Trash2 } from 'lucide-react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { getWorkouts, deleteWorkout, getWorkoutLogs } from '@/utils/storageAdapter';
+import { getWorkoutInProgress, clearWorkoutInProgress } from '@/utils/storage';
 import { Workout, WorkoutLog } from '@/types';
 import WorkoutLogCard from '@/components/WorkoutLogCard';
 import { UserContext } from '@/utils/UserContext';
@@ -38,6 +39,7 @@ function WorkoutPlansScreen() {
       loadWorkouts();
       loadWorkoutLogs();
       getCurrentTime();
+      checkWorkoutInProgress();
       
       // Update coins when screen comes into focus
       if (user) {
@@ -49,6 +51,46 @@ function WorkoutPlansScreen() {
       startHorizontalAnimation();
     }, [user?.id, user?.coins]) // Reload when user changes or coins update
   );
+  
+  // Function to check for workout in progress and prompt user
+  const checkWorkoutInProgress = async () => {
+    try {
+      const workoutInProgress = await getWorkoutInProgress();
+      
+      if (workoutInProgress) {
+        // Found a recent workout in progress, ask user if they want to resume
+        Alert.alert(
+          'Resume Workout',
+          'You have a workout in progress. Would you like to resume?',
+          [
+            {
+              text: 'Discard',
+              style: 'destructive',
+              onPress: async () => {
+                // Clear the workout in progress
+                await clearWorkoutInProgress();
+              }
+            },
+            {
+              text: 'Resume',
+              onPress: () => {
+                // Navigate to the workout, passing the workout ID
+                router.push({
+                  pathname: '/start-workout',
+                  params: {
+                    id: workoutInProgress.workoutLog.workoutId,
+                    resumeWorkout: 'true'
+                  }
+                });
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error checking for workout in progress:', error);
+    }
+  };
 
   // useEffect(() => {
   //   if (!loading && selectedWorkoutId && workouts.length > 0 && workoutLogs) {

@@ -539,8 +539,15 @@ export default function ProfileScreen() {
 
           <View style={styles.profileHeader}>
               <Image 
-                source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl}
+                source={user?.avatarUrl 
+                  ? (typeof user.avatarUrl === 'string' 
+                     ? { uri: user.avatarUrl } 
+                     : user.avatarUrl) 
+                  : user?.kittyBreedId 
+                    ? KITTY_IMAGES[user.kittyBreedId] 
+                    : KITTY_IMAGES['0']}
                 style={styles.profileImage}
+                onError={() => console.log('Failed to load avatar image in Profile')}
               />
               <Text style={styles.profileName}>{kittyName || ''}</Text>
               <Text style={styles.profileBio}>{user?.fullName || ''}</Text>

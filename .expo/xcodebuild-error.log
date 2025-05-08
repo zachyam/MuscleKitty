@@ -1,0 +1,10 @@
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:E7FE654D-5C13-4C37-BAEA-301EF1DD5CE5, OS:18.4, name:iPhone 16 Pro }
+{ platform:iOS Simulator, arch:x86_64, id:E7FE654D-5C13-4C37-BAEA-301EF1DD5CE5, OS:18.4, name:iPhone 16 Pro }
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC /Users/zachyam/Library/Developer/Xcode/DerivedData/MuscleKitty-fxbmdmzykspsmwcnokmytukpwxfi/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/React-rendererdebug.build/Objects-normal/arm64/DebugStringConvertible.o /Users/zachyam/Documents/projects/MuscleKitty/node_modules/react-native/ReactCommon/react/renderer/debug/DebugStringConvertible.cpp normal arm64 c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'React-rendererdebug' from project 'Pods')
+	Building workspace MuscleKitty with scheme MuscleKitty and configuration Debug
+(2 failures)

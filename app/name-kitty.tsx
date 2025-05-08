@@ -28,8 +28,8 @@ import FancyAlert from '@/components/FancyAlert';
 // Kitty images mapping for avatar selection
 export const KITTY_IMAGES: Record<string, any> = {
   '0': require('@/assets/images/munchkin.png'),
-  '1': require('@/assets/images/orange-tabby.png'),
-  '2': require('@/assets/images/russian-blue.png'),
+  '1': require('@/assets/images/orange_tabby.png'),
+  '2': require('@/assets/images/gray_tabby.png'),
   '3': require('@/assets/images/calico.png'),
   '4': require('@/assets/images/maine-coon.png'),
 };

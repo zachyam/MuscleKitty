@@ -23,7 +23,7 @@ export const KITTY_PROFILES = [
     {
       id: '1',
       breed: 'Orange Tabby',
-      image: require('@/assets/images/orange-tabby.png'),
+      image: require('@/assets/images/orange_tabby.png'),
       personality: 'Friendly, Affectionate, Intelligent 🧘',
       favoriteExercise: 'Yoga 🧘‍♀️',
       favoriteFood: 'Salmon 🐟',
@@ -31,7 +31,7 @@ export const KITTY_PROFILES = [
     {
       id: '2',
       breed: 'Russian Blue',
-      image: require('@/assets/images/russian-blue.png'),
+      image: require('@/assets/images/gray_tabby.png'),
       personality: 'Sweet, Loyal, Sensitive 🦁',
       favoriteExercise: 'Squats 🏋️‍♂️',
       favoriteFood: 'Chicken 🍗',
@@ -39,7 +39,7 @@ export const KITTY_PROFILES = [
     {
       id: '3',
       breed: 'Calico',
-      image: require('@/assets/images/calico.png'),
+      image: require('@/assets/images/calico_new.png'),
       personality: 'Thoughtful, Curious, Playful 🤓',
       favoriteExercise: 'Running 🏃‍♀️',
       favoriteFood: 'Beef 🌮',

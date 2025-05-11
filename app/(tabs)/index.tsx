@@ -14,6 +14,7 @@ import { calculateStreak, calculateKittyHealth, KittyHealth } from '@/utils/load
 import { Dimensions } from 'react-native';
 import CoinIcon from '@/components/CoinIcon'
 import { useLocalSearchParams } from 'expo-router';
+import { KITTY_IMAGES } from '../name-kitty';
 
 function WorkoutPlansScreen() {
   const { user } = useContext(UserContext);
@@ -336,8 +337,13 @@ function WorkoutPlansScreen() {
           
           <View style={styles.heroContent}>
             <Animated.Image 
-              // source={typeof user?.avatarUrl === 'string' ? { uri: user.avatarUrl } : user?.avatarUrl}
-              source={require('@/assets/animations/kitty_blink.gif')}
+              source={user?.avatarUrl 
+                ? (typeof user.avatarUrl === 'string' 
+                   ? { uri: user.avatarUrl } 
+                   : user.avatarUrl) 
+                : user?.kittyBreedId 
+                  ? KITTY_IMAGES[user.kittyBreedId] 
+                  : KITTY_IMAGES['0']}
               style={[
                 styles.kittenImage,
                 {
@@ -666,8 +672,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   kittenImage: {
-    width: 250,
-    height: 250,
+    width: '50%',
+    height: undefined,
+    aspectRatio: 1.2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -680,11 +687,12 @@ const styles = StyleSheet.create({
   // },
   heroContent: {
     position: 'absolute',
-    bottom: -100, // move this lower until it's where you want
+    bottom: -120,
     alignSelf: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 20,
+    width: '100%',
+    height: 250,
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 2,
   },
   heroTitle: {

@@ -1,7 +1,7 @@
 module.exports = {
   name: "Muscle Kitty",
   slug: "muscle-kitty",
-  version: "1.0.0",
+  version: "1.0.1",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "musclekitty",

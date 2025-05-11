@@ -194,20 +194,26 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   // Mark onboarding as completed
   const completeOnboarding = async (kittyId: string) => {
-    if (!user) return;
+    if (!user) {
+      console.log('completeOnboarding: No user available');
+      return;
+    }
     
     try {
+      console.log('Starting onboarding completion with kittyId:', kittyId);
       setLoading(true);
       
       // Store completion status in AsyncStorage
       const onboardingKey = `onboarding_completed_${user.id}`;
       await AsyncStorage.setItem(onboardingKey, 'true');
+      console.log('Stored onboarding completion status in AsyncStorage');
       
       // Update local state
       setIsFirstLogin(false);
       
       // Get the kitty image from the ID
       const avatarUrl = KITTY_IMAGES[kittyId] || require('@/assets/images/default-avatar.png');
+      console.log('Selected kitty image URL:', avatarUrl);
       
       // Try to get the kitty name from AsyncStorage
       let kittyName = '';
@@ -216,6 +222,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         const storedKittyName = await AsyncStorage.getItem(userKittyNameKey);
         if (storedKittyName) {
           kittyName = storedKittyName;
+          console.log('Found kitty name in AsyncStorage:', kittyName);
         }
       } catch (error) {
         console.error('Error getting kitty name:', error);
@@ -227,13 +234,31 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
         hasCompletedOnboarding: true,
         avatarUrl,
         kittyName: kittyName || user.kittyName || '',
+        kittyBreedId: kittyId, // Make sure to set kittyBreedId
         coins: user.coins || 0, // Start with 0 coins
-        xp: user.xp || 10,    // Start with1 10 XP
+        xp: user.xp || 10,    // Start with 10 XP
         level: user.level || 1, // Start at level 1
         fullName: user.fullName || '',
       };
+      console.log('Updated user object for onboarding completion:', updatedUser);
+      
       setUser(updatedUser);
-      saveUserToStorage(updatedUser);
+      await saveUserToStorage(updatedUser);
+      console.log('Saved updated user to storage');
+      
+      // Update Supabase profile
+      const dbUpdates = {
+        kitty_breed_id: kittyId,
+        kitty_name: kittyName || user.kittyName || '',
+        coins: updatedUser.coins,
+        xp: updatedUser.xp,
+        level: updatedUser.level,
+        full_name: updatedUser.fullName,
+      };
+      console.log('Updating Supabase profile with:', dbUpdates);
+      
+      await updateUserProfile(user.id, dbUpdates);
+      console.log('Updated Supabase profile successfully');
       
       console.log('Onboarding marked as completed for user with kitty ID:', user.id, kittyId);
       console.log('Initial user stats - Coins:', updatedUser.coins, 'XP:', updatedUser.xp, 'Level:', updatedUser.level);

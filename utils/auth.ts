@@ -12,7 +12,13 @@ const USER_STORAGE_KEY = 'muscle_kitty_user_data';
 // Helper function to load user's complete profile including kitty data from Supabase
 export const loadUserKittyData = async (user: User): Promise<User> => {
   try {
-    if (!user || !user.id) return user;
+    if (!user || !user.id) {
+      console.log('loadUserKittyData: No user or user.id provided');
+      return user;
+    }
+    
+    console.log('loadUserKittyData: Starting to load kitty data for user:', user.id);
+    console.log('Initial user state:', user);
     
     // Use user-specific keys to store the kitty ID and name
     const userKittyKey = `${SELECTED_KITTY_KEY}_${user.id}`;
@@ -34,6 +40,7 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
         
         // Ensure we have the correct kitty breed ID
         const kittyBreedId = profileData.kitty_breed_id;
+        console.log('kittyBreedId from Supabase:', kittyBreedId);
         
         // Update user with the latest database values
         updatedUser = {
@@ -46,6 +53,8 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
           hasCompletedOnboarding: true,
         };
         
+        console.log('Updated user after Supabase data:', updatedUser);
+        
         // Always update avatarUrl based on kittyBreedId from database
         if (kittyBreedId && KITTY_IMAGES[kittyBreedId]) {
           updatedUser.avatarUrl = KITTY_IMAGES[kittyBreedId];
@@ -53,17 +62,23 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
           
           // Update AsyncStorage with the latest kitty breed ID
           await AsyncStorage.setItem(userKittyKey, kittyBreedId);
+          console.log('Updated AsyncStorage with kittyBreedId:', kittyBreedId);
+        } else {
+          console.log('No valid kittyBreedId found in Supabase or no matching image');
         }
         
         // If we have kitty data in Supabase, update AsyncStorage as well
         if (profileData.kitty_name) {
           await AsyncStorage.setItem(userKittyNameKey, profileData.kitty_name);
+          console.log('Updated AsyncStorage with kitty name:', profileData.kitty_name);
         }
         
-        console.log('Updated user with Supabase data:', updatedUser);
+        console.log('Final user state after Supabase update:', updatedUser);
       } else if (error && error.code !== 'PGRST116') {
         // Only log real errors, not "no rows returned" errors
         console.error('Error fetching profile from Supabase:', error);
+      } else {
+        console.log('No profile found in Supabase for user:', user.id);
       }
     } catch (dbError) {
       console.error('Exception fetching profile from database:', dbError);
@@ -72,13 +87,17 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
     // SECOND: Fall back to local storage or supplement with local data
     // Get the selected kitty ID and name from AsyncStorage
     const kittyId = await AsyncStorage.getItem(userKittyKey);
+    console.log('kittyId from AsyncStorage:', kittyId);
+    
     const kittyName = !updatedUser.kittyName ? await AsyncStorage.getItem(userKittyNameKey) : null;
+    console.log('kittyName from AsyncStorage:', kittyName);
     
     // If we have a stored kitty ID and didn't get one from Supabase, use the corresponding image
     if (kittyId && !updatedUser.kittyBreedId && KITTY_IMAGES[kittyId]) {
       console.log(`Loading user ${user.id} avatar with kitty ID from AsyncStorage:`, kittyId);
       updatedUser.avatarUrl = KITTY_IMAGES[kittyId];
       updatedUser.kittyBreedId = kittyId;
+      console.log('Updated user with AsyncStorage kitty data:', updatedUser);
     }
     
     // If we have a stored kitty name and didn't get one from Supabase, add it to the user object
@@ -89,6 +108,7 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
       // Try to get kitty name from Supabase user metadata as a fallback
       const { data } = await supabase.auth.getUser();
       const metadataKittyName = data?.user?.user_metadata?.kittyName;
+      console.log('kittyName from user metadata:', metadataKittyName);
       
       if (metadataKittyName) {
         console.log('Found kitty name in user metadata:', metadataKittyName);
@@ -101,6 +121,7 @@ export const loadUserKittyData = async (user: User): Promise<User> => {
     
     // Save the most up-to-date user data to AsyncStorage
     await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    console.log('Final user state after all updates:', updatedUser);
     
     return updatedUser;
   } catch (error) {

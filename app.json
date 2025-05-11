@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "zachyam.MuscleKitty",
-      "buildNumber": "1.0.0",
+      "buildNumber": "1.0.1",
       "associatedDomains": ["applinks:eanbeozedjxftwbgmvfn.supabase.co"]
     },
     "android": {

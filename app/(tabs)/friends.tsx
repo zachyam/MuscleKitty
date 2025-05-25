@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFF2D8',
     borderRadius: 20,
-    padding: 16,
+    padding: 12,
     marginBottom: 20,
     alignItems: 'center',
     borderWidth: 1,
@@ -821,9 +821,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   catImage: {
-    width: 80,
-    height: 80,
-    marginRight: 16,
+    width: 100,
+    height: 100,
+    marginRight: 5,
     borderRadius: 20,
   },
   statsInfo: {

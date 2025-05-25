@@ -39,7 +39,7 @@ export const KITTY_PROFILES = [
     {
       id: '3',
       breed: 'Calico',
-      image: require('@/assets/images/calico_new.png'),
+      image: require('@/assets/images/calico.png'),
       personality: 'Thoughtful, Curious, Playful 🤓',
       favoriteExercise: 'Running 🏃‍♀️',
       favoriteFood: 'Beef 🌮',
@@ -253,15 +253,16 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
     },
     kittyImageContainer: {
-      width: 200,
-      height: 200,
+      width: 350,
+      height: 350,
+      marginBottom: 250,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: 'transparent',
     },
     kittyImage: {
-      width: '80%',
-      height: '80%',
+      width: '100%',
+      height: '100%',
     },
     carouselButton: {
       width: 40,

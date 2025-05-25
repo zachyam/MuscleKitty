@@ -604,8 +604,8 @@ const styles = StyleSheet.create({
     marginBottom:30
   },
   profileImage: {
-    width: 110,
-    height: 110,
+    width: 120,
+    height: 120,
     marginBottom: 5,
     shadowColor: '#C1AC88',
     shadowOffset: { width: 0, height: 3 },

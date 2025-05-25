@@ -37,7 +37,7 @@ export const KITTY_IMAGES: Record<string, any> = {
 export const KITTY_GIFS: Record<string, any> = {
   '0': require('@/assets/images/munchkin.png'),
   '1': require('@/assets/images/orange_tabby.png'),
-  '2': require('@/assets/images/gray_tabby.png'),
+  '2': require('@/assets/animations/gray_tabby.gif'),
   '3': require('@/assets/animations/calico.gif'),
   '4': require('@/assets/images/maine-coon.png'),
 };
@@ -369,15 +369,15 @@ const styles = StyleSheet.create({
     elevation: 4,
     marginBottom: 20,
   },
-  title: {
+  title: {  
     fontSize: 17,
     fontWeight: 'bold',
     color: '#333333',
     textAlign: 'center',
   },
   kittyContainer: {
-    width: 180,
-    height: 180,
+    width: 350,
+    height: 350,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,

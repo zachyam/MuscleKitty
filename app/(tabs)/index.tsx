@@ -337,11 +337,7 @@ function WorkoutPlansScreen() {
           
           <View style={styles.heroContent}>
             <Animated.Image 
-              source={user?.avatarUrl 
-                ? (typeof user.avatarUrl === 'string' 
-                   ? { uri: user.avatarUrl } 
-                   : user.avatarUrl) 
-                : user?.kittyBreedId 
+              source={user?.kittyBreedId 
                   ? KITTY_GIFS[user.kittyBreedId] 
                   : KITTY_GIFS['0']}
               style={[
@@ -672,7 +668,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   kittenImage: {
-    width: '50%',
+    width: '75%',
     height: undefined,
     aspectRatio: 1.2,
     shadowColor: '#000',
@@ -687,7 +683,7 @@ const styles = StyleSheet.create({
   // },
   heroContent: {
     position: 'absolute',
-    bottom: -120,
+    bottom: -100,
     alignSelf: 'center',
     width: '100%',
     height: 250,

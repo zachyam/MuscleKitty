@@ -34,6 +34,14 @@ export const KITTY_IMAGES: Record<string, any> = {
   '4': require('@/assets/images/maine-coon.png'),
 };
 
+export const KITTY_GIFS: Record<string, any> = {
+  '0': require('@/assets/images/munchkin.png'),
+  '1': require('@/assets/images/orange_tabby.png'),
+  '2': require('@/assets/images/gray_tabby.png'),
+  '3': require('@/assets/animations/calico.gif'),
+  '4': require('@/assets/images/maine-coon.png'),
+};
+
 // Map kitty ID to breed name
 export const KITTY_ID_TO_BREED: Record<string, string> = {
   '0': 'Munchkin',

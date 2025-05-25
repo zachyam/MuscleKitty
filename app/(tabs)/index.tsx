@@ -14,7 +14,7 @@ import { calculateStreak, calculateKittyHealth, KittyHealth } from '@/utils/load
 import { Dimensions } from 'react-native';
 import CoinIcon from '@/components/CoinIcon'
 import { useLocalSearchParams } from 'expo-router';
-import { KITTY_IMAGES } from '../name-kitty';
+import { KITTY_GIFS } from '../name-kitty';
 
 function WorkoutPlansScreen() {
   const { user } = useContext(UserContext);
@@ -342,8 +342,8 @@ function WorkoutPlansScreen() {
                    ? { uri: user.avatarUrl } 
                    : user.avatarUrl) 
                 : user?.kittyBreedId 
-                  ? KITTY_IMAGES[user.kittyBreedId] 
-                  : KITTY_IMAGES['0']}
+                  ? KITTY_GIFS[user.kittyBreedId] 
+                  : KITTY_GIFS['0']}
               style={[
                 styles.kittenImage,
                 {

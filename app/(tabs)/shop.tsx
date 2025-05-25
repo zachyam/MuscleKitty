@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFF2D8',
     borderRadius: 20,
-    padding: 12,
+    padding: 15,
     marginBottom: 20,
     alignItems: 'center',
     borderWidth: 1,
@@ -487,12 +487,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 6,
     elevation: 3,
+    height: 140,
   },
   catImage: {
-    width: 100,
-    height: 100,
-    marginRight: 5,
-    borderRadius: 10,
+    width: 120,
+    height: 120,
+    marginBottom: 25
   },
   statsInfo: {
     flex: 1,

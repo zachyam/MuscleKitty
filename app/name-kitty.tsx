@@ -29,17 +29,17 @@ import FancyAlert from '@/components/FancyAlert';
 export const KITTY_IMAGES: Record<string, any> = {
   '0': require('@/assets/images/munchkin.png'),
   '1': require('@/assets/images/orange-tabby.png'),
-  '2': require('@/assets/images/gray-tabby.png'),
+  '2': require('@/assets/images/russian-blue.png'),
   '3': require('@/assets/images/calico.png'),
-  '4': require('@/assets/images/maine-coon.png'),
+  '4': require('@/assets/images/maine-coone.png'),
 };
 
 export const KITTY_GIFS: Record<string, any> = {
   '0': require('@/assets/animations/munchkin.gif'),
   '1': require('@/assets/animations/orange-tabby.gif'),
-  '2': require('@/assets/animations/gray-tabby.gif'),
+  '2': require('@/assets/animations/russian-blue.gif'),
   '3': require('@/assets/animations/calico.gif'),
-  '4': require('@/assets/animations/maine-coon.gif'),
+  '4': require('@/assets/animations/maine-coone.gif'),
 };
 
 // Map kitty ID to breed name

@@ -601,17 +601,11 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom:30
+    marginBottom: 30
   },
   profileImage: {
     width: 120,
     height: 120,
-    marginBottom: 5,
-    shadowColor: '#C1AC88',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
   },
   profileName: {
     fontWeight: '700',

@@ -9,7 +9,9 @@ module.exports = {
   splash: {
     image: "./assets/images/logo.png",
     resizeMode: "contain",
-    backgroundColor: "#F5F9EE"
+    backgroundColor: "#F5F9EE",
+    width: 100,
+    height: 100
   },
   assetBundlePatterns: [
     "**/*"

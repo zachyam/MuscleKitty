@@ -142,9 +142,10 @@ export default function LoginScreen() {
         >
           <View style={styles.header}>
             <Image 
-              source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }}
+              // source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }}
+              source={require('@/assets/images/logo.png')}
               style={styles.logo}
-              resizeMode="cover"
+              resizeMode="contain"
             />
             <Text style={styles.title}>Welcome to MuscleKitty</Text>
             <Text style={styles.subtitle}>Continue with a social account</Text>
@@ -210,12 +211,14 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     overflow: 'hidden',
     borderWidth: 3,
-    borderColor: Colors.primary,
+    borderColor: '#7E866F',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
+    padding: 18,
+    backgroundColor: '#EFF3EB'
   },
   title: {
     fontSize: 30,

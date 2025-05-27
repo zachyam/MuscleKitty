@@ -20,17 +20,17 @@ const SCREENS = [
   {
     title: "Customize Your Training",
     subtitle: "Design your own workout routines, log them effortlessly, and track your progress.",
-    image: require('@/assets/images/icon.png'), // Replace with actual image
+    image: require('@/assets/images/logo.png'),
   },
   {
     title: "Adopt a kitty and train with it",
     subtitle: "Stay consistent, level up, and keep your kitty strong",
-    image: require('@/assets/images/icon.png'), // Replace with actual mascot image
+    image: require('@/assets/images/logo.png'),
   },
   {
     title: "Compete & Level Up",
     subtitle: "Add friends, compete against them, and see who trains the most consistently!",
-    image: require('@/assets/images/icon.png'), // Replace with actual image
+    image: require('@/assets/images/logo.png'),
   }
 ];
 
@@ -159,7 +159,8 @@ const OnboardingScreen = () => {
         {/* Mascot circle */}
         <View style={styles.mascotContainer}>
           <Image
-            source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }} // Use your app icon
+            // source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }}
+            source={require('@/assets/images/logo.png')}
             style={styles.welcomeMascotImage}
             resizeMode="contain"
           />
@@ -338,9 +339,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   welcomeMascotImage: {
-    width: 200,
-    height: 250,
+    width: 150,
+    height: 150,
     borderRadius: 65,
+    padding: 18,
   },
   welcomeTitle: {
     fontSize: 26,

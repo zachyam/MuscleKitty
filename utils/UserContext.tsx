@@ -212,7 +212,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
       setIsFirstLogin(false);
       
       // Get the kitty image from the ID
-      const avatarUrl = KITTY_IMAGES[kittyId] || require('@/assets/images/default-avatar.png');
+      const avatarUrl = KITTY_IMAGES[kittyId] || require('@/assets/images/logo.png');
       console.log('Selected kitty image URL:', avatarUrl);
       
       // Try to get the kitty name from AsyncStorage

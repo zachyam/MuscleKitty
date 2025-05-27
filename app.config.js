@@ -3,11 +3,11 @@ module.exports = {
   slug: "muscle-kitty",
   version: "1.0.1",
   orientation: "portrait",
-  icon: "./assets/images/icon.png",
+  icon: "./assets/images/logo.png",
   scheme: "musclekitty",
   userInterfaceStyle: "light",
   splash: {
-    image: "./assets/images/icon.png",
+    image: "./assets/images/logo.png",
     resizeMode: "contain",
     backgroundColor: "#F5F9EE"
   },
@@ -20,7 +20,7 @@ module.exports = {
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/images/icon.png",
+      foregroundImage: "./assets/images/logo.png",
       backgroundColor: "#F5F9EE"
     },
     package: "zachyam.MuscleKitty"

@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   image: {
-    width: '70%',
-    height: '70%',
+    width: '60%',
+    height: '60%',
   },
   logo: {
     width: 150,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
-    padding: 35,
+    padding: 15,
     backgroundColor: '#EFF3EB'
   },
 });

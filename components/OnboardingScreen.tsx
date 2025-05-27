@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 65,
-    padding: 18,
+    padding: 25,
   },
   welcomeTitle: {
     fontSize: 26,

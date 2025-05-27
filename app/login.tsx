@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
-    padding: 25,
+    padding: 35,
     backgroundColor: '#EFF3EB'
   },
   title: {

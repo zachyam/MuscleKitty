@@ -124,7 +124,7 @@ const AdoptKittyScreenComponents: React.FC<AdoptKittyScreenComponentsProp> = ({
           ref={flatListRef}
           data={KITTY_PROFILES}
           renderItem={renderKittyItem}
-          style={{ width: '100%' }} // Add this
+          style={{ width: '100%' }}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
@@ -134,6 +134,7 @@ const AdoptKittyScreenComponents: React.FC<AdoptKittyScreenComponentsProp> = ({
           snapToAlignment="center"
           decelerationRate="fast"
           bounces={false}
+          scrollEnabled={false}
           contentContainerStyle={styles.carouselList}
         />
         

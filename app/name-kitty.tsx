@@ -76,7 +76,6 @@ export default function NameKittyScreen() {
             setKittyId(storedKittyId);
             console.log('Retrieved kitty ID:', storedKittyId);
           } else {
-            // If no kitty is selected, go back to adoption screen
             console.log('No kitty selected, redirecting to adoption screen');
             setTimeout(() => {
               router.push('/adopt-kitty');
@@ -88,11 +87,10 @@ export default function NameKittyScreen() {
       }
     };
 
-    // Start with opacity 0 and fade in
-    fadeAnim.setValue(0);
+    // Simple fade in animation
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 300,
+      duration: 200,
       useNativeDriver: true,
     }).start();
 
@@ -271,9 +269,7 @@ export default function NameKittyScreen() {
         <KeyboardAvoidingView 
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
+          keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 20}
         >
           <TouchableOpacity
             activeOpacity={1}
@@ -344,11 +340,12 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   dismissKeyboard: {
     flex: 1,
     width: '100%',
-    justifyContent: 'space-between', // Space between top content and bottom button
+    justifyContent: 'space-between',
     padding: 20,
   },
   topContent: {
@@ -432,5 +429,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    padding: 20,
   },
 });

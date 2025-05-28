@@ -8,11 +8,9 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Animated,
-  Linking
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
-import PrimaryButton from './PrimaryButton';
 import { useUser } from '@/utils/UserContext';
 
 // Define the content for each screen
@@ -35,81 +33,45 @@ const SCREENS = [
 ];
 
 const OnboardingScreen = () => {
-  // Add state to track if we're showing the welcome page or onboarding
-  const [showWelcome, setShowWelcome] = useState(true);
   const [activeScreen, setActiveScreen] = useState(0);
-  const { width } = useWindowDimensions();
   const router = useRouter();
   const { completeOnboarding } = useUser();
-  const fadeTextAnim = useRef(new Animated.Value(1)).current; // Text opacity
-  const scrollViewRef = useRef(null);
-
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   
-  // Handle login button press
-  const handleLogin = () => {
-    router.push('/login');
-  };
-  
-  // Handle terms and privacy links
-  const handleTermsPress = () => {
-    Linking.openURL('https://your-website.com/terms');
-  };
-
-  const handlePrivacyPress = () => {
-    Linking.openURL('https://your-website.com/privacy');
-  };
+  // Reset animation when screen changes
+  useEffect(() => {
+    fadeAnim.setValue(1);
+  }, [activeScreen]);
   
   // Handle the next button press during onboarding
   const handleNext = async () => {
-    // Fade out only the text
-    Animated.timing(fadeTextAnim, {
+    // Fade out
+    Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 250,
+      duration: 150,
       useNativeDriver: true,
-    }).start(async () => {
+    }).start(() => {
       if (activeScreen < SCREENS.length - 1) {
-        // Move to next screen with scroll
-        const nextScreen = activeScreen + 1;
-        setActiveScreen(nextScreen);
-        
-        // Scroll to the next screen
-        if (scrollViewRef.current) {
-          scrollViewRef.current.scrollTo({ x: width * nextScreen, animated: true });
-        }
+        setActiveScreen(activeScreen + 1);
       } else {
         // Last screen, navigate to adopt kitty screen
         try {
-          // Important: We don't complete onboarding here!
-          // The adopt-kitty screen will handle completing onboarding
           console.log('Last onboarding screen completed, navigating to adopt-kitty');
-          
-          // Start the fade out animation using the existing ref
-          Animated.timing(screenFadeAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }).start(() => {
-            // Navigate after fade completes
-            console.log('Navigating to adopt-kitty');
-            // Use replace to avoid navigation history issues
-            router.replace('/adopt-kitty');
-          });
-          
-          return; // Don't fade back in if we're navigating away
+          router.replace('/adopt-kitty');
+          return;
         } catch (error) {
           console.error('Error navigating to adopt kitty:', error);
           // As fallback, complete onboarding here and go to tabs
-          // Use a default kitty ID since we couldn't navigate to the kitty selection
-          await completeOnboarding('1'); // Default to the first kitty (Munchkin)
+          completeOnboarding('1'); // Default to the first kitty (Munchkin)
           router.replace('/(tabs)');
-          return; // Don't fade back in if we're navigating away
+          return;
         }
       }
       
-      // Fade in animation for the text of the next screen
-      Animated.timing(fadeTextAnim, {
+      // Fade in
+      Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 250,
+        duration: 150,
         useNativeDriver: true,
       }).start();
     });
@@ -118,82 +80,52 @@ const OnboardingScreen = () => {
   // Handle back button press during onboarding
   const handleBack = () => {
     if (activeScreen > 0) {
-      const prevScreen = activeScreen - 1;
-      setActiveScreen(prevScreen);
-      
-      // Scroll to the previous screen
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ x: width * prevScreen, animated: true });
-      }
-    } else {
-      // If we're on the first onboarding screen, go back to welcome
-      setShowWelcome(true);
+      // Fade out
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => {
+        setActiveScreen(activeScreen - 1);
+        // Fade in
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }).start();
+      });
     }
   };
   
   const currentScreen = SCREENS[activeScreen];
   const isLastScreen = activeScreen === SCREENS.length - 1;
 
-  // Add effect to animate fade-in when screen changes
-  useEffect(() => {
-    // Fade in text of new screen
-    Animated.timing(fadeTextAnim, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [activeScreen]);
-
-  // Handle scroll end to update active screen
-  const handleScroll = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(contentOffsetX / width);
-    if (newIndex !== activeScreen) {
-      setActiveScreen(newIndex);
-    }
-  };
-
-  const renderScreen = (screen, index) => {
+  const renderScreen = (screen: typeof SCREENS[0], index: number) => {
     return (
-      <View style={[styles.screenContainer, { width }]} key={index}>
+      <Animated.View style={[styles.screenContainer, { opacity: fadeAnim }]} key={index}>
         {/* Mascot circle */}
         <View style={styles.mascotContainer}>
           <Image
-            // source={{ uri: 'https://cdn.dribbble.com/userupload/9328318/file/original-372a31363e584305d2763f4f50becddd.jpg' }}
             source={require('@/assets/images/logo.png')}
             style={styles.welcomeMascotImage}
             resizeMode="contain"
           />
         </View>
 
-        {/* Title and subtitle (animated for fade effect) */}
-        <Animated.View style={{ opacity: index === activeScreen ? fadeTextAnim : 0 }}>
+        {/* Title and subtitle */}
+        <View>
           <Text style={styles.welcomeTitle}>{screen.title}</Text>
           <Text style={styles.welcomeSubtitle}>{screen.subtitle}</Text>
-        </Animated.View>
-      </View>
+        </View>
+      </Animated.View>
     );
   };
 
-  // Create a ref for the full-screen fade animation
-  const screenFadeAnim = useRef(new Animated.Value(1)).current;
-
   return (
-    <Animated.View style={{ flex: 1, opacity: screenFadeAnim }}>
     <SafeAreaView style={styles.welcomeContainer}>
       <View style={styles.welcomeContent}>
-        {/* Horizontal scroll view for screens */}
-        <Animated.ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={handleScroll}
-          scrollEventThrottle={16}
-          style={styles.scrollView}
-        >
-          {SCREENS.map(renderScreen)}
-        </Animated.ScrollView>
+        {/* Current screen content */}
+        {renderScreen(currentScreen, activeScreen)}
 
         {/* Pagination indicators */}
         <View style={styles.paginationContainer}>
@@ -220,93 +152,10 @@ const OnboardingScreen = () => {
         </View>
       </View>
     </SafeAreaView>
-    </Animated.View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-  // Existing styles
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  backButton: {
-    padding: 10,
-  },
-  backButtonText: {
-    color: Colors.text,
-    fontSize: 16,
-  },
-  skipButton: {
-    padding: 10,
-  },
-  skipButtonText: {
-    color: Colors.gray,
-    fontSize: 16,
-  },
-  welcomeCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 30,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  welcomeMessage: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-  },
-  imageContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 20,
-  },
-  mascotImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  textSection: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: Colors.gray,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  bottomSection: {
-    marginTop: 'auto',
-    marginBottom: 20,
-  },
-  nextButton: {
-    borderRadius: 30,
-  },
-  
-  // New styles for welcome screen
   welcomeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -318,10 +167,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingBottom: 20,
     paddingTop: 20,
-  },
-  scrollView: {
-    flex: 1,
-    width: '100%',
   },
   screenContainer: {
     flex: 1,
@@ -378,15 +223,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  secondaryButton: {
-    paddingVertical: 12,
-    marginBottom: 40,
-  },
-  secondaryButtonText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: '500',
-  },
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -404,27 +240,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     width: 12,
     height: 12,
-  },
-  legalContainer: {
-    position: 'absolute',
-    bottom: 40,
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  legalText: {
-    fontSize: 14,
-    color: Colors.gray,
-    textAlign: 'center',
-  },
-  legalLinksContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  legalLink: {
-    fontSize: 14,
-    color: Colors.primary,
-    fontWeight: '500',
   },
 });
 

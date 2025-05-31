@@ -141,10 +141,10 @@ export const loginWithSocialMedia = async (socialMediaProvider: 'google' | 'gith
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: socialMediaProvider as any,
       options: {
-        redirectTo: Platform.OS === 'ios' 
-          ? 'musclekitty://' 
-          : 'musclekitty://auth/callback',
-        skipBrowserRedirect: false
+        redirectTo: 'musclekitty://auth/callback',
+        queryParams: {
+          prompt: 'select_account consent'
+        }
       }
     });
     

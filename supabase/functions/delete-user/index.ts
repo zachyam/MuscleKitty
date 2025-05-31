@@ -1,90 +1,48 @@
 // supabase/functions/delete-user/index.ts
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from 'https://deno.land/std@0.192.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
-// This function handles the DELETE request to delete a user
 serve(async (req) => {
   try {
-    // Only allow POST requests
-    if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceRole = Deno.env.get('SERVICE_ROLE');
 
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Missing or invalid authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('supabaseUrl is ' + supabaseUrl);
+    console.log('serviceRoleKey is ' + serviceRole);
 
-    // Get the access token from the authorization header
-    const token = authHeader.split(' ')[1];
-
-    // Get request body
-    const requestData = await req.json();
-    const { userId } = requestData;
+    const { userId } = await req.json();
 
     if (!userId) {
-      return new Response(
-        JSON.stringify({ error: 'User ID is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      console.error('Missing userId in request');
+      return new Response(JSON.stringify({ error: 'Missing userId' }), { status: 400 });
     }
 
-    // Get service role key from environment variables
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://eanbeozedjxftwbgmvfn.supabase.co';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
-
-    if (!supabaseServiceKey) {
-      return new Response(
-        JSON.stringify({ error: 'Service key not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+    
+    if (!supabaseUrl || !serviceRole) {
+      console.error('Missing environment variables');
+      return new Response(JSON.stringify({ error: 'Missing environment variables' }), {
+        status: 500,
+      });
     }
 
-    // Create Supabase client with service role key for admin privileges
-    const adminSupabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = createClient(supabaseUrl, serviceRole);
 
-    // Verify the user is deleting their own account by checking the token
-    const { data: { user }, error: userError } = await adminSupabase.auth.getUser(token);
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+    console.log(`Attempting to delete user: ${userId}`);
+
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (error) {
+      console.error('Supabase Admin API error:', error);
+      return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
 
-    // Make sure the user is only deleting their own account
-    if (user.id !== userId) {
-      return new Response(
-        JSON.stringify({ error: 'You can only delete your own account' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Delete the user from Supabase Auth
-    const { error: deleteError } = await adminSupabase.auth.admin.deleteUser(userId);
-
-    if (deleteError) {
-      return new Response(
-        JSON.stringify({ error: `Failed to delete user: ${deleteError.message}` }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
+    console.log(`Successfully deleted user: ${userId}`);
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  } catch (err) {
+    console.error('Unhandled error:', err);
     return new Response(
-      JSON.stringify({ success: true, message: 'User deleted successfully' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: `Internal server error: ${error.message}` }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: err.message || 'Unexpected error' }),
+      { status: 500 }
     );
   }
 });

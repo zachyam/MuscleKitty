@@ -739,52 +739,26 @@ export const updateUserProfile = async (userId: string, userData: {
   }
 };
 
-/**
- * Delete a Supabase user by calling the Edge Function
- * This function requires the user to be authenticated
- * @param userId The ID of the user to delete (must match the authenticated user)
- * @returns Success status and any error
- */
-export const deleteSupabaseUser = async (userId: string): Promise<{ success: boolean, error?: any }> => {
-  try {
-    // Get the user's session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session) {
-      console.error('Error getting session for user deletion:', sessionError);
-      return { success: false, error: sessionError || new Error('No active session') };
-    }
-    
-    // In a production environment, the Edge Function would be properly deployed
-    // and would handle the actual deletion of the auth user
-    
-    // For now, we'll just return success since we don't have the Edge Function deployed
-    console.log('NOTE: In production, this would call an Edge Function to delete the Supabase auth user');
-    console.log('Since Edge Function is not deployed, we\'re proceeding with account cleanup only');
-    
-    // In a real deployment, uncomment this code:
-    /*
-    // Call the Supabase Edge Function to delete the user
-    const response = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
+export const deleteSupabaseUser = async (userId: string) => {
+  const session = await supabase.auth.getSession();
+  const accessToken = session.data.session?.access_token;
+  const response = await fetch(
+    'https://eanbeozedjxftwbgmvfn.supabase.co/functions/v1/delete-user',
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ userId }),
-    });
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      console.error('Error from delete-user function:', result.error);
-      return { success: false, error: result.error };
     }
-    */
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Exception deleting user:', error);
-    return { success: false, error };
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    return { success: false, error: data.error || 'Unknown error' };
   }
+
+  return { success: true };
 };

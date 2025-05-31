@@ -18,17 +18,14 @@ const SCREENS = [
   {
     title: "Customize Your Training",
     subtitle: "Design your own workout routines, log them effortlessly, and track your progress.",
-    image: require('@/assets/images/logo.png'),
   },
   {
     title: "Adopt a kitty and train with it",
     subtitle: "Stay consistent, level up, and keep your kitty strong",
-    image: require('@/assets/images/logo.png'),
   },
   {
     title: "Compete & Level Up",
     subtitle: "Add friends, compete against them, and see who trains the most consistently!",
-    image: require('@/assets/images/logo.png'),
   }
 ];
 
@@ -180,7 +177,7 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 10,
     overflow: 'hidden',
   },
   welcomeMascotImage: {
@@ -192,7 +189,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 10,
+    margin: 10,
     textAlign: 'center',
   },
   welcomeSubtitle: {

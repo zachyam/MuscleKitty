@@ -16,10 +16,10 @@ export const loginWithGoogle = async (): Promise<AuthResponse> => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: Platform.OS === 'ios' 
-          ? 'musclekitty://' 
-          : 'musclekitty://auth/callback',
-        skipBrowserRedirect: false
+        redirectTo: 'musclekitty://auth/callback',
+        queryParams: {
+          prompt: 'select_account consent'
+        }
       }
     });
     
@@ -127,10 +127,10 @@ export const loginWithFacebook = async (): Promise<AuthResponse> => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'facebook',
       options: {
-        redirectTo: Platform.OS === 'ios' 
-          ? 'musclekitty://' 
-          : 'musclekitty://auth/callback',
-        skipBrowserRedirect: false
+        redirectTo: 'musclekitty://auth/callback',
+        queryParams: {
+          prompt: 'select_account consent'
+        }
       }
     });
     

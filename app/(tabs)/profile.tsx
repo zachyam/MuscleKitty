@@ -604,8 +604,9 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   profileImage: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
+    margin: 10
   },
   profileName: {
     fontWeight: '700',

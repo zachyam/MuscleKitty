@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Alert, Platform, ActivityIndicator, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Users, Crown, UserPlus, Bell, Check, X } from 'lucide-react-native';
+import { Users, Crown, Trophy, Medal, UserPlus, Bell, Check, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { useState, useEffect, useContext } from 'react';
@@ -433,9 +433,9 @@ export default function FriendsScreen() {
 
   // Render medal icon based on rank
   const renderRankMedal = (rank: number) => {
-    if (rank === 1) return <Crown size={20} color="#FFD700" style={styles.medalIcon} />;
-    if (rank === 2) return <Text style={styles.medalIcon}>🥈</Text>
-    if (rank === 3) return <Text style={styles.medalIcon}>🥉</Text>
+    if (rank === 1) return <Crown size={25} color="#FFD700" style={styles.goldIcon} />
+    if (rank === 2) return <Trophy size={25} style={styles.silverIcon}/>
+    if (rank === 3) return <Trophy size={25} style={styles.bronzeIcon}/>
     return <Text style={styles.rankText}>#{rank}</Text>;
   };
 
@@ -822,9 +822,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   catImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 25
+    width: 100,
+    height: 100,
+    marginBottom: 5,
+    marginRight: 10,
+    padding: 10
   },
   statsInfo: {
     flex: 1,
@@ -1046,7 +1048,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: Colors.background,
     borderRadius: 12,
-    padding: 12,
+    padding: 15,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -1055,8 +1057,8 @@ const styles = StyleSheet.create({
   requestAvatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
-    marginRight: 12,
+    borderRadius: 10,
+    marginRight: 15,
   },
   requestInfo: {
     flex: 1,
@@ -1290,11 +1292,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  medalIcon: {
+  goldIcon: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
-    shadowRadius: 1,
+    shadowRadius: 1.8,
+    padding: 5
+  },
+  silverIcon: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 1.8,
+    color: 'silver',
+    padding: 5
+  },
+  bronzeIcon: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 1.8,
+    color: 'brown',
+    padding: 5
   },
   rankText: {
     fontWeight: 'bold',
@@ -1304,8 +1323,8 @@ const styles = StyleSheet.create({
   avatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
-    marginRight: 12,
+    borderRadius: 10,
+    marginRight: 15,
   },
   loadingContainer: {
     flex: 1,

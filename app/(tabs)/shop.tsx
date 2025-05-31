@@ -490,9 +490,10 @@ const styles = StyleSheet.create({
     height: 140,
   },
   catImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 25
+    width: 100,
+    height: 100,
+    marginRight: 10,
+    padding: 10
   },
   statsInfo: {
     flex: 1,

@@ -254,16 +254,15 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
     },
     kittyImageContainer: {
-      width: 350,
-      height: 350,
-      marginBottom: 250,
+      width: 150,
+      height: 150,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: 'transparent',
     },
     kittyImage: {
-      width: '100%',
-      height: '100%',
+      width: 150,
+      height: 150,
     },
     carouselButton: {
       width: 40,

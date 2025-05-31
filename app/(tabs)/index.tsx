@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useCallback, useRef, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, ImageBackground, Animated, Easing, ScrollView } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, ArrowUp, ChevronDown, Pencil, Trash2 } from 'lucide-react-native';
+import { Plus, Dumbbell, ArrowUp, ChevronDown, Pencil, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { getWorkouts, deleteWorkout, getWorkoutLogs } from '@/utils/storageAdapter';
@@ -478,7 +478,7 @@ function WorkoutPlansScreen() {
                             onPress={() => handleSelectWorkout(workout)} 
                           >
                             <View style={styles.workoutCardIcon}>
-                              <Text style={styles.workoutCardEmoji}>💪</Text>
+                              <Dumbbell color="#4CAF50"/>
                             </View>
                             <View style={styles.workoutCardContent}>
                               <Text style={styles.workoutPlanCardTitle}>{workout.name}</Text>
@@ -520,7 +520,9 @@ function WorkoutPlansScreen() {
                         <View style={styles.workoutDetailCard}>
                           <View style={styles.workoutDetailHeader}>
                             <View style={styles.workoutCardIconLarge}>
-                              <Text style={styles.workoutCardEmojiLarge}>💪</Text>
+                              {/* <Text style={styles.workoutCardEmojiLarge}>💪</Text> */}
+                              <Dumbbell color="#4CAF50"/>
+
                             </View>
                             <View style={styles.workoutDetailHeaderContent}>
                               <Text style={styles.workoutDetailTitle}>{workout.name}</Text>
@@ -996,7 +998,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -1036,7 +1038,7 @@ const styles = StyleSheet.create({
   exerciseItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.background,
     borderRadius: 14,
     padding: 12,
     marginBottom: 10,
@@ -1195,12 +1197,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
   workoutCardIcon: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: Colors.primaryLight,
+    // backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,

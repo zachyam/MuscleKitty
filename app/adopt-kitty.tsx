@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   kittyImage: {
-    width: '80%',
-    height: '80%',
+    width: 100,
+    height: 100,
   },
   carouselButton: {
     width: 40,

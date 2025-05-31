@@ -244,26 +244,22 @@ export default function ShopScreen() {
   const confirmPurchase = async () => {
     if (!user || !selectedItem) return;
     
-    if (selectedItem && totalCoins >= selectedItem.price) {
+    const newCoinTotal = (user?.coins ?? 0) - selectedItem.price;
+    if (selectedItem && newCoinTotal >= 0) {
       await updateUserAttributes({
-        coins: (user?.coins ?? 0) - selectedItem.price,
+        coins: newCoinTotal,
         xp: (user?.xp ?? 0) + selectedItem.xpReward,
         level: KittyStats.calculateLevel((user?.xp ?? 0) + selectedItem.xpReward)
       });
       
       // Update local state
-      setTotalCoins(prevCoins => prevCoins - selectedItem.price);
+      setTotalCoins(newCoinTotal);
       
       // Show confetti and XP popup
       setShowConfetti(true);
       setShowXpPopup(true);
       
-      // Here you would save the purchase to user's inventory
-      
       setIsModalVisible(false);
-      // setShowAlert(true);
-      // setAlertType('success');
-      // setAlertMessage(`Purchase Successful! You've purchased ${selectedItem.name} for your kitty! +${selectedItem.xpReward} XP gained!`);
     } else {
       setIsModalVisible(false);
       setShowAlert(true);

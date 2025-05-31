@@ -62,6 +62,12 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
   }) => {
     if (!user) return null;
     
+    // Prevent negative coins
+    if (updates.coins !== undefined && updates.coins < 0) {
+      console.warn('Attempted to set negative coins, setting to 0 instead');
+      updates.coins = 0;
+    }
+    
     // If kittyBreedId is being updated, also update the avatarUrl
     if (updates.kittyBreedId !== undefined && KITTY_IMAGES[updates.kittyBreedId]) {
       updates.avatarUrl = KITTY_IMAGES[updates.kittyBreedId];
@@ -391,7 +397,13 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }
     
     try {
       const currentCoins = user.coins || 0;
-      const newCoinTotal = currentCoins + amount;
+      let newCoinTotal = currentCoins + amount;
+      
+      // Prevent negative coins
+      if (newCoinTotal < 0) {
+        console.warn('Attempted to set negative coins, setting to 0 instead');
+        newCoinTotal = 0;
+      }
       
       const updatedUser = {
         ...user,

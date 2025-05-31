@@ -762,11 +762,26 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
   },
   cancelButton: {
     backgroundColor: Colors.error,
     width: '48%',
-    height: 60,
+    height: 50,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  saveButton: {
+    backgroundColor: Colors.primary,
+    width: '48%',
+    height: 50,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
@@ -778,23 +793,17 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
-  saveButton: {
-    backgroundColor: '#A3D977',
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    marginLeft: 8,
-    alignItems: 'center',
-  },
   saveButtonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   disabledButton: {
-    opacity: 0.6,
+    backgroundColor: '#CCC',
+    opacity: 0.7,
   },
   backdrop: {
     position: 'absolute',
@@ -813,7 +822,7 @@ const styles = StyleSheet.create({
   adoptButton: {
     backgroundColor: Colors.primary,
     width: '48%',
-    height: 60,
+    height: 50,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
@@ -825,7 +834,7 @@ const styles = StyleSheet.create({
   },
   adoptButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   settingsIcon: {

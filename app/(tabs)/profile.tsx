@@ -122,6 +122,13 @@ export default function ProfileScreen() {
         loadLogs();
       }, [user?.id])
     );
+
+  // Reset changeKittyBreed when navigating away and back
+  useFocusEffect(
+    useCallback(() => {
+      setChangeKittyBreed(false);
+    }, [])
+  );
   
   // Get streak and kitty health from utility functions
   const streak = calculateStreak(workoutLogs);
@@ -422,17 +429,27 @@ export default function ProfileScreen() {
             setSelectedKittyIndex={setSelectedKittyIndex}
           />
 
-          <TouchableOpacity 
-            style={[styles.adoptButton, isSubmitting && styles.disabledButton]} 
-            onPress={handleSaveKittyBreed}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <Text style={styles.adoptButtonText}>Adopt</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.cancelButton, isSubmitting && styles.disabledButton]} 
+              onPress={() => setChangeKittyBreed(false)}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.adoptButton, isSubmitting && styles.disabledButton]} 
+              onPress={handleSaveKittyBreed}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
+                <Text style={styles.adoptButtonText}>Adopt</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <>
@@ -747,17 +764,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cancelButton: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ECD9B5',
-    flex: 1,
-    marginRight: 8,
+    backgroundColor: Colors.error,
+    width: '48%',
+    height: 60,
+    borderRadius: 18,
+    justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   cancelButtonText: {
-    color: '#5E503F',
-    fontWeight: '500',
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   saveButton: {
     backgroundColor: '#A3D977',
@@ -782,9 +804,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 9, // should be just under menuContainer's 10
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '85%',
+    marginBottom: 25,
+  },
   adoptButton: {
     backgroundColor: Colors.primary,
-    width: '85%',
+    width: '48%',
     height: 60,
     borderRadius: 18,
     justifyContent: 'center',
@@ -794,7 +822,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
-    marginBottom: 0,
   },
   adoptButtonText: {
     color: '#FFFFFF',

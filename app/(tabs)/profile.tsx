@@ -621,9 +621,12 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    margin: 10
+    width: 120,
+    height: 120,
+    marginBottom: 5,
+    marginRight: 15,
+    padding: 5,
+    resizeMode: 'contain'
   },
   profileName: {
     fontWeight: '700',
@@ -817,7 +820,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '85%',
-    marginBottom: 25,
+    marginBottom: 5,
   },
   adoptButton: {
     backgroundColor: Colors.primary,

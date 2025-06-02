@@ -822,11 +822,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   catImage: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     marginBottom: 5,
-    marginRight: 10,
-    padding: 10
+    marginRight: 15,
+    padding: 5,
+    resizeMode: 'contain',
   },
   statsInfo: {
     flex: 1,

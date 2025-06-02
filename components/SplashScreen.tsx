@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
     height: '60%',
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     marginBottom: 24,
     borderRadius: 50,
     overflow: 'hidden',

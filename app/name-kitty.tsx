@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     height: 250,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 75,
   },
   kittyImage: {
     width: 120,
@@ -390,6 +390,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
+    height: 60,
     fontSize: 18,
     textAlign: 'center',
     shadowColor: '#000',

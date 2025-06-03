@@ -486,8 +486,8 @@ const styles = StyleSheet.create({
     height: 140,
   },
   catImage: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     marginBottom: 5,
     marginRight: 15,
     padding: 5,

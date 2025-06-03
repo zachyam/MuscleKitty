@@ -8,7 +8,8 @@ import {
   Platform,
   ScrollView,
   SafeAreaView,
-  Image
+  Image,
+  ActivityIndicator
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -171,14 +172,14 @@ export default function LoginScreen() {
           
           
           <View style={styles.footer}>
-            <Text style={styles.footerText}>By continuing, you agree to our </Text>
+            {/* <Text style={styles.footerText}>By continuing, you agree to our </Text>
             <TouchableOpacity>
               <Text style={styles.linkText}>Terms of Service</Text>
             </TouchableOpacity>
             <Text style={styles.footerText}> and </Text>
             <TouchableOpacity>
               <Text style={styles.linkText}>Privacy Policy</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

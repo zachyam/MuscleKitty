@@ -163,17 +163,17 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Show splash screen during logout process
-              setTimeout(() => {
-                // First navigate to splash screen for a smooth transition
-                router.replace('/login');
-              }, 1500);
+              // First navigate to splash screen for a smooth transition
+              router.replace('/login');
               
-              // Clear user session from Supabase
-              await logout();
-              
-              // Clear user data from context
-              setUser(null);
+              // Wait for navigation to complete before clearing user data
+              setTimeout(async () => {
+                // Clear user session from Supabase
+                await logout();
+                
+                // Clear user data from context
+                setUser(null);
+              }, 100);
             } catch (error) {
               console.error('Error during logout:', error);
             }

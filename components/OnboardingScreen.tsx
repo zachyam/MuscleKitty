@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Animated,
+  PanResponder,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
@@ -34,6 +35,29 @@ const OnboardingScreen = () => {
   const router = useRouter();
   const { completeOnboarding } = useUser();
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const { width, height } = useWindowDimensions();
+  
+  // Create pan responder for swipe gestures
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_, gestureState) => {
+        const { dx } = gestureState;
+        const SWIPE_THRESHOLD = width * 0.25;
+
+        if (Math.abs(dx) > SWIPE_THRESHOLD) {
+          if (dx > 0 && activeScreen > 0) {
+            // Swipe right - go back
+            handleBack();
+          } else if (dx < 0 && activeScreen < SCREENS.length - 1) {
+            // Swipe left - go next
+            handleNext();
+          }
+        }
+      },
+    })
+  ).current;
   
   // Reset animation when screen changes
   useEffect(() => {
@@ -45,7 +69,7 @@ const OnboardingScreen = () => {
     // Fade out
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 150,
+      duration: 250,
       useNativeDriver: true,
     }).start(() => {
       if (activeScreen < SCREENS.length - 1) {
@@ -68,7 +92,7 @@ const OnboardingScreen = () => {
       // Fade in
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 150,
+        duration: 250,
         useNativeDriver: true,
       }).start();
     });
@@ -99,7 +123,11 @@ const OnboardingScreen = () => {
 
   const renderScreen = (screen: typeof SCREENS[0], index: number) => {
     return (
-      <Animated.View style={[styles.screenContainer, { opacity: fadeAnim }]} key={index}>
+      <Animated.View 
+        style={[styles.screenContainer, { opacity: fadeAnim }]} 
+        key={index}
+        {...panResponder.panHandlers}
+      >
         {/* Mascot circle */}
         <View style={styles.mascotContainer}>
           <Image
@@ -110,7 +138,7 @@ const OnboardingScreen = () => {
         </View>
 
         {/* Title and subtitle */}
-        <View>
+        <View style={styles.textContainer}>
           <Text style={styles.welcomeTitle}>{screen.title}</Text>
           <Text style={styles.welcomeSubtitle}>{screen.subtitle}</Text>
         </View>
@@ -170,26 +198,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
+    width: '100%',
   },
   mascotContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 40,
     overflow: 'hidden',
+    backgroundColor: Colors.background,
   },
   welcomeMascotImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 65,
+    width: '100%',
+    height: '100%',
+  },
+  textContainer: {
+    alignItems: 'center',
+    width: '100%',
+    minHeight: 120, // Fixed minimum height to prevent movement
   },
   welcomeTitle: {
     fontSize: 26,
     fontWeight: 'bold',
     color: Colors.text,
-    margin: 10,
+    marginBottom: 10,
     textAlign: 'center',
   },
   welcomeSubtitle: {
@@ -197,11 +231,13 @@ const styles = StyleSheet.create({
     color: Colors.gray,
     marginBottom: 20,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   buttonContainer: {
     width: '100%',
     paddingHorizontal: 30,
-    marginTop: 10,
+    marginTop: 'auto',
+    marginBottom: 20,
   },
   primaryButton: {
     width: '100%',

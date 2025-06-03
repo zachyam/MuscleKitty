@@ -373,15 +373,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   kittyContainer: {
-    width: 200,
+    width: 250,
     height: 250,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 75,
+    marginBottom: 25,
   },
   kittyImage: {
-    width: 120,
-    height: 120,
+    width: 250,
+    height: 250,
   },
   inputContainer: {
     width: '100%',

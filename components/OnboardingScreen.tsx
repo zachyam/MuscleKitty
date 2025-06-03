@@ -36,28 +36,7 @@ const OnboardingScreen = () => {
   const { completeOnboarding } = useUser();
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const { width, height } = useWindowDimensions();
-  
-  // Create pan responder for swipe gestures
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (_, gestureState) => {
-        const { dx } = gestureState;
-        const SWIPE_THRESHOLD = width * 0.25;
-
-        if (Math.abs(dx) > SWIPE_THRESHOLD) {
-          if (dx > 0 && activeScreen > 0) {
-            // Swipe right - go back
-            handleBack();
-          } else if (dx < 0 && activeScreen < SCREENS.length - 1) {
-            // Swipe left - go next
-            handleNext();
-          }
-        }
-      },
-    })
-  ).current;
+      
   
   // Reset animation when screen changes
   useEffect(() => {
@@ -126,7 +105,6 @@ const OnboardingScreen = () => {
       <Animated.View 
         style={[styles.screenContainer, { opacity: fadeAnim }]} 
         key={index}
-        {...panResponder.panHandlers}
       >
         {/* Mascot circle */}
         <View style={styles.mascotContainer}>

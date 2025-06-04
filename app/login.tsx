@@ -206,10 +206,10 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   logo: {
-    width: 150,
-    height: 150,
+    width: 175,
+    height: 175,
     marginBottom: 24,
-    borderRadius: 75,
+    borderRadius: 100,
     overflow: 'hidden',
     borderWidth: 3,
     borderColor: '#7E866F',

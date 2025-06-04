@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
     height: '60%',
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 175,
+    height: 175,
     marginBottom: 24,
-    borderRadius: 75,
+    borderRadius: 100,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#7E866F',

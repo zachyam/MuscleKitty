@@ -6,6 +6,9 @@ import { View, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
 import { UserProvider, useUser } from '@/utils/UserContext';
 import SplashScreen from '@/components/SplashScreen';
+import * as Splash from 'expo-splash-screen';
+
+Splash.hide();
 
 declare global {
   interface Window {

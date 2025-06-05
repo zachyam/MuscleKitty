@@ -18,10 +18,13 @@ import { StaticSplashScreen } from '@/components/SplashScreen';
 import Colors from '@/constants/Colors';
 import { isAuthenticated, loginWithSocialMedia } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { supabase } from '@/utils/supabase';
 
 export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   
@@ -57,6 +60,34 @@ export default function LoginScreen() {
     checkAuth();
   }, []);
   
+  const handleAppleLogin = async () => {
+    setAppleLoading(true);
+    try {
+      const appleCredential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+    
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: appleCredential.identityToken,
+      });
+  
+      if (error) {
+        console.error('Supabase Apple login error:', error);
+      } else {
+        console.log('User signed in:', data);
+        setUser(data.user);
+      }
+
+    } catch (error) {
+      console.log('Apple sign-in error:', error);
+    } finally {
+      setAppleLoading(false);
+    }
+  }
   
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -163,6 +194,12 @@ export default function LoginScreen() {
               provider="facebook"
               onPress={handleFacebookLogin}
               isLoading={facebookLoading}
+            />
+
+            <SocialButton
+              provider="apple"
+              onPress={handleAppleLogin}
+              isLoading={appleLoading}
             />
             
             <Text style={styles.socialNote}>

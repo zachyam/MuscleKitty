@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from
 import { AntDesign } from '@expo/vector-icons';
 
 type SocialButtonProps = {
-  provider: 'google' | 'facebook';
+  provider: 'google' | 'facebook' | 'apple';
   onPress: () => void;
   isLoading?: boolean;
   style?: ViewStyle;
@@ -15,9 +15,42 @@ const SocialButton: React.FC<SocialButtonProps> = ({
   isLoading = false,
   style
 }) => {
-  const icon = provider === 'google' ? 'google' : 'facebook';
-  const label = provider === 'google' ? 'Continue with Google' : 'Continue with Facebook';
-  const color = provider === 'google' ? '#DB4437' : '#4267B2';
+  const getIcon = () => {
+    switch (provider) {
+      case 'google':
+        return 'google';
+      case 'facebook':
+        return 'facebook-square';
+      case 'apple':
+        return 'apple1';
+    }
+  };
+
+  const getLabel = () => {
+    switch (provider) {
+      case 'google':
+        return 'Continue with Google';
+      case 'facebook':
+        return 'Continue with Facebook';
+      case 'apple':
+        return 'Continue with Apple';
+    }
+  };
+
+  const getColor = () => {
+    switch (provider) {
+      case 'google':
+        return '#DB4437';
+      case 'facebook':
+        return '#4267B2';
+      case 'apple':
+        return '#000000';
+    }
+  };
+  
+  const icon = getIcon();
+  const label = getLabel();
+  const color = getColor();
   
   return (
     <TouchableOpacity
@@ -30,11 +63,7 @@ const SocialButton: React.FC<SocialButtonProps> = ({
         <ActivityIndicator size="small" color={color} />
       ) : (
         <>
-          {provider === 'google' ? (
-            <AntDesign name="google" size={20} color={color} style={styles.icon} />
-          ) : (
-            <AntDesign name="facebook-square" size={20} color={color} style={styles.icon} />
-          )}
+          <AntDesign name={icon} size={20} color={color} style={styles.icon} />
           <Text style={[styles.label, { color }]}>{label}</Text>
         </>
       )}

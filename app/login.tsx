@@ -20,6 +20,7 @@ import { isAuthenticated, loginWithSocialMedia } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase } from '@/utils/supabase';
+import posthog from '@/utils/consoleToPosthog';
 
 export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -80,6 +81,10 @@ export default function LoginScreen() {
       } else {
         console.log('User signed in:', data);
         setUser(data.user);
+        // Identify user in PostHog
+        if (typeof data.user?.id === 'string' && typeof data.user?.email === 'string') {
+          posthog.identify(data.user.id, { email: data.user.email });
+        }
       }
 
     } catch (error) {
@@ -108,6 +113,10 @@ export default function LoginScreen() {
         
         // Save user to context
         setUser(response.user);
+        // Identify user in PostHog
+        if (typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
+          posthog.identify(response.user.id, { email: response.user.email });
+        }
         
         // Router will handle redirect based on first login status
         // The AuthProvider in _layout.tsx will decide whether to go to onboarding or tabs
@@ -142,6 +151,10 @@ export default function LoginScreen() {
         
         // Save user to context
         setUser(response.user);
+        // Identify user in PostHog
+        if (typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
+          posthog.identify(response.user.id, { email: response.user.email });
+        }
         
         // Router will handle redirect based on first login status
         // The AuthProvider in _layout.tsx will decide whether to go to onboarding or tabs

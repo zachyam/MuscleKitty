@@ -482,7 +482,7 @@ export default function StartWorkoutScreen() {
                 <View style={styles.inputContainer}>
                   <TextInput
                     style={styles.input}
-                    value={set.weight > 0 ? set.weight.toString() : ''}
+                    value={set.weight > 0 ? (Number.isInteger(set.weight) ? set.weight.toString() : set.weight.toFixed(2)) : ''}
                     onChangeText={(text) => handleUpdateWeight(safeCurrentExerciseIndex, setIndex, text)}
                     keyboardType="decimal-pad"
                     placeholder="0"

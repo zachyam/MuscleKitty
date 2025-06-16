@@ -175,7 +175,7 @@ export default function WorkoutLogScreen() {
                       <View key={setIndex} style={styles.setRow}>
                         <Text style={styles.setText}>{set.setNumber || setIndex + 1}</Text>
                         <Text style={styles.setText}>{set.reps || 0}</Text>
-                        <Text style={styles.setText}>{set.weight > 0 ? `${set.weight} lbs` : '-'}</Text>
+                        <Text style={styles.setText}>{set.weight > 0 ? (Number.isInteger(set.weight) ? `${set.weight} lbs` : `${set.weight.toFixed(2)} lbs`) : '-'}</Text>
                       </View>
                     ))
                   ) : (

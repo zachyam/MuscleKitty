@@ -7,6 +7,8 @@ import Colors from '@/constants/Colors';
 import { UserProvider, useUser } from '@/utils/UserContext';
 import SplashScreen from '@/components/SplashScreen';
 import * as Splash from 'expo-splash-screen';
+import { PostHogProvider } from 'posthog-react-native';
+import { setupConsoleToPosthog } from '@/utils/consoleToPosthog';
 
 Splash.hide();
 
@@ -20,26 +22,35 @@ declare global {
 export default function RootLayout() {
   return (
     <>
-      <UserProvider>
-        <AuthProvider>
-          <Stack 
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: Colors.background },
-              animation: 'fade',
-              animationDuration: 200,
-            }}
-          >
-            <Stack.Screen name="index" options={{ animation: 'fade' }} />
-            <Stack.Screen name="login" options={{ animation: 'fade' }} />
-            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-            <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
-            <Stack.Screen name="adopt-kitty" options={{ animation: 'fade' }} />
-            <Stack.Screen name="name-kitty" options={{ animation: 'fade' }} />
-          </Stack>
-        </AuthProvider>
-      </UserProvider>
-      <StatusBar style="auto" />
+      <PostHogProvider
+        apiKey="phc_Fwgitn55Uqwu9mYNBseBrodLZDtabpjFxaeai0HJ9pR"
+        options={{
+          host: 'https://us.i.posthog.com',
+          enableSessionReplay: true,
+        }}
+        autocapture
+      >
+        <UserProvider>
+          <AuthProvider>
+            <Stack 
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: Colors.background },
+                animation: 'fade',
+                animationDuration: 200,
+              }}
+            >
+              <Stack.Screen name="index" options={{ animation: 'fade' }} />
+              <Stack.Screen name="login" options={{ animation: 'fade' }} />
+              <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+              <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+              <Stack.Screen name="adopt-kitty" options={{ animation: 'fade' }} />
+              <Stack.Screen name="name-kitty" options={{ animation: 'fade' }} />
+            </Stack>
+          </AuthProvider>
+        </UserProvider>
+        <StatusBar style="auto" />
+      </PostHogProvider>
     </>
   );
 }
@@ -69,6 +80,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     
     initialize();
   }, []);
+  
+  useEffect(() => {
+    // Set up PostHog console log forwarding when user is available
+    setupConsoleToPosthog(user?.id);
+  }, [user?.id]);
   
   // Effect for navigation logic
   useEffect(() => {

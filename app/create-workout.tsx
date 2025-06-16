@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft, Plus, X, Minus } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -68,64 +68,74 @@ export default function CreateWorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {showAlert && <FancyAlert type="error" message={alertMessage} onClose={() => setShowAlert(false)} />}
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#6B4C3B" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Workout Plan</Text>
-        </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
+      >
+        {showAlert && <FancyAlert type="error" message={alertMessage} onClose={() => setShowAlert(false)} />}
+        <ScrollView
+          style={styles.content}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft size={24} color="#6B4C3B" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Create Workout Plan</Text>
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Workout Plan Name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="e.g., Upper Body, Leg Day"
-            placeholderTextColor="#C7B9A5"
-          />
-        </View>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Workout Plan Name</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g., Upper Body, Leg Day"
+              placeholderTextColor="#C7B9A5"
+            />
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Exercises</Text>
-          {exercises.map((exercise) => (
-            <View key={exercise.id} style={styles.exerciseItem}>
-              <View style={styles.exerciseContent}>
-                <TextInput
-                  style={styles.exerciseNameInput}
-                  value={exercise.name}
-                  onChangeText={(text) => handleUpdateExerciseName(exercise.id, text)}
-                  placeholder="Exercise name"
-                  placeholderTextColor="#C7B9A5"
-                />
-                <View style={styles.setsContainer}>
-                  <TouchableOpacity onPress={() => handleDecreaseSets(exercise.id)} disabled={(exercise.sets || 1) <= 1}>
-                    <Minus size={16} color={(exercise.sets || 1) <= 1 ? '#C7B9A5' : '#6B4C3B'} />
-                  </TouchableOpacity>
-                  <Text style={styles.setsText}>{exercise.sets || 1} {(exercise.sets || 1) === 1 ? 'set' : 'sets'}</Text>
-                  <TouchableOpacity onPress={() => handleIncreaseSets(exercise.id)}>
-                    <Plus size={16} color="#6B4C3B" />
-                  </TouchableOpacity>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Exercises</Text>
+            {exercises.map((exercise) => (
+              <View key={exercise.id} style={styles.exerciseItem}>
+                <View style={styles.exerciseContent}>
+                  <TextInput
+                    style={styles.exerciseNameInput}
+                    value={exercise.name}
+                    onChangeText={(text) => handleUpdateExerciseName(exercise.id, text)}
+                    placeholder="Exercise name"
+                    placeholderTextColor="#C7B9A5"
+                  />
+                  <View style={styles.setsContainer}>
+                    <TouchableOpacity onPress={() => handleDecreaseSets(exercise.id)} disabled={(exercise.sets || 1) <= 1}>
+                      <Minus size={16} color={(exercise.sets || 1) <= 1 ? '#C7B9A5' : '#6B4C3B'} />
+                    </TouchableOpacity>
+                    <Text style={styles.setsText}>{exercise.sets || 1} {(exercise.sets || 1) === 1 ? 'set' : 'sets'}</Text>
+                    <TouchableOpacity onPress={() => handleIncreaseSets(exercise.id)}>
+                      <Plus size={16} color="#6B4C3B" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
+                <TouchableOpacity onPress={() => handleRemoveExercise(exercise.id)}>
+                  <X size={18} color="#C25A5A" />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => handleRemoveExercise(exercise.id)}>
-                <X size={18} color="#C25A5A" />
-              </TouchableOpacity>
-            </View>
-          ))}
+            ))}
 
-          <TouchableOpacity style={styles.addButton} onPress={handleAddExercise}>
-            <Plus size={20} color="#000" />
-            <Text style={styles.addButtonText}>Add Exercise</Text>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddExercise}>
+              <Plus size={20} color="#000" />
+              <Text style={styles.addButtonText}>Add Exercise</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={[styles.saveFullButton, (exercises.length === 0) && styles.disabledButton]} onPress={handleSave} disabled={exercises.length === 0}>
+            <Text style={styles.saveFullButtonText}>Save Workout Plan</Text>
           </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={[styles.saveFullButton, (exercises.length === 0) && styles.disabledButton]} onPress={handleSave} disabled={exercises.length === 0}>
-          <Text style={styles.saveFullButtonText}>Save Workout Plan</Text>
-        </TouchableOpacity>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

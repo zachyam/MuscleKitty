@@ -7,7 +7,7 @@ import Colors from '@/constants/Colors';
 import { UserProvider, useUser } from '@/utils/UserContext';
 import SplashScreen from '@/components/SplashScreen';
 import * as Splash from 'expo-splash-screen';
-import { PostHogProvider } from 'posthog-react-native';
+import { PostHogProvider, usePostHog } from 'posthog-react-native';
 import { setupConsoleToPosthog } from '@/utils/consoleToPosthog';
 
 Splash.hide();
@@ -23,7 +23,7 @@ export default function RootLayout() {
   return (
     <>
       <PostHogProvider
-        apiKey="phc_Fwgitn55Uqwu9mYNBseBrodLZDtabpjFxaeai0HJ9pR"
+        apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
         options={{
           host: 'https://us.i.posthog.com',
           enableSessionReplay: true,
@@ -63,6 +63,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, loading, isFirstLogin } = useUser();
   const router = useRouter();
   const segments = useSegments();
+  const posthog = usePostHog();
 
   useEffect(() => {
     // Check authentication and hide splash screen
@@ -83,8 +84,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     // Set up PostHog console log forwarding when user is available
-    setupConsoleToPosthog(user?.id);
-  }, [user?.id]);
+    if (posthog) {
+      setupConsoleToPosthog(posthog, user?.id);
+    }
+  }, [posthog, user?.id]);
   
   // Effect for navigation logic
   useEffect(() => {

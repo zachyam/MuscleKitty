@@ -20,9 +20,10 @@ import { isAuthenticated, loginWithSocialMedia } from '@/utils/auth';
 import { useUser } from '@/utils/UserContext';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase } from '@/utils/supabase';
-import posthog from '@/utils/consoleToPosthog';
+import { usePostHog } from 'posthog-react-native';
 
 export default function LoginScreen() {
+  const posthog = usePostHog();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -82,7 +83,7 @@ export default function LoginScreen() {
         console.log('User signed in:', data);
         setUser(data.user);
         // Identify user in PostHog
-        if (typeof data.user?.id === 'string' && typeof data.user?.email === 'string') {
+        if (posthog && typeof posthog.identify === 'function' && typeof data.user?.id === 'string' && typeof data.user?.email === 'string') {
           posthog.identify(data.user.id, { email: data.user.email });
         }
       }
@@ -114,7 +115,7 @@ export default function LoginScreen() {
         // Save user to context
         setUser(response.user);
         // Identify user in PostHog
-        if (typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
+        if (posthog && typeof posthog.identify === 'function' && typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
           posthog.identify(response.user.id, { email: response.user.email });
         }
         
@@ -152,7 +153,7 @@ export default function LoginScreen() {
         // Save user to context
         setUser(response.user);
         // Identify user in PostHog
-        if (typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
+        if (posthog && typeof posthog.identify === 'function' && typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
           posthog.identify(response.user.id, { email: response.user.email });
         }
         

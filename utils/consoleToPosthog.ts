@@ -1,15 +1,18 @@
-import posthog from 'posthog-react-native';
+let consoleIsPatched = false;
 
-export default posthog;
+export function setupConsoleToPosthog(posthogInstance: any, userId?: string) {
+  if (!posthogInstance || typeof posthogInstance.capture !== 'function' || consoleIsPatched) {
+    return;
+  }
+  consoleIsPatched = true;
 
-export function setupConsoleToPosthog(userId?: string) {
   const originalLog = console.log;
   const originalWarn = console.warn;
   const originalError = console.error;
 
   function sendToPosthog(level: string, args: any[]) {
     try {
-      posthog.capture('console_log', {
+      posthogInstance.capture('console_log', {
         level,
         message: args.map(String).join(' '),
         userId,

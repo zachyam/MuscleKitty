@@ -34,6 +34,7 @@ export default function StartWorkoutScreen() {
   const [showAlert, setShowAlert] = useState(false);
   const { fromWorkoutId } = useLocalSearchParams<{ fromWorkoutId?: string }>();
   const isResuming = resumeWorkout === 'true';
+  const [weightInputs, setWeightInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (id) {
@@ -482,20 +483,40 @@ export default function StartWorkoutScreen() {
                 </View>
                 
                 <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
-                    value={
-                      set.weight > 0
-                        ? (Number.isInteger(set.weight) ? set.weight.toString() : set.weight.toString())
-                        : ''
+                <TextInput
+                  style={styles.input}
+                  value={
+                    weightInputs[`${safeCurrentExerciseIndex}-${setIndex}`] ??
+                    (set.weight > 0
+                      ? set.weight.toString()
+                      : '')
+                  }
+                  onChangeText={(text) => {
+                    setWeightInputs(prev => ({
+                      ...prev,
+                      [`${safeCurrentExerciseIndex}-${setIndex}`]: text
+                    }));
+                    handleUpdateWeight(safeCurrentExerciseIndex, setIndex, text);
+                  }}
+                  onBlur={() => {
+                    const key = `${safeCurrentExerciseIndex}-${setIndex}`;
+                    const final = parseFloat(weightInputs[key] ?? '');
+                    if (!isNaN(final)) {
+                      setWeightInputs(prev => ({
+                        ...prev,
+                        [key]: final.toString()
+                      }));
+                    } else {
+                      setWeightInputs(prev => ({
+                        ...prev,
+                        [key]: ''
+                      }));
                     }
-                    onChangeText={(text) =>
-                      handleUpdateWeight(safeCurrentExerciseIndex, setIndex, text)
-                    }
-                    keyboardType="decimal-pad"
-                    placeholder="0"
-                    placeholderTextColor={Colors.lightGray}
-                  />
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={Colors.lightGray}
+                />
                 </View>
                 
                 <TouchableOpacity 

@@ -18,6 +18,7 @@ export default function EditWorkoutLogScreen() {
   const [loading, setLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [weightInputs, setWeightInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (id) {
@@ -115,10 +116,12 @@ export default function EditWorkoutLogScreen() {
   };
 
   const handleUpdateWeight = (exerciseIndex: number, setIndex: number, weight: string) => {
-    const weightValue = parseFloat(weight) || 0;
-    const updatedExercises = [...exercises];
-    updatedExercises[exerciseIndex].sets[setIndex].weight = weightValue;
-    setExercises(updatedExercises);
+    const weightValue = parseFloat(weight);
+    if (isNaN(weightValue)) {
+      const updatedExercises = [...exercises];
+      updatedExercises[exerciseIndex].sets[setIndex].weight = weightValue;
+      setExercises(updatedExercises);
+    }
   };
 
   const handleSave = async () => {
@@ -204,14 +207,40 @@ export default function EditWorkoutLogScreen() {
                   </View>
                   
                   <View style={styles.inputContainer}>
-                    <TextInput
-                      style={styles.input}
-                      value={set.weight > 0 ? (Number.isInteger(set.weight) ? set.weight.toString() : set.weight.toFixed(2)) : ''}
-                      onChangeText={(text) => handleUpdateWeight(exerciseIndex, setIndex, text)}
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={Colors.lightGray}
-                    />
+                  <TextInput
+                    style={styles.input}
+                    value={
+                      weightInputs[`${exerciseIndex}-${setIndex}`] ??
+                      (set.weight > 0
+                        ? set.weight.toString()
+                        : '')
+                    }
+                    onChangeText={(text) => {
+                      setWeightInputs(prev => ({
+                        ...prev,
+                        [`${exerciseIndex}-${setIndex}`]: text
+                      }));
+                      handleUpdateWeight(exerciseIndex, setIndex, text);
+                    }}
+                    onBlur={() => {
+                      const key = `${exerciseIndex}-${setIndex}`;
+                      const final = parseFloat(weightInputs[key] ?? '');
+                      if (!isNaN(final)) {
+                        setWeightInputs(prev => ({
+                          ...prev,
+                          [key]: final.toString()
+                        }));
+                      } else {
+                        setWeightInputs(prev => ({
+                          ...prev,
+                          [key]: ''
+                        }));
+                      }
+                    }}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    placeholderTextColor={Colors.lightGray}
+                  />
                   </View>
                   
                   {exercise.sets.length > 1 ? (

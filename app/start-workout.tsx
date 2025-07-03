@@ -244,10 +244,12 @@ export default function StartWorkoutScreen() {
   };
 
   const handleUpdateWeight = (exerciseIndex: number, setIndex: number, weight: string) => {
-    const weightValue = parseFloat(weight) || 0;
-    const updatedLogs = [...exerciseLogs];
-    updatedLogs[exerciseIndex].sets[setIndex].weight = weightValue;
-    setExerciseLogs(updatedLogs);
+    const weightValue = parseFloat(weight);
+    if (!isNaN(weightValue)) {
+      const updatedLogs = [...exerciseLogs];
+      updatedLogs[exerciseIndex].sets[setIndex].weight = weightValue;
+      setExerciseLogs(updatedLogs);
+    }
   };
 
   const handleNextExercise = () => {
@@ -482,8 +484,14 @@ export default function StartWorkoutScreen() {
                 <View style={styles.inputContainer}>
                   <TextInput
                     style={styles.input}
-                    value={set.weight > 0 ? (Number.isInteger(set.weight) ? set.weight.toString() : set.weight.toFixed(2)) : ''}
-                    onChangeText={(text) => handleUpdateWeight(safeCurrentExerciseIndex, setIndex, text)}
+                    value={
+                      set.weight > 0
+                        ? (Number.isInteger(set.weight) ? set.weight.toString() : set.weight.toString())
+                        : ''
+                    }
+                    onChangeText={(text) =>
+                      handleUpdateWeight(safeCurrentExerciseIndex, setIndex, text)
+                    }
                     keyboardType="decimal-pad"
                     placeholder="0"
                     placeholderTextColor={Colors.lightGray}

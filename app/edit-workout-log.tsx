@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, X } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { getWorkoutLogById, saveWorkoutLog } from '@/utils/storageAdapter';
-import { WorkoutLog, ExerciseLog, SetLog } from '@/types';
+import { WorkoutLog, ExerciseLogDisplay, SetLog } from '@/types';
 import Header from '@/components/Header';
 import React from 'react';
 import * as SupabaseAPI from '@/utils/supabase';
@@ -14,7 +14,7 @@ import FancyAlert from '@/components/FancyAlert';
 export default function EditWorkoutLogScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [log, setLog] = useState<WorkoutLog | null>(null);
-  const [exercises, setExercises] = useState<ExerciseLog[]>([]);
+  const [exercises, setExercises] = useState<ExerciseLogDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -66,6 +66,18 @@ export default function EditWorkoutLogScreen() {
       
       setLog(foundLog);
       setExercises([...foundLog.exercises]);
+      
+      // Initialize weightInputs state with existing weight values
+      const initialWeightInputs: Record<string, string> = {};
+      foundLog.exercises.forEach((exercise, exerciseIndex) => {
+        exercise.sets.forEach((set, setIndex) => {
+          if (set.weight > 0) {
+            const key = `${exerciseIndex}-${setIndex}`;
+            initialWeightInputs[key] = set.weight.toString();
+          }
+        });
+      });
+      setWeightInputs(initialWeightInputs);
     } catch (error) {
       console.error('EditWorkoutLogScreen: Error loading workout log:', error);
       Alert.alert(
@@ -117,7 +129,7 @@ export default function EditWorkoutLogScreen() {
 
   const handleUpdateWeight = (exerciseIndex: number, setIndex: number, weight: string) => {
     const weightValue = parseFloat(weight);
-    if (isNaN(weightValue)) {
+    if (!isNaN(weightValue)) {
       const updatedExercises = [...exercises];
       updatedExercises[exerciseIndex].sets[setIndex].weight = weightValue;
       setExercises(updatedExercises);

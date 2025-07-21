@@ -88,6 +88,18 @@ export default function StartWorkoutScreen() {
       
       setExerciseLogs(initialExerciseLogs);
       
+      // Initialize weightInputs state with existing weight values
+      const initialWeightInputs: Record<string, string> = {};
+      initialExerciseLogs.forEach((exercise, exerciseIndex) => {
+        exercise.sets.forEach((set, setIndex) => {
+          if (set.weight > 0) {
+            const key = `${exerciseIndex}-${setIndex}`;
+            initialWeightInputs[key] = set.weight.toString();
+          }
+        });
+      });
+      setWeightInputs(initialWeightInputs);
+      
       // Load the most recent workout log for this workout
       if (user?.id) {
         const latestLog = await getLatestWorkoutLog(workoutId, user.id);
@@ -144,8 +156,20 @@ export default function StartWorkoutScreen() {
           Array.isArray(workoutInProgress.workoutLog.exercises)) {
         console.log('Resuming workout in progress');
         
-        // Use the exercise logs from the workout in progress
-        setExerciseLogs(workoutInProgress.workoutLog.exercises);
+              // Use the exercise logs from the workout in progress
+      setExerciseLogs(workoutInProgress.workoutLog.exercises);
+      
+      // Initialize weightInputs state with existing weight values
+      const initialWeightInputs: Record<string, string> = {};
+      workoutInProgress.workoutLog.exercises.forEach((exercise, exerciseIndex) => {
+        exercise.sets.forEach((set, setIndex) => {
+          if (set.weight > 0) {
+            const key = `${exerciseIndex}-${setIndex}`;
+            initialWeightInputs[key] = set.weight.toString();
+          }
+        });
+      });
+      setWeightInputs(initialWeightInputs);
         
         // Find the last exercise with data entered to set the current index
         let lastActiveExerciseIndex = 0;

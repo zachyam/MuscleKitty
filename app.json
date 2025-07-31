@@ -2,7 +2,7 @@
   "expo": {
     "name": "Muscle Kitty",
     "slug": "muscle-kitty",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "musclekitty",
@@ -19,7 +19,8 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "4"
     },
     "android": {
       "package": "com.zachyam.musclekitty",

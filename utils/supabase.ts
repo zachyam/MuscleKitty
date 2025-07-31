@@ -655,7 +655,115 @@ export const getCompleteWorkoutLogData = async (workoutLogId: string): Promise<a
   }
 };
 
-
+/**
+ * Get workout logs with exercise history for a specific workout in a single optimized query
+ * This reduces multiple database calls to just one
+ */
+export const getWorkoutLogsWithHistory = async (
+  userId: string, 
+  workoutPlanId: string,
+  limit = 10
+): Promise<{
+  logs: any[],
+  exerciseHistory: {[exerciseId: string]: {date: string, maxWeight: number}[]}
+}> => {
+  try {
+    console.log(`Getting workout logs with history for user ${userId}, workout ${workoutPlanId}`);
+    
+    // Get all workout logs for this workout
+    const { data: logs, error: logsError } = await supabase
+      .from('workout_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('workout_plan_id', workoutPlanId)
+      .order('date_completed', { ascending: false })
+      .limit(limit);
+    
+    if (logsError) {
+      console.error('Error fetching workout logs:', logsError);
+      return { logs: [], exerciseHistory: {} };
+    }
+    
+    if (!logs || logs.length === 0) {
+      return { logs: [], exerciseHistory: {} };
+    }
+    
+    // Get all exercise logs for these workout logs in a single query
+    const logIds = logs.map(log => log.id);
+    const { data: exerciseLogs, error: exerciseLogsError } = await supabase
+      .from('exercise_logs')
+      .select(`
+        *,
+        workout_exercise:workout_exercises(*)
+      `)
+      .in('workout_log_id', logIds);
+    
+    if (exerciseLogsError) {
+      console.error('Error fetching exercise logs:', exerciseLogsError);
+      return { logs: [], exerciseHistory: {} };
+    }
+    
+    // Group exercise logs by workout log
+    const exerciseLogsByWorkoutLog: {[logId: string]: any[]} = {};
+    exerciseLogs?.forEach(exerciseLog => {
+      const logId = exerciseLog.workout_log_id;
+      if (!exerciseLogsByWorkoutLog[logId]) {
+        exerciseLogsByWorkoutLog[logId] = [];
+      }
+      exerciseLogsByWorkoutLog[logId].push(exerciseLog);
+    });
+    
+    // Process logs and build exercise history
+    const processedLogs = logs.map(log => ({
+      ...log,
+      exercises: exerciseLogsByWorkoutLog[log.id] || []
+    }));
+    
+    // Build exercise history
+    const exerciseHistory: {[exerciseId: string]: {date: string, maxWeight: number}[]} = {};
+    
+    // Get unique exercise IDs from all logs
+    const exerciseIds = new Set<string>();
+    processedLogs.forEach(log => {
+      log.exercises.forEach((exerciseLog: any) => {
+        if (exerciseLog.workout_exercise) {
+          exerciseIds.add(exerciseLog.workout_exercise.id);
+        }
+      });
+    });
+    
+    // Build history for each exercise
+    exerciseIds.forEach(exerciseId => {
+      const history = processedLogs.map(log => {
+        const exerciseLog = log.exercises.find((ex: any) => 
+          ex.workout_exercise?.id === exerciseId
+        );
+        
+        if (!exerciseLog || !exerciseLog.sets_completed || !Array.isArray(exerciseLog.sets_completed)) {
+          return {
+            date: log.date_completed,
+            maxWeight: 0
+          };
+        }
+        
+        const maxWeight = Math.max(...exerciseLog.sets_completed.map((set: any) => set.weight || 0));
+        
+        return {
+          date: log.date_completed,
+          maxWeight
+        };
+      });
+      
+      // Reverse to get chronological order (oldest to newest)
+      exerciseHistory[exerciseId] = history.reverse();
+    });
+    
+    return { logs: processedLogs, exerciseHistory };
+  } catch (error) {
+    console.error('Error in getWorkoutLogsWithHistory:', error);
+    return { logs: [], exerciseHistory: {} };
+  }
+};
 
 /**
  * Update user profile data in Supabase

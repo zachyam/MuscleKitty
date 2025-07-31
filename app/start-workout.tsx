@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
 import Colors from '@/constants/Colors';
 import { getWorkoutById, saveWorkoutLog, getLatestWorkoutLog, getExerciseHistory } from '@/utils/storageAdapter';
+import { getWorkoutLogsWithHistory } from '@/utils/supabase';
 import { saveWorkoutInProgress, getWorkoutInProgress, clearWorkoutInProgress } from '@/utils/storage';
 import { Workout, WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
@@ -65,9 +66,19 @@ export default function StartWorkoutScreen() {
   // Load a workout from scratch
   const loadWorkout = async (workoutId: string) => {
     setLoading(true);
-    const foundWorkout = await getWorkoutById(workoutId);
     
-    if (foundWorkout) {
+    try {
+      // Load workout and user data in parallel
+      const [foundWorkout, userData] = await Promise.all([
+        getWorkoutById(workoutId),
+        user?.id ? Promise.resolve(user) : Promise.resolve(null)
+      ]);
+      
+      if (!foundWorkout) {
+        setLoading(false);
+        return;
+      }
+      
       setWorkout(foundWorkout);
       
       // Initialize exercise logs with the correct number of sets based on workout definition
@@ -100,22 +111,45 @@ export default function StartWorkoutScreen() {
       });
       setWeightInputs(initialWeightInputs);
       
-      // Load the most recent workout log for this workout
-      if (user?.id) {
-        const latestLog = await getLatestWorkoutLog(workoutId, user.id);
-        setPreviousWorkoutLog(latestLog);
+      // Only load history data if user exists
+      if (userData?.id) {
+        // Use the optimized function that gets everything in a single batch
+        const { logs: workoutLogs, exerciseHistory: historyData } = await getWorkoutLogsWithHistory(
+          userData.id, 
+          workoutId, 
+          10
+        );
         
-        // Load exercise history for each exercise
-        const historyData: {[key: string]: {date: string, maxWeight: number}[]} = {};
-        for (const exercise of foundWorkout.exercises) {
-          const history = await getExerciseHistory(workoutId, exercise.id, user.id);
-          historyData[exercise.id] = history; // keep only the last 10
+        if (workoutLogs.length > 0) {
+          // Set the most recent workout log as previous workout
+          const latestLog = workoutLogs[0];
+          const formattedLog: WorkoutLog = {
+            id: latestLog.id,
+            workoutId: latestLog.workout_plan_id,
+            workoutName: 'Previous Workout', // We don't have plan name in this query
+            exercises: latestLog.exercises?.map((exerciseLog: any) => ({
+              exerciseId: exerciseLog.workout_exercise?.id || exerciseLog.workout_exercise_id,
+              exerciseName: exerciseLog.workout_exercise?.name || 'Unknown Exercise',
+              sets: exerciseLog.sets_completed?.map((set: any, index: number) => ({
+                setNumber: index + 1,
+                reps: set.reps || 0,
+                weight: set.weight || 0
+              })) || []
+            })) || [],
+            date: latestLog.date_completed,
+            userId: latestLog.user_id
+          };
+          setPreviousWorkoutLog(formattedLog);
+          
+          // Set the exercise history
+          setExerciseHistory(historyData);
         }
-        setExerciseHistory(historyData);
       }
+    } catch (error) {
+      console.error('Error loading workout:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
   
   // Load a workout with in-progress data
@@ -192,23 +226,38 @@ export default function StartWorkoutScreen() {
         return;
       }
       
-      // Load previous workout log and exercise history
+      // Load previous workout log and exercise history using optimized function
       if (user?.id) {
         try {
-          const latestLog = await getLatestWorkoutLog(workoutId, user.id);
-          setPreviousWorkoutLog(latestLog);
+          const { logs: workoutLogs, exerciseHistory: historyData } = await getWorkoutLogsWithHistory(
+            user.id, 
+            workoutId, 
+            10
+          );
           
-          // Load exercise history for each exercise
-          const historyData: {[key: string]: {date: string, maxWeight: number}[]} = {};
-          for (const exercise of foundWorkout.exercises) {
-            try {
-              const history = await getExerciseHistory(workoutId, exercise.id, user.id);
-              historyData[exercise.id] = history;
-            } catch (e) {
-              console.error(`Error loading history for exercise ${exercise.id}:`, e);
-              historyData[exercise.id] = []; // Default to empty history on error
-            }
+          if (workoutLogs.length > 0) {
+            // Set the most recent workout log as previous workout
+            const latestLog = workoutLogs[0];
+            const formattedLog: WorkoutLog = {
+              id: latestLog.id,
+              workoutId: latestLog.workout_plan_id,
+              workoutName: 'Previous Workout',
+              exercises: latestLog.exercises?.map((exerciseLog: any) => ({
+                exerciseId: exerciseLog.workout_exercise?.id || exerciseLog.workout_exercise_id,
+                exerciseName: exerciseLog.workout_exercise?.name || 'Unknown Exercise',
+                sets: exerciseLog.sets_completed?.map((set: any, index: number) => ({
+                  setNumber: index + 1,
+                  reps: set.reps || 0,
+                  weight: set.weight || 0
+                })) || []
+              })) || [],
+              date: latestLog.date_completed,
+              userId: latestLog.user_id
+            };
+            setPreviousWorkoutLog(formattedLog);
           }
+          
+          // Set the exercise history
           setExerciseHistory(historyData);
         } catch (e) {
           console.error('Error loading workout history:', e);

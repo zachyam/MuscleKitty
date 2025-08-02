@@ -15,7 +15,7 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
+      "autoIncrement": false,
       "env": {
         "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_Fwgitn55Uqwu9mYNBseBrodLZDtabpjFxaeai0HJ9pR"
       }

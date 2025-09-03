@@ -8,22 +8,19 @@ import {
   Platform,
   ScrollView,
   SafeAreaView,
-  Image,
-  ActivityIndicator
+  Image
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import SocialButton from '@/components/SocialButton';
 import { StaticSplashScreen } from '@/components/SplashScreen';
 import Colors from '@/constants/Colors';
-import { isAuthenticated, loginWithSocialMedia } from '@/utils/auth';
-import { useUser } from '@/utils/UserContext';
+import { isAuthenticated, loginWithSocialMedia } from '@/app/(auth)/auth';
+import { useUser } from '@/utils/context/UserContext';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { supabase } from '@/utils/supabase';
-import { usePostHog } from 'posthog-react-native';
+import { supabase } from '@/supabase/supabase';
 
 export default function LoginScreen() {
-  const posthog = usePostHog();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -82,10 +79,6 @@ export default function LoginScreen() {
       } else {
         console.log('User signed in:', data);
         setUser(data.user);
-        // Identify user in PostHog
-        if (posthog && typeof posthog.identify === 'function' && typeof data.user?.id === 'string' && typeof data.user?.email === 'string') {
-          posthog.identify(data.user.id, { email: data.user.email });
-        }
       }
 
     } catch (error) {
@@ -114,10 +107,6 @@ export default function LoginScreen() {
         
         // Save user to context
         setUser(response.user);
-        // Identify user in PostHog
-        if (posthog && typeof posthog.identify === 'function' && typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
-          posthog.identify(response.user.id, { email: response.user.email });
-        }
         
         // Router will handle redirect based on first login status
         // The AuthProvider in _layout.tsx will decide whether to go to onboarding or tabs
@@ -152,10 +141,6 @@ export default function LoginScreen() {
         
         // Save user to context
         setUser(response.user);
-        // Identify user in PostHog
-        if (posthog && typeof posthog.identify === 'function' && typeof response.user?.id === 'string' && typeof response.user?.email === 'string') {
-          posthog.identify(response.user.id, { email: response.user.email });
-        }
         
         // Router will handle redirect based on first login status
         // The AuthProvider in _layout.tsx will decide whether to go to onboarding or tabs
@@ -223,14 +208,6 @@ export default function LoginScreen() {
           
           
           <View style={styles.footer}>
-            {/* <Text style={styles.footerText}>By continuing, you agree to our </Text>
-            <TouchableOpacity>
-              <Text style={styles.linkText}>Terms of Service</Text>
-            </TouchableOpacity>
-            <Text style={styles.footerText}> and </Text>
-            <TouchableOpacity>
-              <Text style={styles.linkText}>Privacy Policy</Text>
-            </TouchableOpacity> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

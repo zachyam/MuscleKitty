@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { isAuthenticated } from '@/utils/auth';
+import { isAuthenticated } from '@/app/(auth)/auth';
 import SplashScreen, { StaticSplashScreen } from '@/components/SplashScreen';
 import { useLocalSearchParams } from 'expo-router';
 

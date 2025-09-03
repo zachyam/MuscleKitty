@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Modal, Dimensions } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Check, Plus, Minus, X } from 'lucide-react-native';
+import { Plus, X } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LottieView from 'lottie-react-native';
 import Colors from '@/constants/Colors';
-import { getWorkoutById, saveWorkoutLog, getLatestWorkoutLog, getExerciseHistory } from '@/utils/storageAdapter';
-import { getWorkoutLogsWithHistory } from '@/utils/supabase';
-import { saveWorkoutInProgress, getWorkoutInProgress, clearWorkoutInProgress } from '@/utils/storage';
+import { WorkoutService } from '@/app/service/workout/WorkoutService';
+import { LocalStorageService } from './service/storage/LocalStorageService';
 import { Workout, WorkoutLog, ExerciseLog, SetLog } from '@/types';
 import Header from '@/components/Header';
-import { UserContext, useUser } from '@/utils/UserContext';
+import { UserContext, useUser } from '@/utils/context/UserContext';
 import ExerciseWeightChart from '@/components/ExerciseWeightChart';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import CoinPopup from '@/components/CoinPopup';
@@ -59,7 +57,7 @@ export default function StartWorkoutScreen() {
         userId: user.id
       };
       
-      saveWorkoutInProgress(workoutInProgress);
+      LocalStorageService.saveWorkoutInProgress(workoutInProgress);
     }
   }, [exerciseLogs, workout, user?.id]);
 
@@ -114,7 +112,7 @@ export default function StartWorkoutScreen() {
       // Only load history data if user exists
       if (userData?.id) {
         // Use the optimized function that gets everything in a single batch
-        const { logs: workoutLogs, exerciseHistory: historyData } = await getWorkoutLogsWithHistory(
+        const { logs: workoutLogs, exerciseHistory: historyData } = await WorkoutService.getWorkoutLogsWithHistory(
           userData.id, 
           workoutId, 
           10
@@ -162,7 +160,7 @@ export default function StartWorkoutScreen() {
       // First try getting the workout in progress data
       let workoutInProgress = null;
       try {
-        workoutInProgress = await getWorkoutInProgress();
+        workoutInProgress = await LocalStorageService.getWorkoutInProgress();
         console.log('Workout in progress data retrieved:', workoutInProgress ? 'yes' : 'no');
       } catch (e) {
         console.error('Error getting workout in progress:', e);
@@ -172,7 +170,7 @@ export default function StartWorkoutScreen() {
       }
       
       // Load workout details
-      const foundWorkout = await getWorkoutById(workoutId);
+      const foundWorkout = await LocalStorageService.getWorkoutById(workoutId);
       if (!foundWorkout) {
         console.error('Could not find workout with ID:', workoutId);
         setLoading(false);
@@ -229,7 +227,7 @@ export default function StartWorkoutScreen() {
       // Load previous workout log and exercise history using optimized function
       if (user?.id) {
         try {
-          const { logs: workoutLogs, exerciseHistory: historyData } = await getWorkoutLogsWithHistory(
+          const { logs: workoutLogs, exerciseHistory: historyData } = await WorkoutService.getWorkoutLogsWithHistory(
             user.id, 
             workoutId, 
             10
@@ -391,7 +389,7 @@ export default function StartWorkoutScreen() {
               console.log('Saving workout log:', JSON.stringify(workoutLog, null, 2));
               
               // Save the workout log and get the server-generated ID
-              const savedLogId = await saveWorkoutLog(workoutLog);
+              const savedLogId = await LocalStorageService.saveWorkoutLog(workoutLog);
               
               if (savedLogId) {
                 console.log(`Using server-generated log ID: ${savedLogId}`);
@@ -402,7 +400,7 @@ export default function StartWorkoutScreen() {
               }
               
               // Clear workout in progress since it's now completed
-              await clearWorkoutInProgress();
+              await LocalStorageService.clearWorkoutInProgress();
               
               // Show celebration effects
               setShowConfetti(true);
@@ -480,7 +478,7 @@ export default function StartWorkoutScreen() {
           onPress: async () => {
             try {
               // Clear the workout in progress when canceling
-              await clearWorkoutInProgress();
+              await LocalStorageService.clearWorkoutInProgress();
               console.log('Cleared workout in progress due to cancellation');
             } catch (e) {
               console.error('Error clearing workout in progress:', e);

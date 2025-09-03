@@ -6,19 +6,13 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_Fwgitn55Uqwu9mYNBseBrodLZDtabpjFxaeai0HJ9pR"
-      }
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": false,
-      "env": {
-        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_Fwgitn55Uqwu9mYNBseBrodLZDtabpjFxaeai0HJ9pR"
-      }
+      "autoIncrement": false
     }
   },
   "submit": {

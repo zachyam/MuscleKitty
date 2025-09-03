@@ -6,14 +6,16 @@ import { Settings, Calendar, Dumbbell, LogOut, Edit, X, PersonStanding, Cat } fr
 import Colors from '@/constants/Colors';
 import { useFocusEffect } from 'expo-router';
 import Header from '@/components/Header';
-import { logout } from '@/utils/auth';
-import { useUser } from '@/utils/UserContext';
-import { KITTY_ID_TO_BREED, KITTY_IMAGES } from '@/app/name-kitty';
+import { logout } from '@/app/(auth)/auth';
+import { useUser } from '@/utils/context/UserContext';
+import { KITTY_ID_TO_BREED, KITTY_IMAGES } from '@/app/(auth)/onboarding/name-kitty';
 import ActivityGraph from '@/components/ActivityGraph';
 import { WorkoutLog } from '@/types';
-import { calculateStreak, calculateKittyHealth } from '@/utils/loadStats';
+import { ProfileService } from '@/app/service/profile/ProfileService';
+import { FriendService } from '@/app/service/friend/FriendService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase, deleteSupabaseUser } from '@/utils/supabase';
+import { supabase } from '@/supabase/supabase';
+import { deleteSupabaseUser } from '@/app/repository/kitty_profiles';
 import AdoptKittyScreenComponents, { KITTY_PROFILES } from '@/components/AdoptKittyScreenComponents';
 import FancyAlert from '@/components/FancyAlert';
 
@@ -111,8 +113,7 @@ export default function ProfileScreen() {
           if (user?.id) {
             try {
               // Use the abstracted function from loadStats
-              const { loadWorkoutLogs } = await import('@/utils/loadStats');
-              loadWorkoutLogs(user, setWorkoutLogs, setWorkoutStats);
+              ProfileService.loadWorkoutLogs(user, setWorkoutLogs, setWorkoutStats);
             } catch (error) {
               console.error('Error loading workout logs:', error);
             }
@@ -131,8 +132,8 @@ export default function ProfileScreen() {
   );
   
   // Get streak and kitty health from utility functions
-  const streak = calculateStreak(workoutLogs);
-  const kittyHealth = calculateKittyHealth(workoutLogs);
+  const streak = ProfileService.calculateStreak(workoutLogs);
+  const kittyHealth = ProfileService.calculateKittyHealth(workoutLogs);
   const selectedKitty = KITTY_PROFILES[selectedKittyIndex];
 
   const stats = [
@@ -206,8 +207,7 @@ export default function ProfileScreen() {
       
       
       // Update kitty profile in Supabase for friend search
-      const { updateKittyName } = await import('@/utils/friends');
-      await updateKittyName(
+      await FriendService.updateKittyName(
         user.id,
         newKittyName.trim()
       );
@@ -251,8 +251,7 @@ export default function ProfileScreen() {
       }
       
       // Update kitty profile in Supabase for friend search
-      const { updateKittyBreed } = await import('@/utils/friends');
-      await updateKittyBreed(
+      await FriendService.updateKittyBreed(
         user.id,
         selectedKittyIndex.toString()
       );

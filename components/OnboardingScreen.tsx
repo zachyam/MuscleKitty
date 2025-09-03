@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
-import { useUser } from '@/utils/UserContext';
+import { useUser } from '@/utils/context/UserContext';
 
 // Define the content for each screen
 const SCREENS = [
@@ -57,13 +57,13 @@ const OnboardingScreen = () => {
         // Last screen, navigate to adopt kitty screen
         try {
           console.log('Last onboarding screen completed, navigating to adopt-kitty');
-          router.replace('/adopt-kitty');
+          router.replace('/(auth)/onboarding/adopt-kitty');
           return;
         } catch (error) {
           console.error('Error navigating to adopt kitty:', error);
           // As fallback, complete onboarding here and go to tabs
           completeOnboarding('1'); // Default to the first kitty (Munchkin)
-          router.replace('/(tabs)');
+          router.replace('/(main)/(tabs)');
           return;
         }
       }

@@ -22,11 +22,13 @@
     "expo-application": "~6.0.2",
     "expo-blur": "~14.0.3",
     "expo-clipboard": "~7.0.1",
+    "expo-constants": "~17.0.8",
     "expo-dev-client": "~5.0.20",
     "expo-device": "~7.0.3",
     "expo-file-system": "~18.0.12",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
+    "expo-linking": "~7.0.5",
     "expo-localization": "~16.0.1",
     "expo-router": "~4.0.22",
     "expo-splash-screen": "^0.29.21",
@@ -59,7 +61,6 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
-    "@types/react-native": "^0.72.8",
     "typescript": "^5.3.3"
   }
 }
